@@ -10,13 +10,149 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { NavBar } from "@/components/nav-bar"
 import { Switch } from "@/components/ui/switch"
+import { ToolExplanation } from "@/components/tool-explanation"
 
 export default function CsvToJsonPage() {
   return (
     <>
       <NavBar />
       <CsvToJsonTool />
+      <CsvToJsonExplanation />
     </>
+  )
+}
+
+function CsvToJsonExplanation() {
+  return (
+    <ToolExplanation
+      title="About CSV to JSON Converter"
+      description="Transform tabular data into structured JSON for modern applications"
+    >
+      <h3>What is CSV to JSON Conversion?</h3>
+      <p>
+        CSV to JSON conversion transforms tabular data from Comma-Separated Values (CSV) format into JavaScript Object
+        Notation (JSON), a lightweight data interchange format. This process converts rows and columns into a
+        structured, hierarchical format that's ideal for web applications, APIs, and modern data processing systems.
+      </p>
+
+      <h3>Why Convert CSV to JSON?</h3>
+      <ul>
+        <li>
+          <strong>API Integration:</strong> Most modern APIs expect and return JSON data, making it the standard for
+          data exchange on the web.
+        </li>
+        <li>
+          <strong>JavaScript Compatibility:</strong> JSON is native to JavaScript, making it perfect for web
+          applications and Node.js backends.
+        </li>
+        <li>
+          <strong>Rich Data Structures:</strong> JSON supports complex, nested data structures that can better represent
+          relationships than flat CSV files.
+        </li>
+        <li>
+          <strong>Data Types:</strong> JSON preserves data types (numbers, booleans, strings) that would be lost in CSV
+          format.
+        </li>
+        <li>
+          <strong>Human Readability:</strong> With proper formatting, JSON is more readable and self-describing than
+          CSV.
+        </li>
+      </ul>
+
+      <h3>How Our CSV to JSON Converter Works</h3>
+      <p>Our converter provides a powerful yet simple way to transform CSV data into JSON:</p>
+      <ul>
+        <li>
+          <strong>Header Row Processing:</strong> Uses the first row as object keys when the option is enabled, creating
+          meaningful property names.
+        </li>
+        <li>
+          <strong>Data Type Detection:</strong> Automatically detects and converts numbers, booleans, and null values to
+          their proper JSON types.
+        </li>
+        <li>
+          <strong>Multiple Delimiter Support:</strong> Handles comma, tab, and semicolon delimiters to accommodate
+          various CSV formats.
+        </li>
+        <li>
+          <strong>Quoted Field Handling:</strong> Properly processes quoted fields that may contain delimiters or
+          special characters.
+        </li>
+        <li>
+          <strong>Pretty Printing:</strong> Formats the JSON output with proper indentation for readability when the
+          option is enabled.
+        </li>
+      </ul>
+
+      <h3>Common Use Cases</h3>
+      <h4>Data Import for Web Applications</h4>
+      <p>
+        When building web applications, you often need to import data that exists in CSV format (like exported reports
+        or spreadsheets). Converting this data to JSON makes it immediately usable in JavaScript applications.
+      </p>
+
+      <h4>API Development</h4>
+      <p>
+        When developing APIs that need to consume data that exists in CSV format, converting to JSON is often a
+        necessary preprocessing step to make the data compatible with your API structure.
+      </p>
+
+      <h4>Data Transformation Pipelines</h4>
+      <p>
+        In data processing workflows, CSV to JSON conversion is often an early step in transforming legacy or exported
+        data into formats suitable for modern data processing systems.
+      </p>
+
+      <h4>Configuration Management</h4>
+      <p>
+        Converting spreadsheet-based configurations to JSON format allows them to be easily consumed by applications
+        that expect configuration in JSON format.
+      </p>
+
+      <h3>Tips for Effective CSV to JSON Conversion</h3>
+      <ul>
+        <li>
+          <strong>Use Headers:</strong> Enable the "First row as headers" option to create meaningful property names in
+          your JSON objects.
+        </li>
+        <li>
+          <strong>Choose the Right Delimiter:</strong> Make sure to select the delimiter that matches your CSV data
+          format (comma, tab, or semicolon).
+        </li>
+        <li>
+          <strong>Check for Special Characters:</strong> If your CSV contains quotes, commas, or other special
+          characters within fields, ensure they're properly quoted in the input.
+        </li>
+        <li>
+          <strong>Validate the Output:</strong> Always verify that the generated JSON correctly represents your data and
+          has the expected structure.
+        </li>
+        <li>
+          <strong>Consider Data Types:</strong> Our converter attempts to detect numbers and booleans, but you may need
+          to manually adjust some values after conversion.
+        </li>
+      </ul>
+
+      <h3>Working with the Generated JSON</h3>
+      <p>After converting your CSV to JSON, you can:</p>
+      <ul>
+        <li>
+          <strong>Use it in Web Applications:</strong> The JSON can be directly loaded into JavaScript applications
+          using
+          <code>fetch()</code> or imported as a module.
+        </li>
+        <li>
+          <strong>Store in NoSQL Databases:</strong> JSON is the native format for document databases like MongoDB or
+          CouchDB.
+        </li>
+        <li>
+          <strong>Process with Node.js:</strong> Use JavaScript/Node.js to further transform or analyze the data.
+        </li>
+        <li>
+          <strong>Send to APIs:</strong> Use the JSON as the body of API requests when integrating with other systems.
+        </li>
+      </ul>
+    </ToolExplanation>
   )
 }
 
@@ -201,7 +337,10 @@ function CsvToJsonTool() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>CSV to JSON Converter</CardTitle>
+          <CardTitle className="relative inline-block">
+            CSV to JSON Converter
+            <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-orange-400 to-teal-400 rounded-full"></div>
+          </CardTitle>
           <CardDescription>Paste your CSV data below to convert it to JSON format.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -231,11 +370,11 @@ function CsvToJsonTool() {
               </div>
 
               <div className="space-y-2 sm:space-y-0 sm:flex sm:flex-col sm:justify-end">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
                   <Switch id="first-row-headers" checked={firstRowAsHeaders} onCheckedChange={setFirstRowAsHeaders} />
                   <Label htmlFor="first-row-headers">First row as headers</Label>
                 </div>
-                <div className="flex items-center space-x-2 mt-2">
+                <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors mt-2">
                   <Switch id="pretty-print" checked={prettyPrint} onCheckedChange={setPrettyPrint} />
                   <Label htmlFor="pretty-print">Pretty print JSON</Label>
                 </div>
