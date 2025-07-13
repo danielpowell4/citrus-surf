@@ -124,13 +124,7 @@ export function EditableCell({
       e.preventDefault();
       setValue(safeInitialValue);
       dispatch(stopEditing());
-    } else if (
-      e.key === "Tab" ||
-      e.key === "ArrowRight" ||
-      e.key === "ArrowLeft" ||
-      e.key === "ArrowUp" ||
-      e.key === "ArrowDown"
-    ) {
+    } else if (e.key === "Tab") {
       e.preventDefault();
 
       // Get current row and column indices
@@ -144,51 +138,22 @@ export function EditableCell({
       let nextRowIndex = currentRowIndex;
       let nextColumnIndex = currentColumnIndex;
 
-      // Calculate next position based on key
-      if (e.key === "Tab") {
-        // Tab navigation (forward/backward)
-        if (e.shiftKey) {
-          // Move left/backward
-          if (nextColumnIndex > 0) {
-            nextColumnIndex--;
-          } else if (nextRowIndex > 0) {
-            nextRowIndex--;
-            nextColumnIndex = table.getVisibleLeafColumns().length - 1;
-          }
-        } else {
-          // Move right/forward
-          if (nextColumnIndex < table.getVisibleLeafColumns().length - 1) {
-            nextColumnIndex++;
-          } else if (nextRowIndex < table.getRowModel().rows.length - 1) {
-            nextRowIndex++;
-            nextColumnIndex = 0;
-          }
-        }
-      } else if (e.key === "ArrowRight") {
-        // Move right
-        if (nextColumnIndex < table.getVisibleLeafColumns().length - 1) {
-          nextColumnIndex++;
-        } else if (nextRowIndex < table.getRowModel().rows.length - 1) {
-          nextRowIndex++;
-          nextColumnIndex = 0;
-        }
-      } else if (e.key === "ArrowLeft") {
-        // Move left
+      // Tab navigation (forward/backward)
+      if (e.shiftKey) {
+        // Move left/backward
         if (nextColumnIndex > 0) {
           nextColumnIndex--;
         } else if (nextRowIndex > 0) {
           nextRowIndex--;
           nextColumnIndex = table.getVisibleLeafColumns().length - 1;
         }
-      } else if (e.key === "ArrowUp") {
-        // Move to previous row
-        if (nextRowIndex > 0) {
-          nextRowIndex--;
-        }
-      } else if (e.key === "ArrowDown") {
-        // Move to next row
-        if (nextRowIndex < table.getRowModel().rows.length - 1) {
+      } else {
+        // Move right/forward
+        if (nextColumnIndex < table.getVisibleLeafColumns().length - 1) {
+          nextColumnIndex++;
+        } else if (nextRowIndex < table.getRowModel().rows.length - 1) {
           nextRowIndex++;
+          nextColumnIndex = 0;
         }
       }
 
@@ -220,6 +185,7 @@ export function EditableCell({
         }
       }
     }
+    // Arrow keys are no longer handled - they work normally for text navigation
   };
 
   const handleDoubleClick = () => {
