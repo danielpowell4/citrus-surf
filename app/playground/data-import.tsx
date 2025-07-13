@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { Upload, Download, RotateCcw, FileText, Database } from "lucide-react";
+import { useState, useRef } from "react";
+import {
+  Upload,
+  Download,
+  RotateCcw,
+  FileText,
+  Database,
+  FileUp,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -143,8 +151,10 @@ export function DataImport({
 }: DataImportProps) {
   const [importData, setImportData] = useState("");
   const [importFormat, setImportFormat] = useState<"csv" | "json">("csv");
-  const [csvDelimiter, setCsvDelimiter] = useState<"tab" | "comma">("tab");
+  const [csvDelimiter, setCsvDelimiter] = useState<"tab" | "comma">("comma");
   const [hasHeaders, setHasHeaders] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImport = () => {
     if (!importData.trim()) {
@@ -166,18 +176,17 @@ export function DataImport({
         }
         parsedData = jsonData;
       } else {
-        // CSV parsing
+        // CSV/TSV parsing using selected delimiter
         const lines = importData.trim().split("\n");
         if (lines.length === 0) {
           throw new Error("No data found");
         }
-
-        const delimiter = csvDelimiter === "tab" ? "\t" : ",";
+        const delimChar = csvDelimiter === "tab" ? "\t" : ",";
         const startIndex = hasHeaders ? 1 : 0;
-        const headers = hasHeaders ? parseCsvLine(lines[0], delimiter) : [];
+        const headers = hasHeaders ? parseCsvLine(lines[0], delimChar) : [];
 
         parsedData = lines.slice(startIndex).map((line, index) => {
-          const values = parseCsvLine(line, delimiter);
+          const values = parseCsvLine(line, delimChar);
           if (hasHeaders) {
             const row: any = {};
             headers.forEach((header, i) => {
@@ -192,6 +201,7 @@ export function DataImport({
 
       onImport(parsedData);
       setImportData("");
+      setSelectedFile(null);
       toast({
         title: "Data imported successfully",
         description: `${parsedData.length} records imported`,
@@ -207,9 +217,100 @@ export function DataImport({
     }
   };
 
+  // Helper to detect delimiter
+  const detectDelimiter = (content: string): "tab" | "comma" => {
+    const firstLine = content.split("\n")[0];
+    const tabCount = (firstLine.match(/\t/g) || []).length;
+    const commaCount = (firstLine.match(/,/g) || []).length;
+    if (tabCount > commaCount) return "tab";
+    return "comma";
+  };
+
+  // Helper to detect format
+  const detectFormat = (content: string, filename?: string): "csv" | "json" => {
+    // Prefer extension if available
+    if (filename) {
+      const ext = filename.split(".").pop()?.toLowerCase();
+      if (ext === "json") return "json";
+      if (["csv", "tsv", "txt"].includes(ext || "")) return "csv";
+    }
+    // Try to parse as JSON array
+    try {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return "json";
+    } catch {}
+    // Otherwise, treat as CSV/TSV
+    return "csv";
+  };
+
+  // --- PASTE IMPORT ---
+  const handlePasteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setImportData(value);
+    // Auto-detect format
+    const detectedFormat = detectFormat(value);
+    setImportFormat(detectedFormat);
+    if (detectedFormat === "csv") {
+      const lines = value.trim().split("\n");
+      if (lines.length > 0 && lines[0].length > 0) {
+        const delimiter = detectDelimiter(lines[0]);
+        setCsvDelimiter(delimiter);
+      }
+    }
+  };
+
+  // --- FILE SELECT ---
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      try {
+        const content = await file.text();
+        // Populate textarea with file contents
+        setImportData(content);
+        // Auto-detect format
+        const detectedFormat = detectFormat(content, file.name);
+        setImportFormat(detectedFormat);
+        if (detectedFormat === "csv") {
+          const delimiter = detectDelimiter(content);
+          setCsvDelimiter(delimiter);
+        }
+        toast({
+          title: "File loaded",
+          description: `"${file.name}" loaded into textarea. You can edit the data before importing.`,
+        });
+        // Auto-clear the selected file after loading into textarea
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      } catch (error) {
+        toast({
+          title: "File read error",
+          description: "Could not read the selected file",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const parseCsvLine = (line: string, delimiter: string): string[] => {
+    // Handle empty lines
+    if (!line.trim()) {
+      return [];
+    }
+
     if (delimiter === "\t") {
-      return line.split("\t");
+      return line.split("\t").map(field => field.trim());
     }
 
     // Handle comma-delimited with quotes
@@ -228,14 +329,14 @@ export function DataImport({
           inQuotes = !inQuotes;
         }
       } else if (char === delimiter && !inQuotes) {
-        result.push(current);
+        result.push(current.trim());
         current = "";
       } else {
         current += char;
       }
     }
 
-    result.push(current);
+    result.push(current.trim());
     return result;
   };
 
@@ -245,7 +346,7 @@ export function DataImport({
     if (importFormat === "json") {
       setImportData(JSON.stringify(sampleData, null, 2));
     } else {
-      const delimiter = csvDelimiter === "tab" ? "\t" : ",";
+      const delimChar = csvDelimiter === "tab" ? "\t" : ",";
       const headers = [
         "id",
         "firstName",
@@ -259,12 +360,12 @@ export function DataImport({
 
       let csvContent = "";
       if (hasHeaders) {
-        csvContent += headers.join(delimiter) + "\n";
+        csvContent += headers.join(delimChar) + "\n";
       }
 
       csvContent += sampleData
         .map(row =>
-          headers.map(header => row[header as keyof typeof row]).join(delimiter)
+          headers.map(header => row[header as keyof typeof row]).join(delimChar)
         )
         .join("\n");
 
@@ -278,6 +379,10 @@ export function DataImport({
       title: "Input cleared",
       description: "Import data has been cleared",
     });
+  };
+
+  const getAcceptedFileTypes = () => {
+    return ".csv,.tsv,.txt,.json";
   };
 
   return (
@@ -310,7 +415,7 @@ export function DataImport({
                 <RadioGroupItem value="csv" id="csv" />
                 <Label htmlFor="csv" className="flex items-center gap-1">
                   <Database className="h-3 w-3" />
-                  CSV
+                  CSV/TSV
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -321,12 +426,15 @@ export function DataImport({
                 </Label>
               </div>
             </RadioGroup>
+            <p className="text-xs text-muted-foreground">
+              Auto-detected on paste/upload, but you can override.
+            </p>
           </div>
 
           {importFormat === "csv" && (
             <div className="space-y-2">
               <Label>CSV Options</Label>
-              <div className="space-y-2">
+              <div className="flex items-center space-x-4">
                 <RadioGroup
                   value={csvDelimiter}
                   onValueChange={value =>
@@ -335,45 +443,76 @@ export function DataImport({
                   className="flex space-x-4"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="tab" id="tab" />
-                    <Label htmlFor="tab">Tab</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="comma" id="comma" />
                     <Label htmlFor="comma">Comma</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="tab" id="tab" />
+                    <Label htmlFor="tab">Tab</Label>
+                  </div>
                 </RadioGroup>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="hasHeaders"
-                    checked={hasHeaders}
-                    onChange={e => setHasHeaders(e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <Label htmlFor="hasHeaders" className="text-sm">
-                    First row contains headers
-                  </Label>
-                </div>
+                <input
+                  type="checkbox"
+                  id="hasHeaders"
+                  checked={hasHeaders}
+                  onChange={e => setHasHeaders(e.target.checked)}
+                  className="rounded border-gray-300 ml-4"
+                />
+                <Label htmlFor="hasHeaders" className="text-sm">
+                  First row contains headers
+                </Label>
               </div>
             </div>
           )}
         </div>
 
-        {/* Data Input */}
+        {/* Data Input Section */}
         <div className="space-y-2">
-          <Label htmlFor="importData">
-            {importFormat === "json" ? "JSON Data" : "CSV Data"}
-          </Label>
+          <div className="flex items-center gap-4">
+            <Label htmlFor="importData">
+              {importFormat === "json" ? "JSON Data" : "CSV/TSV Data"}
+            </Label>
+            <input
+              ref={fileInputRef}
+              id="fileInput"
+              type="file"
+              accept={getAcceptedFileTypes()}
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2"
+              disabled={isLoading}
+            >
+              <FileUp className="h-4 w-4" />
+              Choose File
+            </Button>
+            {selectedFile && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>{selectedFile.name}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelectedFile}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
           <Textarea
             id="importData"
             placeholder={
               importFormat === "json"
                 ? 'Paste JSON array here...\n[{"id": 1, "name": "John"}, ...]'
-                : "Paste CSV data here...\nid,name,email\n1,John,john@example.com"
+                : "Paste CSV or TSV data here...\nid\tname\temail\n1\tJohn\tjohn@example.com or id,name,email\n1,John,john@example.com"
             }
             value={importData}
-            onChange={e => setImportData(e.target.value)}
+            onChange={handlePasteChange}
             className="min-h-[150px] font-mono text-sm"
             rows={6}
           />
@@ -404,6 +543,7 @@ export function DataImport({
             <FileText className="h-4 w-4" />
             Load Sample
           </Button>
+
           <Button
             variant="outline"
             onClick={onReset}

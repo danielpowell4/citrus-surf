@@ -263,6 +263,18 @@ interface TableState {
 - `setData(data)`: Replace all table data
 - `importJsonData(jsonString)`: Import JSON data with validation
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[History System](docs/history-system.md)** - Time-travel functionality and undo/redo
+- **[Export System](docs/export-system.md)** - Multi-format export with toast notifications
+- **[Import System](docs/import-system.md)** - Intelligent data import with auto-detection
+- **[Editable Cells](docs/editable-cells.md)** - Cell editing system and column types
+- **[Column Types Reference](docs/column-types-reference.md)** - Complete column configuration guide
+- **[Column Sorting](docs/column-sorting.md)** - Sorting implementation details
+- **[Column Abstraction Example](docs/column-abstraction-example.md)** - Advanced column patterns
+
 ## 🛠️ Development
 
 ### Project Structure
@@ -277,11 +289,21 @@ citrus-surf/
 │   └── tools/              # Other data tools
 ├── lib/
 │   ├── features/
-│   │   └── tableSlice.ts   # Redux table slice
+│   │   ├── tableSlice.ts   # Redux table slice
+│   │   └── historySlice.ts # History management
+│   ├── utils/
+│   │   ├── csv-export.ts   # CSV export utilities
+│   │   └── time-travel.ts  # History restoration
 │   ├── store.ts            # Redux store configuration
 │   └── hooks.ts            # Redux hooks
-└── components/
-    └── ui/                 # shadcn/ui components
+├── components/
+│   ├── export-dropdown.tsx # Export functionality
+│   ├── compact-history.tsx # History UI component
+│   └── ui/                 # shadcn/ui components
+└── docs/                   # Documentation
+    ├── export-system.md    # Export system guide
+    ├── history-system.md   # History system guide
+    └── ...                 # Other documentation
 ```
 
 ### Adding New Column Types

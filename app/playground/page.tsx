@@ -377,7 +377,7 @@ export default function PlaygroundPage() {
             <CardTitle>
               Data Table ({table.getFilteredRowModel().rows.length} rows)
             </CardTitle>
-            <CompactHistory />
+            {/* <CompactHistory /> */}
           </div>
           <p className="text-sm text-muted-foreground">
             Double-click any cell to edit. Press Enter to save or Escape to

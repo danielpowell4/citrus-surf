@@ -5,8 +5,8 @@ import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
-const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_LIMIT = 5;
+const TOAST_REMOVE_DELAY = 120 * 1000;
 
 type ToasterToast = ToastProps & {
   id: string;
@@ -155,7 +155,7 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
-      onOpenChange: open => {
+      onOpenChange: (open: boolean) => {
         if (!open) dismiss();
       },
     },
@@ -179,7 +179,7 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, []); // Remove state dependency - this was causing issues
 
   return {
     ...state,
