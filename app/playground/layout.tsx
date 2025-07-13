@@ -33,7 +33,16 @@ export default function PlaygroundLayout({
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-3xl font-bold">Citrus Surf Importer</h1>
+              <h1 className="text-3xl font-bold">
+                <span
+                  role="img"
+                  aria-label="Citrus Surf logo"
+                  className="inline-block"
+                >
+                  🍋
+                </span>{" "}
+                Citrus Surf Importer
+              </h1>
               <Badge
                 variant="secondary"
                 className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-200 dark:border-orange-800"
@@ -42,6 +51,10 @@ export default function PlaygroundLayout({
                 Beta
               </Badge>
             </div>
+            <blockquote className="text-base text-muted-foreground max-w-[600px] border-l-4 border-primary/30 pl-4 py-2 italic mt-2">
+              "Stop writing one-off CSV cleaning scripts. Upload, map, clean,
+              validate, and export structured data fast."
+            </blockquote>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
