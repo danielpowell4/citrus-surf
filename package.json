@@ -10,6 +10,7 @@
     "@radix-ui/react-switch": "latest",
     "@radix-ui/react-tabs": "latest",
     "@radix-ui/react-toast": "latest",
+    "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/typography": "latest",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
@@ -20,6 +21,7 @@
     "next-themes": "latest",
     "react": "^19",
     "react-dom": "^19",
+    "react-redux": "^9.2.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -32,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
     "postcss": "^8.5",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   },
@@ -39,6 +42,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   }
 }

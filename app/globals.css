@@ -52,14 +52,17 @@
 @layer base {
   * {
     @apply border-border;
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 
   /* Ensure proper theme transitions */

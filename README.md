@@ -33,7 +33,7 @@ This project uses **Tailwind CSS v3.4.17** (stable) rather than v4 (alpha) for b
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (recommended) or npm
 
 ### Installation
@@ -60,6 +60,20 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 pnpm build
 pnpm start
 ```
+
+### Code Formatting
+
+This project uses Prettier for consistent code formatting. The following commands are available:
+
+```bash
+# Format all files
+pnpm format
+
+# Check if files are formatted (useful for CI)
+pnpm format:check
+```
+
+**Auto-format on save is enabled** when using VS Code with the Prettier extension.
 
 ## Available Tools
 
