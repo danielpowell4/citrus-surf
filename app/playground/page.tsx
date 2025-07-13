@@ -26,6 +26,7 @@ import {
   setExpanded,
   setPagination,
   setImportData,
+  setData,
   importJsonData,
   resetData,
 } from "@/lib/features/tableSlice";
@@ -47,7 +48,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import {
   ChevronDown,
   ChevronRight,
@@ -58,6 +58,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { DataImport } from "./data-import";
 
 // Import the Person type from the slice
 import type { Person } from "@/lib/features/tableSlice";
@@ -195,12 +196,6 @@ export default function PlaygroundPage() {
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  const handleImport = () => {
-    if (importData.trim()) {
-      dispatch(importJsonData(importData));
-    }
-  };
-
   const handleReset = () => {
     dispatch(resetData());
   };
@@ -234,30 +229,14 @@ export default function PlaygroundPage() {
       </div>
 
       {/* Import Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Import Data
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="Paste JSON data here..."
-            value={importData}
-            onChange={e => dispatch(setImportData(e.target.value))}
-            rows={4}
-          />
-          <div className="flex items-center gap-2">
-            <Button onClick={handleImport} disabled={!importData.trim()}>
-              Import JSON
-            </Button>
-            <Button variant="outline" onClick={handleReset}>
-              Reset to Sample Data
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <DataImport
+        onImport={data => dispatch(setData(data))}
+        onReset={handleReset}
+        onExport={handleExport}
+        dataCount={data.length}
+        isLoading={isLoading}
+        error={error}
+      />
 
       {/* Table */}
       <Card>
