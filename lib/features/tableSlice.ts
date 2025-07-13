@@ -278,6 +278,20 @@ export const tableSlice = createSlice({
     stopEditing: state => {
       state.editingCell = null;
     },
+
+    // History restoration action
+    restoreFromHistory: (
+      state,
+      action: PayloadAction<{
+        restoredFrom: number;
+        restoredFromAction: string;
+        [key: string]: any;
+      }>
+    ) => {
+      // This action is used to mark when a state is restored from history
+      // The actual state restoration is handled by the time travel utility
+      // This just ensures the action is tracked in the history
+    },
   },
 });
 
@@ -301,6 +315,7 @@ export const {
   updateCell,
   startEditing,
   stopEditing,
+  restoreFromHistory,
 } = tableSlice.actions;
 
 export default tableSlice.reducer;

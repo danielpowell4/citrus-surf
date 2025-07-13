@@ -25,10 +25,10 @@ import {
   setGrouping,
   setExpanded,
   setPagination,
-  setImportData,
   setData,
   importJsonData,
   resetData,
+  updateCell,
 } from "@/lib/features/tableSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,24 +47,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  ChevronDown,
-  ChevronRight,
-  Download,
-  Upload,
-  Filter,
-  Settings,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { DataImport } from "./data-import";
-import { EditableCell } from "./editable-cell";
-import { SortableHeader } from "@/components/ui/sortable-header";
 import {
   transformColumns,
   type SimpleColumnDef,
 } from "@/lib/utils/column-transformer";
+import { CompactHistory } from "@/components/compact-history";
 
 // Import the Person type from the slice
 import type { Person } from "@/lib/features/tableSlice";
@@ -392,9 +381,12 @@ export default function PlaygroundPage() {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Data Table ({table.getFilteredRowModel().rows.length} rows)
-          </CardTitle>
+          <div className="flex items-center justify-between mb-2">
+            <CardTitle>
+              Data Table ({table.getFilteredRowModel().rows.length} rows)
+            </CardTitle>
+            <CompactHistory />
+          </div>
           <p className="text-sm text-muted-foreground">
             Double-click any cell to edit. Press Enter to save or Escape to
             cancel. Click column headers to sort. Hold Shift to multi-sort.
