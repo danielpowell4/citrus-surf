@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 interface DataImportProps {
   onImport: (data: any[]) => void;
   onReset: () => void;
-  onExport: () => void;
+  onExport?: () => void;
   dataCount: number;
   isLoading?: boolean;
   error?: string | null;
@@ -412,7 +412,7 @@ export function DataImport({
             <RotateCcw className="h-4 w-4" />
             Reset Data
           </Button>
-          {dataCount > 0 && (
+          {dataCount > 0 && onExport && (
             <Button
               variant="outline"
               onClick={onExport}

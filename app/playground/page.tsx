@@ -30,6 +30,7 @@ import {
   resetData,
   updateCell,
 } from "@/lib/features/tableSlice";
+import { selectCurrentIndex } from "@/lib/features/historySlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,13 +48,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { DataImport } from "./data-import";
 import {
   transformColumns,
   type SimpleColumnDef,
 } from "@/lib/utils/column-transformer";
 import { CompactHistory } from "@/components/compact-history";
+import { ExportDropdown } from "@/components/export-dropdown";
 
 // Import the Person type from the slice
 import type { Person } from "@/lib/features/tableSlice";
@@ -61,6 +63,8 @@ import type { Person } from "@/lib/features/tableSlice";
 export default function PlaygroundPage() {
   const dispatch = useAppDispatch();
   const tableState = useAppSelector(state => state.table);
+  const currentIndex = useAppSelector(selectCurrentIndex);
+  const currentVersion = currentIndex + 1; // Convert to 1-indexed version number
 
   const {
     data,
@@ -343,17 +347,6 @@ export default function PlaygroundPage() {
     dispatch(resetData());
   };
 
-  const handleExport = () => {
-    const jsonString = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "table-data.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -372,7 +365,6 @@ export default function PlaygroundPage() {
       <DataImport
         onImport={data => dispatch(setData(data))}
         onReset={handleReset}
-        onExport={handleExport}
         dataCount={data.length}
         isLoading={isLoading}
         error={error}
@@ -406,10 +398,11 @@ export default function PlaygroundPage() {
               />
             </div>
             <div className="flex items-center gap-2 ml-auto">
-              <Button onClick={handleExport} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+              <ExportDropdown
+                data={data}
+                currentVersion={currentVersion}
+                disabled={data.length === 0}
+              />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
