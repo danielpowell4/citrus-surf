@@ -105,11 +105,13 @@ interface TableState {
   importData: string;
   isLoading: boolean;
   error: string | null;
+  // Add edit state tracking
+  editingCell: { rowId: string; columnId: keyof Person } | null;
 }
 
 const initialState: TableState = {
   data: defaultData,
-  sorting: [],
+  sorting: [{ id: "id", desc: false }], // Default sort by import order (id)
   columnFilters: [],
   columnVisibility: {},
   rowSelection: {},
@@ -123,6 +125,7 @@ const initialState: TableState = {
   importData: "",
   isLoading: false,
   error: null,
+  editingCell: null,
 };
 
 export const tableSlice = createSlice({
@@ -142,6 +145,44 @@ export const tableSlice = createSlice({
     // Table state management
     setSorting: (state, action: PayloadAction<SortingState>) => {
       state.sorting = action.payload;
+    },
+    toggleColumnSort: (
+      state,
+      action: PayloadAction<{ columnId: string; shiftKey?: boolean }>
+    ) => {
+      const { columnId, shiftKey = false } = action.payload;
+      const currentSort = state.sorting.find(sort => sort.id === columnId);
+
+      if (shiftKey) {
+        // Multi-column sort: add to existing sorts
+        if (currentSort) {
+          // Cycle through: asc -> desc -> remove
+          if (currentSort.desc) {
+            // Remove from sorting
+            state.sorting = state.sorting.filter(sort => sort.id !== columnId);
+          } else {
+            // Change to desc
+            currentSort.desc = true;
+          }
+        } else {
+          // Add as last sort (append to end)
+          state.sorting = [...state.sorting, { id: columnId, desc: false }];
+        }
+      } else {
+        // Single column sort: replace all sorts
+        if (currentSort) {
+          if (currentSort.desc) {
+            // Remove from sorting, fall back to default
+            state.sorting = [{ id: "id", desc: false }];
+          } else {
+            // Change to desc
+            state.sorting = [{ id: columnId, desc: true }];
+          }
+        } else {
+          // Add as only sort
+          state.sorting = [{ id: columnId, desc: false }];
+        }
+      }
     },
     setColumnFilters: (state, action: PayloadAction<ColumnFiltersState>) => {
       state.columnFilters = action.payload;
@@ -204,6 +245,39 @@ export const tableSlice = createSlice({
         state.isLoading = false;
       }
     },
+
+    // Cell editing
+    updateCell: (
+      state,
+      action: PayloadAction<{
+        rowId: string;
+        columnId: keyof Person;
+        value: any;
+      }>
+    ) => {
+      const { rowId, columnId, value } = action.payload;
+      const rowIndex = state.data.findIndex(row => row.id === rowId);
+      if (rowIndex !== -1) {
+        (state.data[rowIndex] as any)[columnId] = value;
+      }
+      // Clear editing state when cell is updated
+      state.editingCell = null;
+    },
+
+    // Edit state management
+    startEditing: (
+      state,
+      action: PayloadAction<{
+        rowId: string;
+        columnId: keyof Person;
+      }>
+    ) => {
+      state.editingCell = action.payload;
+    },
+
+    stopEditing: state => {
+      state.editingCell = null;
+    },
   },
 });
 
@@ -211,6 +285,7 @@ export const {
   setData,
   resetData,
   setSorting,
+  toggleColumnSort,
   setColumnFilters,
   setColumnVisibility,
   setRowSelection,
@@ -223,6 +298,9 @@ export const {
   setLoading,
   setError,
   importJsonData,
+  updateCell,
+  startEditing,
+  stopEditing,
 } = tableSlice.actions;
 
 export default tableSlice.reducer;

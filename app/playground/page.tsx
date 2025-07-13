@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,12 +12,12 @@ import {
   getFacetedRowModel,
   getFacetedUniqueValues,
   flexRender,
-  createColumnHelper,
   type ColumnDef,
 } from "@tanstack/react-table";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import {
   setSorting,
+  toggleColumnSort,
   setColumnFilters,
   setColumnVisibility,
   setRowSelection,
@@ -59,64 +59,20 @@ import {
   EyeOff,
 } from "lucide-react";
 import { DataImport } from "./data-import";
+import { EditableCell } from "./editable-cell";
+import { SortableHeader } from "@/components/ui/sortable-header";
+import {
+  transformColumns,
+  type SimpleColumnDef,
+} from "@/lib/utils/column-transformer";
 
 // Import the Person type from the slice
 import type { Person } from "@/lib/features/tableSlice";
 
-const columnHelper = createColumnHelper<Person>();
-
-const columns = [
-  columnHelper.accessor("firstName", {
-    header: "First Name",
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor("lastName", {
-    header: "Last Name",
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor("age", {
-    header: "Age",
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor("email", {
-    header: "Email",
-    cell: info => info.getValue(),
-  }),
-  columnHelper.accessor("department", {
-    header: "Department",
-    cell: info => <Badge variant="secondary">{info.getValue()}</Badge>,
-  }),
-  columnHelper.accessor("status", {
-    header: "Status",
-    cell: info => (
-      <Badge variant={info.getValue() === "Active" ? "default" : "destructive"}>
-        {info.getValue()}
-      </Badge>
-    ),
-  }),
-  columnHelper.accessor("progress", {
-    header: "Progress",
-    cell: info => (
-      <div className="w-full bg-secondary rounded-full h-2">
-        <div
-          className="bg-primary h-2 rounded-full"
-          style={{ width: `${info.getValue()}%` }}
-        />
-      </div>
-    ),
-  }),
-  columnHelper.accessor("salary", {
-    header: "Salary",
-    cell: info => `$${info.getValue().toLocaleString()}`,
-  }),
-  columnHelper.accessor("visits", {
-    header: "Visits",
-    cell: info => info.getValue(),
-  }),
-];
-
 export default function PlaygroundPage() {
   const dispatch = useAppDispatch();
+  const tableState = useAppSelector(state => state.table);
+
   const {
     data,
     sorting,
@@ -130,7 +86,235 @@ export default function PlaygroundPage() {
     importData,
     isLoading,
     error,
-  } = useAppSelector(state => state.table);
+    editingCell = null, // Add fallback value
+  } = tableState;
+
+  // Safe access to editingCell
+  const currentEditingCell = tableState?.editingCell || null;
+
+  // Define simplified column definitions
+  const simpleColumns: SimpleColumnDef<Person>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+      size: 60,
+      meta: { sortable: true, editable: false },
+    },
+    {
+      accessorKey: "firstName",
+      header: "First Name",
+      meta: {
+        editable: {
+          type: "text",
+          placeholder: "Enter first name",
+          maxLength: 50,
+        },
+      },
+    },
+    {
+      accessorKey: "lastName",
+      header: "Last Name",
+      meta: {
+        editable: {
+          type: "text",
+          placeholder: "Enter last name",
+          maxLength: 50,
+        },
+      },
+    },
+    {
+      accessorKey: "age",
+      header: "Age",
+      size: 80,
+      meta: {
+        editable: {
+          type: "number",
+          min: 18,
+          max: 100,
+          precision: "integer",
+        },
+      },
+    },
+    {
+      accessorKey: "visits",
+      header: "Visits",
+      size: 80,
+      meta: {
+        editable: {
+          type: "number",
+          min: 0,
+          max: 1000,
+          precision: "integer",
+        },
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      size: 100,
+      meta: {
+        editable: {
+          type: "select",
+          options: [
+            { value: "Active", label: "Active" },
+            { value: "Inactive", label: "Inactive" },
+          ],
+        },
+      },
+    },
+    {
+      accessorKey: "progress",
+      header: "Progress",
+      size: 120,
+      cell: info => (
+        <div className="w-full bg-secondary rounded-full h-2">
+          <div
+            className="bg-primary h-2 rounded-full"
+            style={{ width: `${info.getValue()}%` }}
+          />
+        </div>
+      ),
+      meta: {
+        editable: false,
+      },
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      meta: {
+        editable: {
+          type: "text",
+          placeholder: "Enter email address",
+          maxLength: 100,
+        },
+      },
+    },
+    {
+      accessorKey: "department",
+      header: "Department",
+      meta: {
+        editable: {
+          type: "select",
+          options: [
+            { value: "Engineering", label: "Engineering" },
+            { value: "Marketing", label: "Marketing" },
+            { value: "Sales", label: "Sales" },
+            { value: "HR", label: "HR" },
+            { value: "Finance", label: "Finance" },
+            { value: "Operations", label: "Operations" },
+          ],
+        },
+      },
+    },
+    {
+      accessorKey: "salary",
+      header: "Salary",
+      size: 120,
+      meta: {
+        editable: {
+          type: "currency",
+          currency: "USD",
+          min: 0,
+          precision: "integer",
+        },
+      },
+    },
+    {
+      accessorKey: "startDate",
+      header: "Start Date",
+      size: 120,
+      meta: {
+        editable: {
+          type: "date",
+          format: "MM/DD/YYYY",
+        },
+      },
+    },
+  ];
+
+  // Transform simple columns to TanStack table columns
+  const columns = useMemo<ColumnDef<Person>[]>(
+    () =>
+      transformColumns(
+        simpleColumns,
+        payload => dispatch(toggleColumnSort(payload)),
+        sorting
+      ),
+    [dispatch, sorting]
+  );
+
+  // Memoize change handlers to prevent unnecessary re-renders
+  const onRowSelectionChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(rowSelection) : updater;
+      dispatch(setRowSelection(newValue));
+    },
+    [dispatch, rowSelection]
+  );
+
+  const onSortingChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(sorting) : updater;
+      dispatch(setSorting(newValue));
+    },
+    [dispatch, sorting]
+  );
+
+  const onColumnFiltersChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(columnFilters) : updater;
+      dispatch(setColumnFilters(newValue));
+    },
+    [dispatch, columnFilters]
+  );
+
+  const onColumnVisibilityChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(columnVisibility) : updater;
+      dispatch(setColumnVisibility(newValue));
+    },
+    [dispatch, columnVisibility]
+  );
+
+  const onGlobalFilterChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(globalFilter) : updater;
+      dispatch(setGlobalFilter(newValue));
+    },
+    [dispatch, globalFilter]
+  );
+
+  const onGroupingChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(grouping) : updater;
+      dispatch(setGrouping(newValue));
+    },
+    [dispatch, grouping]
+  );
+
+  const onExpandedChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(expanded) : updater;
+      dispatch(setExpanded(newValue));
+    },
+    [dispatch, expanded]
+  );
+
+  const onPaginationChange = useCallback(
+    (updater: any) => {
+      const newValue =
+        typeof updater === "function" ? updater(pagination) : updater;
+      dispatch(setPagination(newValue));
+    },
+    [dispatch, pagination]
+  );
 
   const table = useReactTable({
     data,
@@ -146,46 +330,16 @@ export default function PlaygroundPage() {
       pagination,
     },
     enableRowSelection: true,
-    onRowSelectionChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(rowSelection) : updater;
-      dispatch(setRowSelection(newValue));
-    },
-    onSortingChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(sorting) : updater;
-      dispatch(setSorting(newValue));
-    },
-    onColumnFiltersChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(columnFilters) : updater;
-      dispatch(setColumnFilters(newValue));
-    },
-    onColumnVisibilityChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(columnVisibility) : updater;
-      dispatch(setColumnVisibility(newValue));
-    },
-    onGlobalFilterChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(globalFilter) : updater;
-      dispatch(setGlobalFilter(newValue));
-    },
-    onGroupingChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(grouping) : updater;
-      dispatch(setGrouping(newValue));
-    },
-    onExpandedChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(expanded) : updater;
-      dispatch(setExpanded(newValue));
-    },
-    onPaginationChange: updater => {
-      const newValue =
-        typeof updater === "function" ? updater(pagination) : updater;
-      dispatch(setPagination(newValue));
-    },
+    enableSorting: true,
+    enableMultiSort: true,
+    onRowSelectionChange,
+    onSortingChange,
+    onColumnFiltersChange,
+    onColumnVisibilityChange,
+    onGlobalFilterChange,
+    onGroupingChange,
+    onExpandedChange,
+    onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -221,10 +375,7 @@ export default function PlaygroundPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleExport} variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+          {/* Export button moved to table settings */}
         </div>
       </div>
 
@@ -244,6 +395,10 @@ export default function PlaygroundPage() {
           <CardTitle>
             Data Table ({table.getFilteredRowModel().rows.length} rows)
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Double-click any cell to edit. Press Enter to save or Escape to
+            cancel. Click column headers to sort. Hold Shift to multi-sort.
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Table Controls */}
@@ -258,33 +413,39 @@ export default function PlaygroundPage() {
                 className="max-w-sm"
               />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Columns
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter(column => column.getCanHide())
-                  .map(column => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={value =>
-                          column.toggleVisibility(!!value)
-                        }
-                      >
-                        {column.id}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2 ml-auto">
+              <Button onClick={handleExport} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Columns
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {table
+                    .getAllColumns()
+                    .filter(column => column.getCanHide())
+                    .map(column => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onCheckedChange={value =>
+                            column.toggleVisibility(!!value)
+                          }
+                        >
+                          {column.id}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Table */}
@@ -314,6 +475,11 @@ export default function PlaygroundPage() {
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
+                      className={
+                        currentEditingCell?.rowId === row.original.id
+                          ? "bg-primary/5 ring-1 ring-primary/20"
+                          : ""
+                      }
                     >
                       {row.getVisibleCells().map(cell => (
                         <TableCell key={cell.id}>

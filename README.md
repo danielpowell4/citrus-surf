@@ -1,118 +1,341 @@
-# Citrus Surf
+# Citrus Surf - Data Tools Portal
 
-A collection of simple, powerful tools to help you work with your data more efficiently. Built with Next.js and Tailwind CSS.
+A comprehensive collection of data manipulation tools built with Next.js, TanStack Table, and Redux Toolkit.
 
-## About This Project
+## 🎯 Features
 
-This project was originally generated using [v0.dev](https://v0.dev) and has been transitioned to a human-powered development workflow. It includes various data transformation tools like CSV to JSON, JSON diffing, SQL generation, and more.
+- **TanStack Table Playground**: Interactive table with editable cells, import/export, and advanced features
+- **Data Import/Export**: Support for JSON and CSV formats
+- **Editable Cells**: Configurable cell editing with multiple input types
+- **Redux State Management**: Centralized state management with per-request stores
+- **Modern UI**: Built with shadcn/ui components and Tailwind CSS
 
-## Tech Stack
-
-- **Framework**: [Next.js 15](https://nextjs.org/) with App Router
-- **Styling**: [Tailwind CSS 3.4](https://tailwindcss.com/) with custom design system
-- **UI Components**: [Radix UI](https://www.radix-ui.com/) primitives
-- **Theme**: Dark/light mode support with [next-themes](https://github.com/pacocoursey/next-themes)
-- **Package Manager**: [pnpm](https://pnpm.io/)
-
-## Tailwind CSS Setup
-
-This project uses **Tailwind CSS v3.4.17** (stable) rather than v4 (alpha) for better stability and full `@apply` directive support. The configuration includes:
-
-- Custom CSS variables for theming (light/dark mode)
-- Full `@apply` directive support for all utilities
-- Custom scrollbar styling
-- Typography plugin for rich text content
-
-### Key Configuration Files
-
-- `tailwind.config.ts` - Main configuration with custom colors and theme
-- `postcss.config.mjs` - PostCSS setup with Tailwind and Autoprefixer
-- `app/globals.css` - Global styles with CSS variables and custom utilities
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm (recommended) or npm
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-
-### Development
-
-Run the development server:
+## 🚀 Getting Started
 
 ```bash
-pnpm dev
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📊 Editable Cell System
 
-### Building for Production
+The playground features a powerful editable cell system that supports multiple column types with rich configuration options.
 
-```bash
-pnpm build
-pnpm start
+### Supported Column Types
+
+#### 1. Text (`type: 'text'`)
+
+Basic text input with optional constraints.
+
+```typescript
+meta: {
+  editable: {
+    type: 'text',
+    placeholder?: string,    // Placeholder text
+    maxLength?: number       // Maximum character limit
+  }
+}
 ```
 
-### Code Formatting
+**Example:**
 
-This project uses Prettier for consistent code formatting. The following commands are available:
-
-```bash
-# Format all files
-pnpm format
-
-# Check if files are formatted (useful for CI)
-pnpm format:check
+```typescript
+{
+  accessorKey: "firstName",
+  header: "First Name",
+  meta: {
+    editable: {
+      type: 'text',
+      placeholder: 'Enter first name',
+      maxLength: 50
+    }
+  }
+}
 ```
 
-**Auto-format on save is enabled** when using VS Code with the Prettier extension.
+#### 2. Number (`type: 'number'`)
 
-## Available Tools
+Numeric input with precision control and validation.
 
-- **CSV to JSON** - Convert CSV data to JSON format
-- **JSON Diff** - Compare and visualize differences between JSON objects
-- **JSON to CSV** - Convert JSON data to CSV format
-- **JSON to SQL** - Generate SQL INSERT statements from JSON data
-- **Slugify** - Convert text to URL-friendly slugs
-- **Spreadsheet to SQL Values** - Convert spreadsheet data to SQL VALUES format
+```typescript
+meta: {
+  editable: {
+    type: 'number',
+    min?: number,                    // Minimum value
+    max?: number,                    // Maximum value
+    step?: number,                   // Step increment
+    precision?: 'integer' | 'float', // Number precision
+    decimalPlaces?: number           // Decimal places for display
+  }
+}
+```
 
-## Development Notes
+**Examples:**
 
-### Transition from v0.dev
+```typescript
+// Integer only
+{
+  meta: {
+    editable: {
+      type: 'number',
+      min: 18,
+      max: 100,
+      precision: 'integer'
+    }
+  }
+}
 
-This project was originally generated using v0.dev and has been manually enhanced with:
+// Float with 2 decimal places
+{
+  meta: {
+    editable: {
+      type: 'number',
+      precision: 'float',
+      decimalPlaces: 2
+    }
+  }
+}
+```
 
-- Improved TypeScript types and error handling
-- Enhanced UI/UX with better accessibility
-- Additional data transformation tools
-- Custom styling and theming
-- Performance optimizations
+#### 3. Currency (`type: 'currency'`)
 
-### Tailwind CSS Migration
+Currency input with formatting and validation.
 
-The project was migrated from Tailwind CSS v4 (alpha) to v3.4 (stable) to ensure:
+```typescript
+meta: {
+  editable: {
+    type: 'currency',
+    currency?: 'USD' | 'EUR' | 'GBP', // Currency type
+    min?: number,                      // Minimum value
+    max?: number,                      // Maximum value
+    step?: number,                     // Step increment
+    precision?: 'integer' | 'float',   // Number precision
+    decimalPlaces?: number             // Decimal places for display
+  }
+}
+```
 
-- Full `@apply` directive support
-- Better stability and documentation
-- Compatibility with existing v0.dev generated code
-- Production-ready reliability
+**Example:**
 
-## Learn More
+```typescript
+{
+  accessorKey: "salary",
+  header: "Salary",
+  meta: {
+    editable: {
+      type: 'currency',
+      currency: 'USD',
+      min: 0,
+      precision: 'integer'
+    }
+  }
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Radix UI Documentation](https://www.radix-ui.com/docs)
+#### 4. Date (`type: 'date'`)
 
-## Deployment
+Date input with format control and range validation.
 
-The easiest way to deploy is using [Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
+```typescript
+meta: {
+  editable: {
+    type: 'date',
+    format?: 'YYYY-MM-DD' | 'MM/DD/YYYY' | 'DD/MM/YYYY', // Display format
+    min?: string,  // Minimum date (YYYY-MM-DD)
+    max?: string   // Maximum date (YYYY-MM-DD)
+  }
+}
+```
 
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Example:**
+
+```typescript
+{
+  accessorKey: "startDate",
+  header: "Start Date",
+  meta: {
+    editable: {
+      type: 'date',
+      format: 'MM/DD/YYYY'
+    }
+  }
+}
+```
+
+#### 5. Select (`type: 'select'`)
+
+Dropdown selection with predefined options.
+
+```typescript
+meta: {
+  editable: {
+    type: 'select',
+    options: Array<{ value: string; label: string }> // Available options
+  }
+}
+```
+
+**Example:**
+
+```typescript
+{
+  accessorKey: "department",
+  header: "Department",
+  meta: {
+    editable: {
+      type: 'select',
+      options: [
+        { value: 'Engineering', label: 'Engineering' },
+        { value: 'Marketing', label: 'Marketing' },
+        { value: 'Sales', label: 'Sales' }
+      ]
+    }
+  }
+}
+```
+
+### Non-Editable Columns
+
+To make a column non-editable, set `editable: false`:
+
+```typescript
+meta: {
+  editable: false;
+}
+```
+
+## 🎮 Usage
+
+### Editing Cells
+
+- **Double-click** any editable cell to enter edit mode
+- **Press Enter** to save changes
+- **Press Escape** to cancel editing
+- **Click outside** the cell to save changes
+
+### Visual Feedback
+
+- Editing cells show a ring border and background color
+- Toast notifications appear when entering edit mode
+- Debug panel shows current edit state
+
+### Keyboard Shortcuts
+
+- `Enter`: Save changes and exit edit mode
+- `Escape`: Cancel editing and revert changes
+- `Tab`: Navigate between cells (when supported)
+
+## 🔧 Redux State Management
+
+The table uses Redux Toolkit for state management with the following features:
+
+### State Structure
+
+```typescript
+interface TableState {
+  data: Person[];
+  sorting: SortingState;
+  columnFilters: ColumnFiltersState;
+  columnVisibility: VisibilityState;
+  rowSelection: Record<string, boolean>;
+  globalFilter: string;
+  grouping: GroupingState;
+  expanded: ExpandedState;
+  pagination: PaginationState;
+  importData: string;
+  isLoading: boolean;
+  error: string | null;
+  editingCell: { rowId: string; columnId: keyof Person } | null;
+}
+```
+
+### Key Actions
+
+- `startEditing({ rowId, columnId })`: Start editing a cell
+- `stopEditing()`: Stop editing current cell
+- `updateCell({ rowId, columnId, value })`: Update cell value
+- `setData(data)`: Replace all table data
+- `importJsonData(jsonString)`: Import JSON data with validation
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+citrus-surf/
+├── app/
+│   ├── playground/          # TanStack Table playground
+│   │   ├── page.tsx        # Main playground page
+│   │   ├── editable-cell.tsx # Editable cell component
+│   │   └── data-import.tsx # Data import component
+│   └── tools/              # Other data tools
+├── lib/
+│   ├── features/
+│   │   └── tableSlice.ts   # Redux table slice
+│   ├── store.ts            # Redux store configuration
+│   └── hooks.ts            # Redux hooks
+└── components/
+    └── ui/                 # shadcn/ui components
+```
+
+### Adding New Column Types
+
+1. **Define the interface** in `editable-cell.tsx`:
+
+```typescript
+interface NewColumnConfig extends BaseColumnConfig {
+  type: "newType";
+  // Add your configuration options
+}
+```
+
+2. **Add to the union type**:
+
+```typescript
+type ColumnConfig = TextColumnConfig | NumberColumnConfig | ... | NewColumnConfig;
+```
+
+3. **Implement rendering logic** in `renderInput()` and `renderDisplay()` functions.
+
+4. **Add formatting helpers** if needed.
+
+### Styling
+
+The project uses Tailwind CSS with a custom color scheme defined in `app/globals.css`. The editable cells use consistent styling with hover states and focus indicators.
+
+## 📝 License
+
+MIT License - see LICENSE file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Invalid hook call error**: Ensure hooks are called inside function components
+2. **TypeScript errors**: Check that column configurations match the defined interfaces
+3. **Redux state not updating**: Verify that actions are properly dispatched
+4. **Cell not editable**: Check that `meta.editable` is not set to `false`
+
+### Debug Mode
+
+The playground includes a debug panel that shows:
+
+- Current edit state
+- Redux state information
+- Error messages
+
+Enable debug logging by uncommenting the console.log statements in the playground page.
