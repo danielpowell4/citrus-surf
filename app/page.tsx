@@ -237,10 +237,9 @@ function HomePage() {
                   Beta
                 </Badge>
               </div>
-              <CardDescription className="text-lg max-w-[600px] mx-auto">
-                A powerful, interactive table environment for data exploration,
-                editing, and transformation. Import CSV/JSON data, edit cells
-                inline, and export in multiple formats.
+              <CardDescription className="text-lg max-w-[600px] mx-auto mb-4">
+                Stop writing one-off CSV cleaning scripts. Upload, map, clean,
+                validate, and export structured data fast.
               </CardDescription>
             </CardHeader>
             <CardFooter className="flex justify-center pt-4">
