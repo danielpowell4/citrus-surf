@@ -8,6 +8,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -17,6 +18,8 @@ import {
   Table,
   GitCompare,
   Code,
+  Play,
+  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -214,6 +217,46 @@ function HomePage() {
             </Button>
           </CardFooter>
         </Card>
+      </div>
+
+      {/* Featured Playground Section */}
+      <div className="mt-16 mb-16">
+        <div className="relative">
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 hover:shadow-xl transition-all duration-300">
+            <CardHeader className="text-center pb-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Play className="h-8 w-8 text-primary" />
+                <CardTitle className="text-2xl">
+                  Interactive Data Playground
+                </CardTitle>
+                <Badge
+                  variant="secondary"
+                  className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-200 dark:border-orange-800"
+                >
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Beta
+                </Badge>
+              </div>
+              <CardDescription className="text-lg max-w-[600px] mx-auto">
+                A powerful, interactive table environment for data exploration,
+                editing, and transformation. Import CSV/JSON data, edit cells
+                inline, and export in multiple formats.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter className="flex justify-center pt-4">
+              <Button
+                asChild
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Link href="/playground" className="flex items-center gap-2">
+                  Launch Playground
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
 
       <div className="mt-16 text-center">

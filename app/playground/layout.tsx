@@ -2,8 +2,9 @@
 
 import type React from "react";
 import Link from "next/link";
-import { Home, Maximize2, Minimize2 } from "lucide-react";
+import { Home, Maximize2, Minimize2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import StoreProvider from "@/lib/providers";
 import { useLocalStorage } from "usehooks-ts";
@@ -30,7 +31,18 @@ export default function PlaygroundLayout({
         }}
       >
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Playground</h1>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-3xl font-bold">Citrus Surf Importer</h1>
+              <Badge
+                variant="secondary"
+                className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-200 dark:border-orange-800"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                Beta
+              </Badge>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button

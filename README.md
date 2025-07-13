@@ -4,7 +4,7 @@ A comprehensive collection of data manipulation tools built with Next.js, TanSta
 
 ## 🎯 Features
 
-- **TanStack Table Playground**: Interactive table with editable cells, import/export, and advanced features
+- **Citrus Surf Importer**: Interactive table with editable cells, import/export, and advanced features
 - **Data Import/Export**: Support for JSON and CSV formats
 - **Editable Cells**: Configurable cell editing with multiple input types
 - **Redux State Management**: Centralized state management with per-request stores

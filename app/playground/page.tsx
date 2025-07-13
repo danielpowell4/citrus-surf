@@ -349,18 +349,6 @@ export default function PlaygroundPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">TanStack Table Playground</h2>
-          <p className="text-muted-foreground">
-            Interactive table with import/export capabilities
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Export button moved to table settings */}
-        </div>
-      </div>
-
       {/* Import Section */}
       <DataImport
         onImport={data => dispatch(setData(data))}
@@ -377,7 +365,7 @@ export default function PlaygroundPage() {
             <CardTitle>
               Data Table ({table.getFilteredRowModel().rows.length} rows)
             </CardTitle>
-            {/* <CompactHistory /> */}
+            <CompactHistory />
           </div>
           <p className="text-sm text-muted-foreground">
             Double-click any cell to edit. Press Enter to save or Escape to
