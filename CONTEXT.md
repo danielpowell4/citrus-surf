@@ -13,11 +13,11 @@ A **workflow-first CSV importer and data prep tool** designed for developers and
 
 ## 🎯 Core Product Values
 
-- ✅ **Transparency:** Show users what’s happening at every step.
+- ✅ **Transparency:** Show users what's happening at every step.
 - ✅ **Debuggability:** Errors are clear; users can self-serve fixes.
 - ✅ **Resilience:** No work lost (autosave + history chain).
 - ✅ **Simplicity:** Minimal clicks to prepare data for import.
-- ✅ **Speed:** _“Life’s short. Go surfing.”_
+- ✅ **Speed:** _“Life's short. Go surfing.”_
 
 ---
 
@@ -33,6 +33,28 @@ A **workflow-first CSV importer and data prep tool** designed for developers and
 | **Testing**          | Vitest + React Testing Library          |
 | **Export**           | Client-side CSV/JSON download           |
 | **Hosting**          | Vercel/Fly.io (Step 0 has no backend)   |
+
+### 🎨 UI Component Architecture
+
+**shadcn/ui + Radix UI Relationship:**
+
+- **shadcn/ui** is NOT a package dependency - it's a collection of reusable components copied into `components/ui/`
+- **Radix UI** primitives are the underlying dependencies that shadcn/ui components are built on
+- **Current setup:** All UI components use shadcn/ui patterns with Radix UI primitives
+- **Benefits:** No bundle bloat, full customization, no version conflicts
+
+**Key Dependencies:**
+
+- `@radix-ui/react-*` packages: Primitives for accessibility and behavior
+- `components/ui/*.tsx`: shadcn/ui components (part of codebase, not dependencies)
+- `class-variance-authority`, `clsx`, `tailwind-merge`: Utility libraries for styling
+
+**Adding New Components:**
+
+```bash
+npx shadcn@latest add [component-name]
+# This copies the component to components/ui/ and adds necessary Radix UI primitives
+```
 
 ---
 
@@ -54,7 +76,7 @@ Devs and ops teams waste hours:
 
 - Cleaning spreadsheets with Google Sheets formulas.
 - Writing brittle one-off scripts for every customer.
-- Debugging “why did this row fail?” in opaque importers.
+- Debugging "why did this row fail?" in opaque importers.
 
 **Citrus Surf Importer** fixes that by making data prep:
 
@@ -84,7 +106,7 @@ Export Clean Data (CSV/JSON)
 
 ## 🏄‍♂️ Citrus Surf Brand Ethos
 
-- 🍋 _Life’s short. Go surfing._
+- 🍋 _Life's short. Go surfing._
 - Tools that help you go faster and spend less time on repetitive tasks.
 - Friendly for developers. Sleek enough for ops folks.
 
@@ -92,7 +114,7 @@ Export Clean Data (CSV/JSON)
 
 ## 🏃 2-Day Foundation Sprint (Key Questions)
 
-### 🥇 1. What’s the product?
+### 🥇 1. What's the product?
 
 A self-serve CSV importer + data prep tool that makes cleaning and mapping data fast.
 
@@ -101,7 +123,7 @@ A self-serve CSV importer + data prep tool that makes cleaning and mapping data 
 - Developers (stop writing import scripts).
 - Ops teams (prepare clean data for APIs or databases).
 
-### 🧱 3. What’s the MVP?
+### 🧱 3. What's the MVP?
 
 A client-only web app that:
 
@@ -110,7 +132,7 @@ A client-only web app that:
 - Cleans and validates data.
 - Exports clean CSV/JSON.
 
-### 💥 4. What’s out of scope for MVP?
+### 💥 4. What's out of scope for MVP?
 
 - No auth or persistence beyond local device.
 - No backend import jobs.
