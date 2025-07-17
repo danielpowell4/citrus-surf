@@ -61,12 +61,26 @@ npx shadcn@latest add [component-name]
 ## 🗂️ Step 0 MVP — Core Features
 
 ✔ Upload CSV/XLSX files or paste CSV/TSV data.  
-✔ Map columns to target schema with auto-suggestions.  
+✔ Define Target Shapes for desired output formats.  
+✔ Map columns to target shapes with auto-suggestions.  
 ✔ Apply transforms: merge/split columns, string helpers, first available (coalesce).  
-✔ Validate data (required fields, type checks, preserve leading zeros).  
-✔ Export cleaned dataset as CSV/JSON.  
+✔ Validate data against shape rules (required fields, type checks, business rules).  
+✔ Export cleaned dataset as CSV/JSON matching target shape.  
 ✔ Local autosave + recoverable sessions.  
 ❌ No auth, backend persistence, or import jobs yet.
+
+### 🎯 Target Shapes System
+
+Target Shapes define the desired clean output format for data imports. They act as "molds" that transform messy data into consistent, validated formats.
+
+**Key Benefits:**
+
+- **Consistency** - All imports follow the same format
+- **Quality** - Built-in validation prevents bad data
+- **Efficiency** - Reusable shapes save time
+- **Clarity** - Clear expectations for data format
+
+**Documentation:** See `docs/target-shapes.md` for complete system documentation.
 
 ---
 
