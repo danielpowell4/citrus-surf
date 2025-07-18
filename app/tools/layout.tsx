@@ -1,10 +1,14 @@
-import type React from "react"
-import Link from "next/link"
-import { Home } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
+import type React from "react";
+import Link from "next/link";
+import { Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
-export default function ToolsLayout({ children }: { children: React.ReactNode }) {
+export default function ToolsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="container mx-auto py-10 px-4 max-w-4xl">
       <div className="flex items-center justify-between mb-6">
@@ -21,5 +25,5 @@ export default function ToolsLayout({ children }: { children: React.ReactNode })
       </div>
       {children}
     </div>
-  )
+  );
 }

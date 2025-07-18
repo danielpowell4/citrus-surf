@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation"
+import { redirect } from "next/navigation";
 
 export default function ToolsPage() {
   // Redirect to the SQL converter by default
-  redirect("/tools/sql")
+  redirect("/"); // move original home page here when "actual" landing page viable
 }

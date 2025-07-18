@@ -1,0 +1,47 @@
+# Citrus Surf Importer - Cursor Rules
+
+## Project Context
+
+Before starting any work, ALWAYS read and understand:
+
+1. `CONTEXT.md` - Product vision, architecture, and sprint goals
+2. `docs/` directory - Technical documentation for existing systems
+3. `README.md` - Project setup and basic usage
+
+## Key Principles
+
+- This is a workflow-first CSV importer and data prep tool
+- "Life's short, go surfing" - prioritize speed and simplicity
+- Focus on transparency, debuggability, resilience, and speed
+- Current MVP: client-side app with TanStack Table, Redux Toolkit, Next.js
+
+## Architecture Guidelines
+
+- Frontend: React + Next.js + Tailwind + shadcn/ui
+- State: Redux Toolkit + Redux Saga
+- Grid: TanStack Table
+- Export: Client-side CSV/JSON download
+
+## Code Style
+
+- Use TypeScript for all new code
+- Follow existing patterns in the codebase
+- Prefer functional components with hooks
+- Use shadcn/ui components when possible
+- Maintain responsive design principles
+
+## Before Making Changes
+
+1. Read CONTEXT.md to understand the product vision
+2. Check docs/ for existing system documentation
+3. Review related components and patterns
+4. Consider the user workflow and experience
+5. Ensure changes align with "workflow-first" principles
+
+## Focus Areas
+
+- Data import/export workflows
+- Interactive table editing
+- Column mapping and validation
+- Transform operations
+- User experience and speed

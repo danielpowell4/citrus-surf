@@ -1,12 +1,30 @@
-"use client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import Link from "next/link"
-import { ArrowRight, Database, FileText, FileJson, Table, GitCompare, Code } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
+"use client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Database,
+  FileText,
+  FileJson,
+  Table,
+  GitCompare,
+  Code,
+  Play,
+  Sparkles,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
-  return <HomePage />
+  return <HomePage />;
 }
 
 function HomePage() {
@@ -22,7 +40,8 @@ function HomePage() {
           <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-orange-400 via-yellow-400 to-teal-400 rounded-full"></div>
         </h1>
         <p className="text-xl text-muted-foreground max-w-[700px] mx-auto">
-          Simple, powerful tools to help you work with your data more efficiently.
+          Simple, powerful tools to help you work with your data more
+          efficiently.
         </p>
       </div>
 
@@ -32,7 +51,8 @@ function HomePage() {
             <Database className="h-8 w-8 mb-2 text-primary" />
             <CardTitle>Spreadsheet to SQL Converter</CardTitle>
             <CardDescription>
-              Convert CSV files, Google Spreadsheets, or Excel exports into SQL VALUES format with proper escaping.
+              Convert CSV files, Google Spreadsheets, or Excel exports into SQL
+              VALUES format with proper escaping.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
@@ -44,7 +64,10 @@ function HomePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/tools/spreadsheet-to-sql-values" className="flex items-center justify-center">
+              <Link
+                href="/tools/spreadsheet-to-sql-values"
+                className="flex items-center justify-center"
+              >
                 Open Spreadsheet to SQL Tool
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -57,7 +80,8 @@ function HomePage() {
             <Code className="h-8 w-8 mb-2 text-primary" />
             <CardTitle>JSON to SQL Converter</CardTitle>
             <CardDescription>
-              Transform JSON arrays into SQL VALUES, UPDATE loops, or INSERT statements for database operations.
+              Transform JSON arrays into SQL VALUES, UPDATE loops, or INSERT
+              statements for database operations.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
@@ -69,7 +93,10 @@ function HomePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/tools/json-to-sql" className="flex items-center justify-center">
+              <Link
+                href="/tools/json-to-sql"
+                className="flex items-center justify-center"
+              >
                 Open JSON to SQL Tool
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -81,7 +108,9 @@ function HomePage() {
           <CardHeader>
             <FileText className="h-8 w-8 mb-2 text-primary" />
             <CardTitle>Text Slugifier</CardTitle>
-            <CardDescription>Convert text into URL-friendly slugs for web content and SEO.</CardDescription>
+            <CardDescription>
+              Convert text into URL-friendly slugs for web content and SEO.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
@@ -92,7 +121,10 @@ function HomePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/tools/slugify" className="flex items-center justify-center">
+              <Link
+                href="/tools/slugify"
+                className="flex items-center justify-center"
+              >
                 Open Slugify Tool
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -105,7 +137,8 @@ function HomePage() {
             <FileJson className="h-8 w-8 mb-2 text-primary" />
             <CardTitle>JSON to CSV Converter</CardTitle>
             <CardDescription>
-              Convert JSON arrays of objects into CSV format for spreadsheet applications.
+              Convert JSON arrays of objects into CSV format for spreadsheet
+              applications.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
@@ -117,7 +150,10 @@ function HomePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/tools/json-to-csv" className="flex items-center justify-center">
+              <Link
+                href="/tools/json-to-csv"
+                className="flex items-center justify-center"
+              >
                 Open JSON to CSV Tool
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -129,7 +165,9 @@ function HomePage() {
           <CardHeader>
             <Table className="h-8 w-8 mb-2 text-primary" />
             <CardTitle>CSV to JSON Converter</CardTitle>
-            <CardDescription>Transform CSV data into JSON format for APIs and web applications.</CardDescription>
+            <CardDescription>
+              Transform CSV data into JSON format for APIs and web applications.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
@@ -140,7 +178,10 @@ function HomePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/tools/csv-to-json" className="flex items-center justify-center">
+              <Link
+                href="/tools/csv-to-json"
+                className="flex items-center justify-center"
+              >
                 Open CSV to JSON Tool
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -152,7 +193,10 @@ function HomePage() {
           <CardHeader>
             <GitCompare className="h-8 w-8 mb-2 text-primary" />
             <CardTitle>JSON Diff Tool</CardTitle>
-            <CardDescription>Compare two JSON objects and visualize the differences between them.</CardDescription>
+            <CardDescription>
+              Compare two JSON objects and visualize the differences between
+              them.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
             <ul className="list-disc list-inside space-y-2 text-muted-foreground">
@@ -163,13 +207,55 @@ function HomePage() {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/tools/json-diff" className="flex items-center justify-center">
+              <Link
+                href="/tools/json-diff"
+                className="flex items-center justify-center"
+              >
                 Open JSON Diff Tool
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>
         </Card>
+      </div>
+
+      {/* Featured Playground Section */}
+      <div className="mt-16 mb-16">
+        <div className="relative">
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5 hover:shadow-xl transition-all duration-300">
+            <CardHeader className="text-center pb-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Play className="h-8 w-8 text-primary" />
+                <CardTitle className="text-2xl">
+                  Interactive Data Playground
+                </CardTitle>
+                <Badge
+                  variant="secondary"
+                  className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-200 dark:border-orange-800"
+                >
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Beta
+                </Badge>
+              </div>
+              <CardDescription className="text-lg max-w-[600px] mx-auto mb-4">
+                Stop writing one-off CSV cleaning scripts. Upload, map, clean,
+                validate, and export structured data fast.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter className="flex justify-center pt-4">
+              <Button
+                asChild
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Link href="/playground" className="flex items-center gap-2">
+                  Launch Playground
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
 
       <div className="mt-16 text-center">
@@ -180,20 +266,25 @@ function HomePage() {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="space-y-2 p-4 rounded-lg bg-card border-2 border-transparent bg-gradient-to-br from-orange-50 to-teal-50 dark:from-orange-950/20 dark:to-teal-950/20 theme-transition hover:shadow-lg transition-all duration-300">
             <h3 className="text-xl font-medium">Fast & Efficient</h3>
-            <p className="text-muted-foreground">Process your data quickly without uploading to external servers.</p>
+            <p className="text-muted-foreground">
+              Process your data quickly without uploading to external servers.
+            </p>
           </div>
           <div className="space-y-2 p-4 rounded-lg bg-card border-2 border-transparent bg-gradient-to-br from-orange-50 to-teal-50 dark:from-orange-950/20 dark:to-teal-950/20 theme-transition hover:shadow-lg transition-all duration-300">
             <h3 className="text-xl font-medium">Privacy-Focused</h3>
             <p className="text-muted-foreground">
-              All processing happens in your browser. Your data never leaves your device.
+              All processing happens in your browser. Your data never leaves
+              your device.
             </p>
           </div>
           <div className="space-y-2 p-4 rounded-lg bg-card border-2 border-transparent bg-gradient-to-br from-orange-50 to-teal-50 dark:from-orange-950/20 dark:to-teal-950/20 theme-transition hover:shadow-lg transition-all duration-300">
             <h3 className="text-xl font-medium">Free to Use</h3>
-            <p className="text-muted-foreground">All tools are completely free with no limits or restrictions.</p>
+            <p className="text-muted-foreground">
+              All tools are completely free with no limits or restrictions.
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
