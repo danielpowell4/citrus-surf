@@ -50,22 +50,12 @@ export default function PlaygroundPage() {
         </div>
 
         <div className="space-y-6 max-w-none">
-          {/* Main Data Import Card */}
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="w-5 h-5" />
-                Import Your Data
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DataImport
-                onImport={handleImport}
-                onReset={handleReset}
-                dataCount={data.length}
-              />
-            </CardContent>
-          </Card>
+          {/* Main Data Import Section */}
+          <DataImport
+            onImport={handleImport}
+            onReset={handleReset}
+            dataCount={data.length}
+          />
 
           {/* Additional Tools Section */}
           <div className="mt-8">

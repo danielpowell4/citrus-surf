@@ -60,17 +60,6 @@ export default function DataTablePage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="max-w-none">
-          <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/playground")}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Playground
-            </Button>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-bold">Data Table</h1>
           <p className="text-muted-foreground text-sm sm:text-base">
             View, edit, and transform your imported data
@@ -79,6 +68,17 @@ export default function DataTablePage() {
 
         <div className="space-y-6 max-w-none">
           <div className="w-full">
+            <div className="flex items-center gap-4 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/playground")}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Import
+              </Button>
+            </div>
             <DataTable
               data={data}
               currentVersion={1}

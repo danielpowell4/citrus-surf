@@ -2,26 +2,33 @@
 
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAppSelector } from "@/lib/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { TargetShapeWorkflow } from "../target-shape-workflow";
 import { TargetShape } from "@/lib/types/target-shapes";
+import { selectTargetShape } from "@/lib/features/targetShapesSlice";
 
 function TemplateBuilderContent() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const { data } = useAppSelector(state => state.table);
 
   const source = searchParams.get("source");
 
   const handleShapeCreated = (shape: TargetShape) => {
-    // Navigate back to the main playground
-    router.push("/playground");
-    // TODO: Optionally select the newly created shape
+    // Select the newly created shape
+    dispatch(selectTargetShape(shape.id));
+    // Navigate to data table with shape applied
+    router.push("/playground/data-table");
   };
 
   const handleCancel = () => {
-    // Navigate back to the main playground
-    router.push("/playground");
+    // Navigate back to the data table (or playground if no data)
+    if (data.length > 0) {
+      router.push("/playground/data-table");
+    } else {
+      router.push("/playground");
+    }
   };
 
   return (

@@ -172,17 +172,8 @@ function determineFieldType(
     return "date";
   }
 
-  // Check for boolean values
-  const booleanValues = [
-    "true",
-    "false",
-    "yes",
-    "no",
-    "1",
-    "0",
-    "active",
-    "inactive",
-  ];
+  // Check for boolean values - more restrictive
+  const booleanValues = ["true", "false", "yes", "no", "1", "0"];
   const hasBooleans = nonEmptyValues.every(
     v => typeof v === "string" && booleanValues.includes(v.toLowerCase())
   );
@@ -238,9 +229,35 @@ function determineFieldType(
     return "percentage";
   }
 
-  // Check for enum (limited unique values)
+  // Check for enum (limited unique values) - but be smarter about it
   if (nonEmptyValues.length <= 10 && nonEmptyValues.length > 1) {
-    return "enum";
+    // Don't classify name fields as enum even with limited values
+    const keyLower = key.toLowerCase();
+    const isNameField =
+      keyLower.includes("name") ||
+      keyLower.includes("first") ||
+      keyLower.includes("last") ||
+      keyLower.includes("full");
+
+    // Don't classify email fields as enum
+    const isEmailField =
+      keyLower.includes("email") || keyLower.includes("mail");
+
+    // Don't classify phone fields as enum
+    const isPhoneField = keyLower.includes("phone") || keyLower.includes("tel");
+
+    // Don't classify address fields as enum
+    const isAddressField =
+      keyLower.includes("address") ||
+      keyLower.includes("street") ||
+      keyLower.includes("city") ||
+      keyLower.includes("state") ||
+      keyLower.includes("country");
+
+    // Only classify as enum if it's not a common text field type
+    if (!isNameField && !isEmailField && !isPhoneField && !isAddressField) {
+      return "enum";
+    }
   }
 
   // Default to string
@@ -393,7 +410,29 @@ export function getFieldTypeSuggestions(
     const hasDates = nonEmptyValues.some(v => /^\d{4}-\d{2}-\d{2}$/.test(v));
     if (hasDates) suggestions.push("date");
 
-    if (nonEmptyValues.length <= 10) suggestions.push("enum");
+    // Only suggest enum for fields with limited unique values that aren't common text fields
+    if (nonEmptyValues.length <= 10) {
+      const isNameField =
+        keyLower.includes("name") ||
+        keyLower.includes("first") ||
+        keyLower.includes("last") ||
+        keyLower.includes("full");
+
+      const isEmailField =
+        keyLower.includes("email") || keyLower.includes("mail");
+      const isPhoneField =
+        keyLower.includes("phone") || keyLower.includes("tel");
+      const isAddressField =
+        keyLower.includes("address") ||
+        keyLower.includes("street") ||
+        keyLower.includes("city") ||
+        keyLower.includes("state") ||
+        keyLower.includes("country");
+
+      if (!isNameField && !isEmailField && !isPhoneField && !isAddressField) {
+        suggestions.push("enum");
+      }
+    }
   }
 
   // Always include string as a fallback
