@@ -10,7 +10,8 @@ import {
 
 // Sample data structure
 export type Person = {
-  id: string;
+  id: string; // User-input ID field
+  _rowId?: string; // Vendor-prefixed row ID injected during import
   firstName: string;
   lastName: string;
   age: number;
@@ -26,7 +27,7 @@ export type Person = {
 // Sample data
 const defaultData: Person[] = [
   {
-    id: "1",
+    id: "EMP001",
     firstName: "John",
     lastName: "Doe",
     age: 30,
@@ -39,7 +40,7 @@ const defaultData: Person[] = [
     startDate: "2023-01-15",
   },
   {
-    id: "2",
+    id: "EMP002",
     firstName: "Jane",
     lastName: "Smith",
     age: 28,
@@ -52,7 +53,7 @@ const defaultData: Person[] = [
     startDate: "2023-03-20",
   },
   {
-    id: "3",
+    id: "EMP003",
     firstName: "Bob",
     lastName: "Johnson",
     age: 35,
@@ -65,7 +66,7 @@ const defaultData: Person[] = [
     startDate: "2022-11-10",
   },
   {
-    id: "4",
+    id: "EMP004",
     firstName: "Alice",
     lastName: "Brown",
     age: 32,
@@ -78,7 +79,7 @@ const defaultData: Person[] = [
     startDate: "2023-02-05",
   },
   {
-    id: "5",
+    id: "EMP005",
     firstName: "Charlie",
     lastName: "Wilson",
     age: 29,
@@ -111,9 +112,9 @@ interface TableState {
 
 const initialState: TableState = {
   data: defaultData,
-  sorting: [{ id: "id", desc: false }], // Default sort by import order (id)
+  sorting: [{ id: "firstName", desc: false }], // Default sort by first name
   columnFilters: [],
-  columnVisibility: {},
+  columnVisibility: {}, // No hidden columns by default
   rowSelection: {},
   globalFilter: "",
   grouping: [],
@@ -173,7 +174,7 @@ export const tableSlice = createSlice({
         if (currentSort) {
           if (currentSort.desc) {
             // Remove from sorting, fall back to default
-            state.sorting = [{ id: "id", desc: false }];
+            state.sorting = [{ id: "firstName", desc: false }];
           } else {
             // Change to desc
             state.sorting = [{ id: columnId, desc: true }];

@@ -32,16 +32,25 @@ This directory contains comprehensive documentation for the Citrus Surf Importer
 - **[Column Abstraction Example](./column-abstraction-example.md)** - Example of column abstraction patterns
 - **[Editable Cells](./editable-cells.md)** - In-place cell editing functionality
 
+#### 🆔 ID System
+
+- **[ID System](./id-system.md)** - Vendor-prefixed unique identifiers and row management
+
 ## 🎯 Target Shapes Integration
 
 The Target Shapes system integrates with existing systems:
 
-### Import → Target Shape → Export Flow
+### Import → Define Target Shape → Export Flow
 
 ```mermaid
 graph LR
-    A[Import Data] --> B[Select Target Shape]
-    B --> C[Map Columns]
+    A[Import Data] --> B[Define Target Shape]
+    B --> B1[Use Saved Shape]
+    B --> B2[Start from Template]
+    B --> B3[Create New Shape]
+    B1 --> C[Map Columns]
+    B2 --> C
+    B3 --> C
     C --> D[Apply Transformations]
     D --> E[Validate Data]
     E --> F[Export Clean Data]
@@ -50,7 +59,7 @@ graph LR
 ### Key Integration Points
 
 1. **Import System** - Raw data is imported and analyzed
-2. **Target Shape Selection** - User chooses desired output format
+2. **Target Shape Selection/Creation** - User picks saved shape or creates new one (visual, no-code)
 3. **Column Mapping** - Input columns mapped to target shape fields
 4. **Transformation Engine** - Data cleaned and formatted
 5. **Validation System** - Data validated against shape rules
@@ -71,6 +80,7 @@ graph LR
 2. Review **[Column Types Reference](./column-types-reference.md)** for field types
 3. Check **[Editable Cells](./editable-cells.md)** for UI patterns
 4. Explore **[History System](./history-system.md)** for state management
+5. Understand **[ID System](./id-system.md)** for data integrity and row management
 
 ## 🔄 System Relationships
 
@@ -90,8 +100,24 @@ graph LR
 // 1. Import raw data
 const rawData = importCSV("messy-data.csv");
 
-// 2. Select target shape
-const targetShape = selectShape("customer-database-v1");
+// 2. Select or create target shape
+const targetShape = selectOrCreateShape({
+  // Option A: Use saved shape
+  savedShapeId: "customer-db-v1",
+
+  // Option B: Start from template
+  templateId: "customer-template",
+
+  // Option C: Create new shape (visual, no-code interface)
+  newShape: {
+    name: "Customer Database",
+    fields: [
+      { name: "customer_id", type: "string", required: true },
+      { name: "email", type: "email", required: true },
+      { name: "full_name", type: "string", required: true },
+    ],
+  },
+});
 
 // 3. Map columns to shape fields
 const mapping = mapColumns(rawData.headers, targetShape.fields);

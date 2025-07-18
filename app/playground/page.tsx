@@ -50,6 +50,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye } from "lucide-react";
 import { DataImport } from "./data-import";
+import { TargetShapeSelector } from "./target-shape-selector";
 import {
   transformColumns,
   type SimpleColumnDef,
@@ -90,8 +91,14 @@ export default function PlaygroundPage() {
     {
       accessorKey: "id",
       header: "ID",
-      size: 60,
-      meta: { sortable: true, editable: false },
+      size: 80,
+      meta: {
+        editable: {
+          type: "text",
+          placeholder: "Enter ID",
+          maxLength: 20,
+        },
+      },
     },
     {
       accessorKey: "firstName",
@@ -312,6 +319,7 @@ export default function PlaygroundPage() {
   const table = useReactTable({
     data,
     columns,
+    getRowId: row => row._rowId!, // Use vendor-prefixed row ID or fall back to user ID
     state: {
       sorting,
       columnFilters,
@@ -357,6 +365,9 @@ export default function PlaygroundPage() {
         isLoading={isLoading}
         error={error}
       />
+
+      {/* Target Shape Selection */}
+      <TargetShapeSelector />
 
       {/* Table */}
       <Card>

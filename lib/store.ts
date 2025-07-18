@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import tableReducer from "./features/tableSlice";
 import historyReducer from "./features/historySlice";
+import targetShapesReducer from "./features/targetShapesSlice";
 
 /**
  * History tracking middleware
@@ -69,6 +70,7 @@ export const makeStore = () => {
     reducer: {
       table: tableReducer,
       history: historyReducer,
+      targetShapes: targetShapesReducer,
     },
     middleware: getDefaultMiddleware =>
       getDefaultMiddleware().concat(historyMiddleware),

@@ -259,33 +259,39 @@ interface TransformationRule {
 
 ## User Workflow
 
-### 1. Define Target Shape
+### 1. Import Raw Data
 
-Users start by defining what their clean data should look like:
-
-```typescript
-// User creates or selects a target shape
-const targetShape = {
-  name: "Employee Records",
-  fields: [
-    { name: "employee_id", type: "string", required: true },
-    { name: "full_name", type: "string", required: true },
-    { name: "email", type: "email", required: true },
-    { name: "department", type: "string", required: true },
-    { name: "salary", type: "currency", required: false },
-  ],
-};
-```
-
-### 2. Import Raw Data
-
-Users import their messy data:
+Users start by importing their messy data:
 
 ```csv
 emp_id,first_name,last_name,email_addr,dept,sal
 E001,John,Doe,john.doe@company.com,Engineering,75000
 E002,Jane,Smith,jane.smith@company.com,Marketing,65000
 ```
+
+### 2. Define Target Shape
+
+Users either select an existing saved shape or create a new one using a visual, no-code interface:
+
+**Choose Your Approach:**
+
+- **Use Saved Shape**: Pick from your previously created target shapes
+- **Start from Template**: Begin with a pre-built template (Customer, Product, Employee)
+- **Create New**: Build a custom shape from scratch
+
+**Visual Template Builder (for new shapes):**
+
+- **Add Fields**: Click "Add Field" to add new columns
+- **Field Types**: Select from dropdown (string, email, number, date, etc.)
+- **Validation**: Toggle required fields, add format rules
+- **Preview**: See the target structure as you build
+
+**No Code Required:**
+
+- Drag-and-drop field reordering
+- Visual validation rule builder
+- Save shapes for future use
+- Real-time preview of target structure
 
 ### 3. Map to Target Shape
 
@@ -349,7 +355,11 @@ E002,Jane Smith,jane.smith@company.com,Marketing,65000.00
 
 ### UI Components
 
-- **Shape Editor**: Visual editor for creating/editing target shapes
+- **Visual Template Builder**: No-code interface for creating target shapes
+  - Drag-and-drop field management
+  - Visual validation rule builder
+  - Real-time preview of target structure
+  - Template library with common shapes
 - **Shape Selector**: Dropdown to choose from available shapes
 - **Mapping Interface**: Drag-and-drop column mapping
 - **Validation Preview**: Real-time validation feedback

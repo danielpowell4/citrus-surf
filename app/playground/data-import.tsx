@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { injectRowIds } from "@/lib/utils/data-processing";
 
 interface DataImportProps {
   onImport: (data: any[]) => void;
@@ -37,7 +38,6 @@ interface DataImportProps {
 const generateSampleData = () => {
   const sampleData = [
     {
-      id: "1",
       firstName: "Aisha",
       lastName: "Patel",
       age: 28,
@@ -47,7 +47,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "2",
       firstName: "Marcus",
       lastName: "Chen",
       age: 32,
@@ -57,7 +56,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "3",
       firstName: "Sofia",
       lastName: "Rodriguez",
       age: 25,
@@ -67,7 +65,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "4",
       firstName: "Kofi",
       lastName: "Mensah",
       age: 35,
@@ -77,7 +74,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "5",
       firstName: "Priya",
       lastName: "Sharma",
       age: 29,
@@ -87,7 +83,6 @@ const generateSampleData = () => {
       status: "Inactive",
     },
     {
-      id: "6",
       firstName: "Javier",
       lastName: "Garcia",
       age: 31,
@@ -97,7 +92,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "7",
       firstName: "Zara",
       lastName: "Ahmed",
       age: 27,
@@ -107,7 +101,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "8",
       firstName: "David",
       lastName: "Kim",
       age: 33,
@@ -117,7 +110,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "9",
       firstName: "Fatima",
       lastName: "Al-Zahra",
       age: 26,
@@ -127,7 +119,6 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "10",
       firstName: "Lucas",
       lastName: "Thompson",
       age: 30,
@@ -199,12 +190,15 @@ export function DataImport({
         });
       }
 
-      onImport(parsedData);
+      // Inject unique row IDs
+      const processedData = injectRowIds(parsedData, true); // Preserve existing IDs
+
+      onImport(processedData);
       setImportData("");
       setSelectedFile(null);
       toast({
         title: "Data imported successfully",
-        description: `${parsedData.length} records imported`,
+        description: `${processedData.length} records imported with unique IDs`,
       });
     } catch (error) {
       console.error("Import error:", error);
@@ -348,7 +342,6 @@ export function DataImport({
     } else {
       const delimChar = csvDelimiter === "tab" ? "\t" : ",";
       const headers = [
-        "id",
         "firstName",
         "lastName",
         "age",

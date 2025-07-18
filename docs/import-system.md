@@ -410,6 +410,102 @@ To add support for a new format:
 4. **Add File Types**: Update `getAcceptedFileTypes()` function
 5. **Update Documentation**: Add format details to this documentation
 
+## ID System and Row Management
+
+### Overview
+
+The import system automatically injects unique vendor-prefixed row IDs to ensure reliable row tracking and data integrity. This system maintains a clear separation between user-defined IDs and system-managed internal IDs.
+
+### Dual ID System
+
+The system uses two types of IDs:
+
+1. **User ID** (`id` field): User-defined, editable identifiers (e.g., "EMP001", "CUST123")
+2. **Internal ID** (`_rowId` field): System-generated, vendor-prefixed unique identifiers (e.g., "cs_01H9X2K3L4M5N6P7Q8R9S0T1U")
+
+### ID Injection Process
+
+During data import, the system automatically:
+
+```typescript
+// 1. Preserves existing user IDs
+const processedRow = { ...row };
+
+// 2. Generates vendor-prefixed internal ID
+const rowId = generateRowId(); // Returns "cs_01H9X2K3L4M5N6P7Q8R9S0T1U"
+
+// 3. Injects internal ID into hidden field
+processedRow._rowId = rowId;
+
+// 4. Preserves user ID in visible field
+// processedRow.id remains unchanged
+```
+
+### ID Generation
+
+The system uses ULID (Universally Unique Lexicographically Sortable Identifier) with vendor prefixes:
+
+```typescript
+// ID generation examples
+generateRowId(); // "cs_01H9X2K3L4M5N6P7Q8R9S0T1U"
+generateShapeId(); // "shape_01H9X2K3L4M5N6P7Q8R9S0T1U"
+generateFieldId(); // "field_01H9X2K3L4M5N6P7Q8R9S0T1U"
+```
+
+### Table Integration
+
+The table system uses internal IDs for row identification:
+
+```typescript
+const table = useReactTable({
+  data,
+  columns,
+  getRowId: row => row._rowId!, // Use vendor-prefixed internal IDs
+  // ... other configuration
+});
+```
+
+### User Experience
+
+- **Visible**: Users see and can edit their own ID field in the table
+- **Hidden**: Internal `_rowId` field is not displayed but used for system operations
+- **Editable**: Users can modify their IDs without affecting system integrity
+- **Reliable**: System operations (sorting, filtering, editing) use internal IDs
+
+### Data Structure Example
+
+```typescript
+// Before import
+const rawData = [
+  { id: "EMP001", firstName: "John", lastName: "Doe" },
+  { id: "EMP002", firstName: "Jane", lastName: "Smith" },
+];
+
+// After import (with ID injection)
+const processedData = [
+  {
+    id: "EMP001", // User ID (preserved)
+    _rowId: "cs_01H9X2K3L4M5N6P7Q8R9S0T1U", // Internal ID (injected)
+    firstName: "John",
+    lastName: "Doe",
+  },
+  {
+    id: "EMP002", // User ID (preserved)
+    _rowId: "cs_01H9X2K3L4M5N6P7Q8R9S0T1U2", // Internal ID (injected)
+    firstName: "Jane",
+    lastName: "Smith",
+  },
+];
+```
+
+### Benefits
+
+1. **Data Integrity**: Internal IDs ensure unique row identification
+2. **User Flexibility**: Users can define meaningful IDs for their data
+3. **System Reliability**: Table operations work consistently regardless of user ID format
+4. **Vendor Identification**: Prefixed IDs clearly identify Citrus Surf-generated data
+5. **Future-Proof**: ULID format provides sortable, unique identifiers
+
 ## Integration with Export System
 
 The import system is designed to work seamlessly with the export system:
@@ -418,5 +514,6 @@ The import system is designed to work seamlessly with the export system:
 - **Version Tracking**: Imported data integrates with the history system
 - **Consistent Naming**: File naming conventions align with export system
 - **Error Handling**: Consistent error handling across import and export operations
+- **ID Preservation**: Both user IDs and internal IDs are preserved during export
 
 This creates a complete data lifecycle management system for the table playground.

@@ -19,6 +19,7 @@ export interface ColumnMeta {
         options?: Array<{ value: string; label: string }>;
       }
     | false;
+  hidden?: boolean;
   [key: string]: any;
 }
 
