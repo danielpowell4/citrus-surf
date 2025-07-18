@@ -371,6 +371,7 @@ BEGIN
             return `row_data.${col}${casting}`;
           })
           .join(", ")});
+    -- HEY HUMAN!! REMEMBER TO ADD ANY ADDITIONAL 'WHERE' conditions beyond this 1:1 match
     END LOOP;
 END $$;`;
 
