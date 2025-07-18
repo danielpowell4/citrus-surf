@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -48,9 +48,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye } from "lucide-react";
+import { Eye, X } from "lucide-react";
 import { DataImport } from "./data-import";
 import { TargetShapeSelector } from "./target-shape-selector";
+import { TargetShapeWorkflow } from "./target-shape-workflow";
 import {
   transformColumns,
   type SimpleColumnDef,
@@ -60,12 +61,17 @@ import { ExportDropdown } from "@/components/export-dropdown";
 
 // Import the Person type from the slice
 import type { Person } from "@/lib/features/tableSlice";
+import type { TargetShape } from "@/lib/types/target-shapes";
 
 export default function PlaygroundPage() {
   const dispatch = useAppDispatch();
   const tableState = useAppSelector(state => state.table);
   const currentIndex = useAppSelector(selectCurrentIndex);
   const currentVersion = currentIndex + 1; // Convert to 1-indexed version number
+
+  // State for target shape workflow
+  const [showShapeWorkflow, setShowShapeWorkflow] = useState(false);
+  const [importedDataForShape, setImportedDataForShape] = useState<any[]>([]);
 
   const {
     data,
@@ -355,6 +361,31 @@ export default function PlaygroundPage() {
     dispatch(resetData());
   };
 
+  const handleCreateShapeFromData = (data: any[]) => {
+    setImportedDataForShape(data);
+    setShowShapeWorkflow(true);
+  };
+
+  const handleShapeCreated = (shape: TargetShape) => {
+    setShowShapeWorkflow(false);
+    setImportedDataForShape([]);
+    // TODO: Optionally select the newly created shape
+  };
+
+  const handleCloseShapeWorkflow = () => {
+    setShowShapeWorkflow(false);
+    setImportedDataForShape([]);
+  };
+
+  const handleCreateNewShape = () => {
+    setShowShapeWorkflow(true);
+  };
+
+  const handleCreateShapeFromCurrentData = () => {
+    setImportedDataForShape(data);
+    setShowShapeWorkflow(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Import Section */}
@@ -364,10 +395,15 @@ export default function PlaygroundPage() {
         dataCount={data.length}
         isLoading={isLoading}
         error={error}
+        onCreateShapeFromData={handleCreateShapeFromData}
       />
 
       {/* Target Shape Selection */}
-      <TargetShapeSelector />
+      <TargetShapeSelector
+        onCreateNew={handleCreateNewShape}
+        onCreateFromData={handleCreateShapeFromCurrentData}
+        hasData={data.length > 0}
+      />
 
       {/* Table */}
       <Card>
@@ -516,6 +552,30 @@ export default function PlaygroundPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Target Shape Workflow Modal */}
+      {showShapeWorkflow && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-semibold">Create Target Shape</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCloseShapeWorkflow}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <TargetShapeWorkflow
+                importedData={importedDataForShape}
+                onShapeCreated={handleShapeCreated}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

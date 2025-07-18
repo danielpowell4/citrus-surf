@@ -32,6 +32,7 @@ interface DataImportProps {
   dataCount: number;
   isLoading?: boolean;
   error?: string | null;
+  onCreateShapeFromData?: (data: any[]) => void; // New prop for creating shape from data
 }
 
 // Sample data generator with diverse names
@@ -139,6 +140,7 @@ export function DataImport({
   dataCount,
   isLoading = false,
   error = null,
+  onCreateShapeFromData,
 }: DataImportProps) {
   const [importData, setImportData] = useState("");
   const [importFormat, setImportFormat] = useState<"csv" | "json">("csv");
@@ -528,6 +530,61 @@ export function DataImport({
             <Upload className="h-4 w-4" />
             Import Data
           </Button>
+
+          {/* Create Shape from Data Button */}
+          {importData.trim() && onCreateShapeFromData && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                try {
+                  let parsedData: any[];
+                  if (importFormat === "json") {
+                    const jsonData = JSON.parse(importData);
+                    if (!Array.isArray(jsonData)) {
+                      throw new Error("JSON data must be an array");
+                    }
+                    parsedData = jsonData;
+                  } else {
+                    const lines = importData.trim().split("\n");
+                    if (lines.length === 0) {
+                      throw new Error("No data found");
+                    }
+                    const delimChar = csvDelimiter === "tab" ? "\t" : ",";
+                    const startIndex = hasHeaders ? 1 : 0;
+                    const headers = hasHeaders
+                      ? parseCsvLine(lines[0], delimChar)
+                      : [];
+
+                    parsedData = lines.slice(startIndex).map((line, index) => {
+                      const values = parseCsvLine(line, delimChar);
+                      if (hasHeaders) {
+                        const row: any = {};
+                        headers.forEach((header, i) => {
+                          row[header] = values[i] || "";
+                        });
+                        return row;
+                      } else {
+                        return values;
+                      }
+                    });
+                  }
+                  onCreateShapeFromData(parsedData);
+                } catch (error) {
+                  toast({
+                    title: "Invalid data",
+                    description:
+                      "Please ensure your data is in the correct format",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Create Shape from Data
+            </Button>
+          )}
+
           <Button
             variant="outline"
             onClick={loadSampleData}

@@ -1,0 +1,754 @@
+"use client";
+
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Eye } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { useAppDispatch } from "@/lib/hooks";
+import { saveTargetShape } from "@/lib/features/targetShapesSlice";
+import { generateShapeId, generateFieldId } from "@/lib/utils/id-generator";
+import { analyzeDataForTargetShape } from "@/lib/utils/data-analysis";
+import type {
+  TargetShape,
+  TargetField,
+  FieldType,
+  ValidationRule,
+  TransformationRule,
+} from "@/lib/types/target-shapes";
+
+interface WorkflowStep {
+  id: string;
+  title: string;
+  description: string;
+  component: React.ComponentType<WorkflowStepProps>;
+}
+
+interface WorkflowStepProps {
+  data: TargetShape;
+  onUpdate: (updates: Partial<TargetShape>) => void;
+  onNext: () => void;
+  onBack: () => void;
+  isFirst: boolean;
+  isLast: boolean;
+  onShapeCreated?: (shape: TargetShape) => void;
+}
+
+// Step 1: Basic Information
+const BasicInfoStep: React.FC<WorkflowStepProps> = ({
+  data,
+  onUpdate,
+  onNext,
+  isFirst,
+}) => {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="name">Shape Name</Label>
+          <Input
+            id="name"
+            value={data.name}
+            onChange={e => onUpdate({ name: e.target.value })}
+            placeholder="e.g., Customer Database, Product Catalog"
+            className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={data.description}
+            onChange={e => onUpdate({ description: e.target.value })}
+            placeholder="Describe what this target shape is for..."
+            className="mt-1"
+            rows={3}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="category">Category</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="mt-1 w-full justify-start">
+                  {data.metadata?.category || "Select category"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdate({
+                      metadata: { ...data.metadata, category: "customer" },
+                    })
+                  }
+                >
+                  Customer Data
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdate({
+                      metadata: { ...data.metadata, category: "product" },
+                    })
+                  }
+                >
+                  Product Data
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdate({
+                      metadata: { ...data.metadata, category: "financial" },
+                    })
+                  }
+                >
+                  Financial Data
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdate({
+                      metadata: { ...data.metadata, category: "inventory" },
+                    })
+                  }
+                >
+                  Inventory Data
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdate({
+                      metadata: { ...data.metadata, category: "analytics" },
+                    })
+                  }
+                >
+                  Analytics Data
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdate({
+                      metadata: { ...data.metadata, category: "custom" },
+                    })
+                  }
+                >
+                  Custom
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div>
+            <Label htmlFor="version">Version</Label>
+            <Input
+              id="version"
+              value={data.version}
+              onChange={e => onUpdate({ version: e.target.value })}
+              placeholder="1.0.0"
+              className="mt-1"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="tags">Tags</Label>
+          <Input
+            id="tags"
+            value={data.metadata?.tags?.join(", ") || ""}
+            onChange={e =>
+              onUpdate({
+                metadata: {
+                  ...data.metadata,
+                  tags: e.target.value.split(",").map(tag => tag.trim()),
+                },
+              })
+            }
+            placeholder="Enter tags separated by commas"
+            className="mt-1"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={onNext} disabled={!data.name.trim()}>
+          Next: Define Fields
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Step 2: Field Definition
+const FieldsStep: React.FC<WorkflowStepProps> = ({
+  data,
+  onUpdate,
+  onNext,
+  onBack,
+}) => {
+  const [editingField, setEditingField] = useState<TargetField | null>(null);
+  const [showAddField, setShowAddField] = useState(false);
+
+  const addField = () => {
+    const newField: TargetField = {
+      id: generateFieldId(),
+      name: "",
+      type: "string",
+      required: false,
+      description: "",
+      validation: [],
+      transformation: [],
+    };
+    onUpdate({
+      fields: [...data.fields, newField],
+    });
+    setEditingField(newField);
+    setShowAddField(false);
+  };
+
+  const updateField = (fieldId: string, updates: Partial<TargetField>) => {
+    const updatedFields = data.fields.map(field =>
+      field.id === fieldId ? { ...field, ...updates } : field
+    );
+    onUpdate({ fields: updatedFields });
+  };
+
+  const removeField = (fieldId: string) => {
+    const updatedFields = data.fields.filter(field => field.id !== fieldId);
+    onUpdate({ fields: updatedFields });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Define Fields</h3>
+          <p className="text-sm text-muted-foreground">
+            Add the fields that should be in your clean data output
+          </p>
+        </div>
+        <Button onClick={() => setShowAddField(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Field
+        </Button>
+      </div>
+
+      {showAddField && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Quick Add Field</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  addField();
+                  updateField(data.fields[data.fields.length - 1]?.id || "", {
+                    name: "id",
+                    type: "string",
+                    required: true,
+                    description: "Unique identifier",
+                  });
+                }}
+              >
+                ID Field
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  addField();
+                  updateField(data.fields[data.fields.length - 1]?.id || "", {
+                    name: "email",
+                    type: "email",
+                    required: true,
+                    description: "Email address",
+                  });
+                }}
+              >
+                Email Field
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  addField();
+                  updateField(data.fields[data.fields.length - 1]?.id || "", {
+                    name: "name",
+                    type: "string",
+                    required: true,
+                    description: "Full name",
+                  });
+                }}
+              >
+                Name Field
+              </Button>
+            </div>
+            <Button variant="outline" onClick={() => setShowAddField(false)}>
+              Cancel
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-4">
+        {data.fields.map((field, index) => (
+          <FieldEditor
+            key={field.id}
+            field={field}
+            onUpdate={updates => updateField(field.id, updates)}
+            onRemove={() => removeField(field.id)}
+            isEditing={editingField?.id === field.id}
+            onEdit={() => setEditingField(field)}
+            onCancel={() => setEditingField(null)}
+          />
+        ))}
+      </div>
+
+      {data.fields.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <p className="text-muted-foreground mb-4">
+              No fields defined yet. Add your first field to get started.
+            </p>
+            <Button onClick={() => setShowAddField(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add First Field
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        <Button onClick={onNext} disabled={data.fields.length === 0}>
+          Next: Review & Save
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Step 3: Review and Save
+const ReviewStep: React.FC<WorkflowStepProps> = ({
+  data,
+  onBack,
+  isLast,
+  onShapeCreated,
+}) => {
+  const dispatch = useAppDispatch();
+  const { toast } = useToast();
+
+  const handleSave = () => {
+    try {
+      dispatch(saveTargetShape(data));
+      toast({
+        title: "Target Shape Saved",
+        description: `"${data.name}" has been saved successfully.`,
+      });
+
+      // Call the callback if provided
+      if (onShapeCreated) {
+        onShapeCreated(data);
+      }
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Failed to save target shape. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">Review Your Target Shape</h3>
+        <p className="text-sm text-muted-foreground">
+          Review the details before saving your target shape
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Name</Label>
+              <p className="font-medium">{data.name}</p>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">
+                Description
+              </Label>
+              <p className="text-sm">{data.description || "No description"}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-muted-foreground">
+                  Category
+                </Label>
+                <Badge variant="secondary">
+                  {data.metadata?.category || "custom"}
+                </Badge>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Version</Label>
+                <p className="text-sm">{data.version}</p>
+              </div>
+            </div>
+            {data.metadata?.tags && data.metadata.tags.length > 0 && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Tags</Label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {data.metadata.tags.map(tag => (
+                    <Badge key={tag} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Fields Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              Fields ({data.fields.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {data.fields.map(field => (
+                <div
+                  key={field.id}
+                  className="flex items-center justify-between p-2 border rounded"
+                >
+                  <div>
+                    <p className="font-medium text-sm">{field.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {field.type} {field.required && "• Required"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {field.validation && field.validation.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {field.validation.length} rules
+                      </Badge>
+                    )}
+                    {field.transformation &&
+                      field.transformation.length > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {field.transformation.length} transforms
+                        </Badge>
+                      )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        <Button onClick={handleSave}>
+          <Save className="mr-2 h-4 w-4" />
+          Save Target Shape
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Field Editor Component
+interface FieldEditorProps {
+  field: TargetField;
+  onUpdate: (updates: Partial<TargetField>) => void;
+  onRemove: () => void;
+  isEditing: boolean;
+  onEdit: () => void;
+  onCancel: () => void;
+}
+
+const FieldEditor: React.FC<FieldEditorProps> = ({
+  field,
+  onUpdate,
+  onRemove,
+  isEditing,
+  onEdit,
+  onCancel,
+}) => {
+  const fieldTypes: { value: FieldType; label: string }[] = [
+    { value: "string", label: "Text" },
+    { value: "number", label: "Number" },
+    { value: "integer", label: "Integer" },
+    { value: "decimal", label: "Decimal" },
+    { value: "boolean", label: "Boolean" },
+    { value: "date", label: "Date" },
+    { value: "datetime", label: "Date & Time" },
+    { value: "email", label: "Email" },
+    { value: "phone", label: "Phone" },
+    { value: "url", label: "URL" },
+    { value: "currency", label: "Currency" },
+    { value: "percentage", label: "Percentage" },
+    { value: "enum", label: "Enum" },
+  ];
+
+  if (isEditing) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Edit Field</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor={`field-name-${field.id}`}>Field Name</Label>
+              <Input
+                id={`field-name-${field.id}`}
+                value={field.name}
+                onChange={e => onUpdate({ name: e.target.value })}
+                placeholder="e.g., customer_id, email"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor={`field-type-${field.id}`}>Type</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="mt-1 w-full justify-start"
+                  >
+                    {fieldTypes.find(t => t.value === field.type)?.label ||
+                      "Select type"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {fieldTypes.map(type => (
+                    <DropdownMenuItem
+                      key={type.value}
+                      onClick={() => onUpdate({ type: type.value })}
+                    >
+                      {type.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor={`field-description-${field.id}`}>Description</Label>
+            <Textarea
+              id={`field-description-${field.id}`}
+              value={field.description}
+              onChange={e => onUpdate({ description: e.target.value })}
+              placeholder="Describe what this field contains..."
+              className="mt-1"
+              rows={2}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id={`field-required-${field.id}`}
+              checked={field.required}
+              onCheckedChange={checked => onUpdate({ required: checked })}
+            />
+            <Label htmlFor={`field-required-${field.id}`}>Required field</Label>
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button onClick={onCancel}>Done</Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div>
+              <p className="font-medium">{field.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {field.type} {field.required && "• Required"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={onRemove}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Main Workflow Component
+interface TargetShapeWorkflowProps {
+  importedData?: any[]; // Optional imported data for analysis
+  onShapeCreated?: (shape: TargetShape) => void; // Callback when shape is created
+}
+
+export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
+  importedData = [],
+  onShapeCreated,
+}) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [shapeData, setShapeData] = useState<TargetShape>(() => {
+    // Initialize with data analysis if imported data is provided
+    if (importedData.length > 0) {
+      const analysis = analyzeDataForTargetShape(importedData);
+      return {
+        id: generateShapeId(),
+        name: `Shape from ${importedData.length} records`,
+        description: `Auto-generated shape from imported data with ${analysis.suggestedFields.length} fields`,
+        version: "1.0.0",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        fields: analysis.suggestedFields,
+        metadata: {
+          category: "custom",
+          tags: ["auto-generated"],
+          usage: "data-import",
+        },
+      };
+    }
+
+    // Default empty shape
+    return {
+      id: generateShapeId(),
+      name: "",
+      description: "",
+      version: "1.0.0",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      fields: [],
+      metadata: {
+        category: "custom",
+        tags: [],
+        usage: "data-import",
+      },
+    };
+  });
+
+  const steps: WorkflowStep[] = [
+    {
+      id: "basic-info",
+      title: "Basic Information",
+      description: "Define the name and basic details of your target shape",
+      component: BasicInfoStep,
+    },
+    {
+      id: "fields",
+      title: "Define Fields",
+      description: "Add the fields that should be in your clean data output",
+      component: FieldsStep,
+    },
+    {
+      id: "review",
+      title: "Review & Save",
+      description: "Review your target shape and save it",
+      component: ReviewStep,
+    },
+  ];
+
+  const handleUpdate = (updates: Partial<TargetShape>) => {
+    setShapeData(prev => ({
+      ...prev,
+      ...updates,
+      updatedAt: new Date(),
+    }));
+  };
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const CurrentStepComponent = steps[currentStep].component;
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Progress Indicator */}
+      <div className="flex items-center space-x-4">
+        {steps.map((step, index) => (
+          <React.Fragment key={step.id}>
+            <div className="flex items-center space-x-2">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  index <= currentStep
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {index + 1}
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-sm font-medium">{step.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {step.description}
+                </p>
+              </div>
+            </div>
+            {index < steps.length - 1 && <div className="w-8 h-px bg-border" />}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <Separator />
+
+      {/* Current Step Content */}
+      <CurrentStepComponent
+        data={shapeData}
+        onUpdate={handleUpdate}
+        onNext={handleNext}
+        onBack={handleBack}
+        isFirst={currentStep === 0}
+        isLast={currentStep === steps.length - 1}
+        onShapeCreated={onShapeCreated}
+      />
+    </div>
+  );
+};

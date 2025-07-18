@@ -3,11 +3,8 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import {
-  loadSavedShapes,
-  loadTemplates,
-  selectSavedShape,
-  selectTemplate,
-  clearSelection,
+  loadShapes,
+  selectTargetShape,
 } from "@/lib/features/targetShapesSlice";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,32 +19,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, Plus, FolderOpen, FileText } from "lucide-react";
 
-export function TargetShapeSelector() {
-  const dispatch = useAppDispatch();
-  const { savedShapes, templates, selectedShape, selectionType, error } =
-    useAppSelector(state => state.targetShapes);
+interface TargetShapeSelectorProps {
+  onCreateNew?: () => void; // Callback to open shape creation workflow
+  onCreateFromData?: () => void; // Callback to create shape from current data
+  hasData?: boolean; // Whether there's data available to create shape from
+}
 
-  // Load shapes and templates on component mount
+export function TargetShapeSelector({
+  onCreateNew,
+  onCreateFromData,
+  hasData = false,
+}: TargetShapeSelectorProps) {
+  const dispatch = useAppDispatch();
+  const { shapes, selectedShapeId, error } = useAppSelector(
+    state => state.targetShapes
+  );
+
+  // Load shapes on component mount
   useEffect(() => {
-    dispatch(loadSavedShapes());
-    dispatch(loadTemplates());
+    dispatch(loadShapes());
   }, [dispatch]);
 
-  const handleSelectSavedShape = (shapeId: string) => {
-    dispatch(selectSavedShape(shapeId));
-  };
+  const selectedShape = selectedShapeId
+    ? shapes.find(shape => shape.id === selectedShapeId)
+    : null;
 
-  const handleSelectTemplate = (templateId: string) => {
-    dispatch(selectTemplate(templateId));
+  const handleSelectShape = (shapeId: string) => {
+    dispatch(selectTargetShape(shapeId));
   };
 
   const handleCreateNew = () => {
-    // TODO: Open shape builder modal
-    console.log("Create new shape");
+    if (onCreateNew) {
+      onCreateNew();
+    } else {
+      console.log("Create new shape - no callback provided");
+    }
   };
 
   const handleClearSelection = () => {
-    dispatch(clearSelection());
+    dispatch(selectTargetShape(null));
   };
 
   return (
@@ -72,11 +82,7 @@ export function TargetShapeSelector() {
                   {selectedShape.fields.length} fields
                 </p>
               </div>
-              <Badge variant="secondary">
-                {selectionType === "saved" && "Saved"}
-                {selectionType === "template" && "Template"}
-                {selectionType === "new" && "New"}
-              </Badge>
+              <Badge variant="secondary">Saved</Badge>
             </div>
             {selectedShape.description && (
               <p className="text-sm text-muted-foreground mt-1">
@@ -98,20 +104,20 @@ export function TargetShapeSelector() {
         {!selectedShape && (
           <div className="space-y-3">
             {/* Saved Shapes */}
-            {savedShapes.length > 0 && (
+            {shapes.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                   <FolderOpen className="h-4 w-4" />
                   Your Saved Shapes
                 </h4>
                 <div className="space-y-1">
-                  {savedShapes.map(shape => (
+                  {shapes.map((shape: any) => (
                     <Button
                       key={shape.id}
                       variant="outline"
                       size="sm"
                       className="w-full justify-start"
-                      onClick={() => handleSelectSavedShape(shape.id)}
+                      onClick={() => handleSelectShape(shape.id)}
                     >
                       {shape.name}
                       <Badge variant="secondary" className="ml-auto">
@@ -123,31 +129,8 @@ export function TargetShapeSelector() {
               </div>
             )}
 
-            {/* Templates */}
-            {templates.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-2">Templates</h4>
-                <div className="space-y-1">
-                  {templates.map(template => (
-                    <Button
-                      key={template.id}
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                      onClick={() => handleSelectTemplate(template.id)}
-                    >
-                      {template.name}
-                      <Badge variant="outline" className="ml-auto">
-                        Template
-                      </Badge>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Create New */}
-            <div>
+            <div className="space-y-2">
               <Button
                 variant="default"
                 size="sm"
@@ -157,6 +140,19 @@ export function TargetShapeSelector() {
                 <Plus className="h-4 w-4 mr-2" />
                 Create New Shape
               </Button>
+
+              {/* Create from Current Data */}
+              {hasData && onCreateFromData && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={onCreateFromData}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Create from Current Data
+                </Button>
+              )}
             </div>
           </div>
         )}
