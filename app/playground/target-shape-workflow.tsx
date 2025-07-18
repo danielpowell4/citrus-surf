@@ -622,11 +622,13 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
 interface TargetShapeWorkflowProps {
   importedData?: any[]; // Optional imported data for analysis
   onShapeCreated?: (shape: TargetShape) => void; // Callback when shape is created
+  onCancel?: () => void; // Callback when user cancels the workflow
 }
 
 export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
   importedData = [],
   onShapeCreated,
+  onCancel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [shapeData, setShapeData] = useState<TargetShape>(() => {
@@ -711,30 +713,42 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Progress Indicator */}
-      <div className="flex items-center space-x-4">
-        {steps.map((step, index) => (
-          <React.Fragment key={step.id}>
-            <div className="flex items-center space-x-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  index <= currentStep
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {index + 1}
+      {/* Header with Progress and Cancel */}
+      <div className="flex items-center justify-between">
+        {/* Progress Indicator */}
+        <div className="flex items-center space-x-4">
+          {steps.map((step, index) => (
+            <React.Fragment key={step.id}>
+              <div className="flex items-center space-x-2">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    index <= currentStep
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {index + 1}
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-medium">{step.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {step.description}
+                  </p>
+                </div>
               </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium">{step.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
-            </div>
-            {index < steps.length - 1 && <div className="w-8 h-px bg-border" />}
-          </React.Fragment>
-        ))}
+              {index < steps.length - 1 && (
+                <div className="w-8 h-px bg-border" />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Cancel Button */}
+        {onCancel && (
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
       </div>
 
       <Separator />

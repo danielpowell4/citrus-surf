@@ -404,7 +404,7 @@ export function DataImport({
             <RadioGroup
               value={importFormat}
               onValueChange={value => setImportFormat(value as "json" | "csv")}
-              className="flex space-x-4"
+              className="flex flex-wrap gap-4"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="csv" id="csv" />
@@ -429,13 +429,13 @@ export function DataImport({
           {importFormat === "csv" && (
             <div className="space-y-2">
               <Label>CSV Options</Label>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <RadioGroup
                   value={csvDelimiter}
                   onValueChange={value =>
                     setCsvDelimiter(value as "tab" | "comma")
                   }
-                  className="flex space-x-4"
+                  className="flex flex-wrap gap-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="comma" id="comma" />
@@ -446,16 +446,18 @@ export function DataImport({
                     <Label htmlFor="tab">Tab</Label>
                   </div>
                 </RadioGroup>
-                <input
-                  type="checkbox"
-                  id="hasHeaders"
-                  checked={hasHeaders}
-                  onChange={e => setHasHeaders(e.target.checked)}
-                  className="rounded border-gray-300 ml-4"
-                />
-                <Label htmlFor="hasHeaders" className="text-sm">
-                  First row contains headers
-                </Label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="hasHeaders"
+                    checked={hasHeaders}
+                    onChange={e => setHasHeaders(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor="hasHeaders" className="text-sm">
+                    First row contains headers
+                  </Label>
+                </div>
               </div>
             </div>
           )}
@@ -463,8 +465,8 @@ export function DataImport({
 
         {/* Data Input Section */}
         <div className="space-y-2">
-          <div className="flex items-center gap-4">
-            <Label htmlFor="importData">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <Label htmlFor="importData" className="whitespace-nowrap">
               {importFormat === "json" ? "JSON Data" : "CSV/TSV Data"}
             </Label>
             <input
@@ -487,12 +489,14 @@ export function DataImport({
             </Button>
             {selectedFile && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{selectedFile.name}</span>
+                <span className="truncate max-w-32 sm:max-w-48">
+                  {selectedFile.name}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearSelectedFile}
-                  className="h-6 w-6 p-0"
+                  className="h-6 w-6 p-0 flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -508,7 +512,7 @@ export function DataImport({
             }
             value={importData}
             onChange={handlePasteChange}
-            className="min-h-[150px] font-mono text-sm"
+            className="min-h-[150px] font-mono text-sm w-full"
             rows={6}
           />
         </div>
@@ -516,7 +520,7 @@ export function DataImport({
         {/* Error Display */}
         {error && (
           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive break-words">{error}</p>
           </div>
         )}
 
