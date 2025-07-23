@@ -16,7 +16,7 @@ import {
   ArrowRight,
   Upload,
 } from "lucide-react";
-import { setData, resetData } from "@/lib/features/tableSlice";
+import { setData } from "@/lib/features/tableSlice";
 import { DataImport } from "./data-import";
 
 export default function PlaygroundPage() {

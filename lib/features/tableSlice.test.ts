@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { configureStore } from "@reduxjs/toolkit";
-import tableReducer, { setData, resetData, Person } from "./tableSlice";
+import tableReducer, { setData, Person } from "./tableSlice";
 
 describe("Table Slice", () => {
   const createTestStore = () => {
@@ -15,8 +15,8 @@ describe("Table Slice", () => {
     const store = createTestStore();
     const state = store.getState().table;
 
-    expect(state.data).toHaveLength(5); // Has default data
-    expect(state.sorting).toEqual([{ id: "firstName", desc: false }]);
+    expect(state.data).toHaveLength(8); // Has default data
+    expect(state.sorting).toEqual([{ id: "id", desc: false }]);
     expect(state.columnFilters).toEqual([]);
     expect(state.columnVisibility).toEqual({});
     expect(state.rowSelection).toEqual({});
@@ -52,32 +52,5 @@ describe("Table Slice", () => {
     const state = store.getState().table;
 
     expect(state.data).toEqual(testData);
-  });
-
-  it("should handle resetData", () => {
-    const store = createTestStore();
-    const testData: Person[] = [
-      {
-        id: "1",
-        firstName: "John",
-        lastName: "Doe",
-        age: 30,
-        visits: 5,
-        status: "Active",
-        progress: 75,
-        email: "john@example.com",
-        department: "Engineering",
-        salary: 75000,
-        startDate: "2020-01-15",
-      },
-    ];
-
-    // First set some data
-    store.dispatch(setData(testData));
-    expect(store.getState().table.data).toEqual(testData);
-
-    // Then reset it
-    store.dispatch(resetData());
-    expect(store.getState().table.data).toHaveLength(5); // resetData restores default data
   });
 });

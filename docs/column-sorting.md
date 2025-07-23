@@ -4,7 +4,7 @@ The table now supports advanced column sorting with the following features:
 
 ## Default Behavior
 
-- **Default Sort**: By default, the table is sorted by import order (using the `id` field)
+- **Default Sort**: By default, the table is sorted by the leftmost column (ID field)
 - **Visual Indicators**: Column headers show sort state with arrow icons
 - **Three-State Sorting**: Each column cycles through ascending → descending → no sort
 

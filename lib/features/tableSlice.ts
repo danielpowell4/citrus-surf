@@ -25,7 +25,7 @@ export type Person = {
 };
 
 // Sample data
-const defaultData: Person[] = [
+export const defaultData: Person[] = [
   {
     id: "EMP001",
     firstName: "John",
@@ -151,7 +151,7 @@ interface TableState {
 
 const initialState: TableState = {
   data: defaultData,
-  sorting: [{ id: "firstName", desc: false }], // Default sort by first name
+  sorting: [{ id: "id", desc: false }], // Default sort by leftmost column (ID)
   columnFilters: [],
   columnVisibility: {}, // No hidden columns by default
   rowSelection: {},
@@ -175,10 +175,6 @@ export const tableSlice = createSlice({
     // Data management
     setData: (state, action: PayloadAction<Person[]>) => {
       state.data = action.payload;
-      state.error = null;
-    },
-    resetData: state => {
-      state.data = defaultData;
       state.error = null;
     },
 
@@ -213,7 +209,7 @@ export const tableSlice = createSlice({
         if (currentSort) {
           if (currentSort.desc) {
             // Remove from sorting, fall back to default
-            state.sorting = [{ id: "firstName", desc: false }];
+            state.sorting = [{ id: "id", desc: false }];
           } else {
             // Change to desc
             state.sorting = [{ id: columnId, desc: true }];
@@ -337,7 +333,6 @@ export const tableSlice = createSlice({
 
 export const {
   setData,
-  resetData,
   setSorting,
   toggleColumnSort,
   setColumnFilters,
