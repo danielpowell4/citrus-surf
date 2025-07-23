@@ -3,9 +3,42 @@ import { ColumnDef } from "@tanstack/react-table";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { EditableCell } from "@/app/playground/editable-cell";
 
+// Natural sort function for proper alphanumeric sorting
+function naturalSort(a: any, b: any): number {
+  // Handle null/undefined values
+  if (a == null && b == null) return 0;
+  if (a == null) return -1;
+  if (b == null) return 1;
+
+  const tokenize = (str: string) =>
+    str
+      .match(/(\d+|\D+)/g)
+      ?.map(part =>
+        isNaN(Number(part)) ? part.toLowerCase() : Number(part)
+      ) || [];
+
+  const aTokens = tokenize(String(a));
+  const bTokens = tokenize(String(b));
+
+  const len = Math.max(aTokens.length, bTokens.length);
+  for (let i = 0; i < len; i++) {
+    const aPart = aTokens[i];
+    const bPart = bTokens[i];
+
+    if (aPart === undefined) return -1;
+    if (bPart === undefined) return 1;
+
+    if (aPart < bPart) return -1;
+    if (aPart > bPart) return 1;
+  }
+
+  return 0;
+}
+
 // Extended meta interface for our column definitions
 export interface ColumnMeta {
   sortable?: boolean;
+  sortType?: "natural" | "string" | "number" | "date";
   editable?:
     | {
         type: string;
@@ -44,6 +77,12 @@ export function transformColumns<TData>(
       size: simpleCol.size,
       meta: simpleCol.meta,
     };
+
+    // Add custom sorting for text and enum fields
+    if (simpleCol.meta?.sortType === "natural") {
+      columnDef.sortingFn = "custom";
+      columnDef.sortUndefined = 1; // Put undefined values at the end
+    }
 
     // Calculate sort order for this column
     const sortOrder =

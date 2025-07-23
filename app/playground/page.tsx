@@ -33,10 +33,6 @@ export default function PlaygroundPage() {
     }, 100);
   };
 
-  const handleReset = () => {
-    dispatch(resetData());
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -51,11 +47,7 @@ export default function PlaygroundPage() {
 
         <div className="space-y-6 max-w-none">
           {/* Main Data Import Section */}
-          <DataImport
-            onImport={handleImport}
-            onReset={handleReset}
-            dataCount={data.length}
-          />
+          <DataImport onImport={handleImport} dataCount={data.length} />
 
           {/* Additional Tools Section */}
           <div className="mt-8">

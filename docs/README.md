@@ -32,6 +32,10 @@ This directory contains comprehensive documentation for the Citrus Surf Importer
 - **[Column Abstraction Example](./column-abstraction-example.md)** - Example of column abstraction patterns
 - **[Editable Cells](./editable-cells.md)** - In-place cell editing functionality
 
+#### 🔧 Utilities
+
+- **[Sort Utilities](./sort-utils.md)** - Natural sorting for alphanumeric data
+
 #### 🆔 ID System
 
 - **[ID System](./id-system.md)** - Vendor-prefixed unique identifiers and row management

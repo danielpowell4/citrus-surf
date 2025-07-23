@@ -72,6 +72,40 @@ In multi-column sorting, the order of columns determines priority:
 - **Keyboard Navigation**: Full keyboard support
 - **Focus Indicators**: Clear visual focus states
 
+## Natural Sorting
+
+The table supports natural sorting for text and enum fields, which handles alphanumeric content intelligently:
+
+- **Employee IDs**: "EMP1", "EMP2", "EMP10" sorts as "EMP1", "EMP2", "EMP10"
+- **File Names**: "file1.txt", "file2.txt", "file10.txt" sorts as "file1.txt", "file2.txt", "file10.txt"
+- **Version Numbers**: "v1.1.0", "v1.2.0", "v1.10.0" sorts as "v1.1.0", "v1.2.0", "v1.10.0"
+
+### Enabling Natural Sorting
+
+To enable natural sorting for a column, add `sortType: "natural"` to the column's meta:
+
+```typescript
+{
+  accessorKey: "id",
+  header: "ID",
+  meta: {
+    sortType: "natural",
+    editable: { type: "text" }
+  }
+}
+```
+
+### Implementation Details
+
+Natural sorting uses a tokenization approach that:
+
+1. Breaks strings into alternating numeric and non-numeric parts
+2. Compares numeric tokens as numbers
+3. Compares alphabetic tokens as lowercase strings
+4. Handles edge cases like null/undefined values
+
+See [Sort Utilities](./sort-utils.md) for detailed documentation and examples.
+
 ## Technical Implementation
 
 The sorting is implemented using:
@@ -80,6 +114,7 @@ The sorting is implemented using:
 - **Redux State**: Persistent sort state management
 - **Column Transformer**: Automatic header and cell transformation
 - **Custom Header Component**: Enhanced with sorting controls
+- **Sort Utilities**: Natural sorting for alphanumeric content
 - **TypeScript**: Full type safety
 
 ## Column Definition Abstraction

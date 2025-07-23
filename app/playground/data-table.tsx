@@ -52,6 +52,7 @@ import {
   transformColumns,
   type SimpleColumnDef,
 } from "@/lib/utils/column-transformer";
+import { naturalSortForTable } from "@/lib/utils/sort-utils";
 
 // Import the Person type from the slice
 import type { Person } from "@/lib/features/tableSlice";
@@ -93,6 +94,7 @@ export function DataTable({
       header: "ID",
       size: 80,
       meta: {
+        sortType: "natural",
         editable: {
           type: "text",
           placeholder: "Enter ID",
@@ -104,6 +106,7 @@ export function DataTable({
       accessorKey: "firstName",
       header: "First Name",
       meta: {
+        sortType: "natural",
         editable: {
           type: "text",
           placeholder: "Enter first name",
@@ -115,6 +118,7 @@ export function DataTable({
       accessorKey: "lastName",
       header: "Last Name",
       meta: {
+        sortType: "natural",
         editable: {
           type: "text",
           placeholder: "Enter last name",
@@ -153,6 +157,7 @@ export function DataTable({
       header: "Status",
       size: 100,
       meta: {
+        sortType: "natural",
         editable: {
           type: "select",
           options: [
@@ -182,6 +187,7 @@ export function DataTable({
       accessorKey: "email",
       header: "Email",
       meta: {
+        sortType: "natural",
         editable: {
           type: "text",
           placeholder: "Enter email address",
@@ -193,6 +199,7 @@ export function DataTable({
       accessorKey: "department",
       header: "Department",
       meta: {
+        sortType: "natural",
         editable: {
           type: "select",
           options: [
@@ -328,6 +335,9 @@ export function DataTable({
     getExpandedRowModel: getExpandedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    sortingFns: {
+      custom: naturalSortForTable,
+    },
   });
 
   return (
