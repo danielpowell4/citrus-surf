@@ -237,3 +237,9 @@ A client-only web app that:
 ✔ Fix column names, apply simple transforms.  
 ✔ Validate required fields and types.  
 ✔ Export clean data in <2 minutes.
+
+---
+
+## 🤖 Claude Development Rules
+
+For AI-assisted development with Claude, follow the comprehensive guidelines in [`claude-rules.md`](./claude-rules.md). These rules ensure consistency with the project's architecture, tech stack, and core values while maintaining code quality and brand alignment.
