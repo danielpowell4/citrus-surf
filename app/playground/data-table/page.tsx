@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,11 @@ import {
 } from "lucide-react";
 import { TargetShape } from "@/lib/types/target-shapes";
 import { DataTable } from "../data-table";
+import { ColumnMapping } from "@/components/column-mapping";
+import { setData } from "@/lib/features/tableSlice";
+import { loadShapes } from "@/lib/features/targetShapesSlice";
+import { toast } from "@/components/ui/use-toast";
+import { debugStorage } from "@/lib/utils/debug-storage";
 
 export default function DataTablePage() {
   const router = useRouter();
@@ -28,9 +33,15 @@ export default function DataTablePage() {
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
   const [selectedShape, setSelectedShape] = useState<TargetShape | null>(null);
   const [mappingMode, setMappingMode] = useState(false);
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
 
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
+
+  // Load target shapes on component mount
+  useEffect(() => {
+    dispatch(loadShapes());
+  }, [dispatch]);
 
   // Check URL parameters for target shape mapping mode
   useEffect(() => {
@@ -59,10 +70,55 @@ export default function DataTablePage() {
     router.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
   };
 
-  const handleExitMappingMode = () => {
+  const handleExitMappingMode = useCallback(() => {
     setMappingMode(false);
     setSelectedShape(null);
+    setColumnMapping({});
     router.push('/playground/data-table');
+  }, [router]);
+
+  const handleMappingChange = useCallback((mapping: Record<string, string>) => {
+    setColumnMapping(mapping);
+  }, []);
+
+  const handleApplyMapping = () => {
+    if (!selectedShape || Object.keys(columnMapping).length === 0) {
+      toast({
+        title: "No mapping to apply",
+        description: "Please configure column mappings first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Transform data according to mapping
+    const transformedData = data.map(row => {
+      const newRow: any = { _rowId: row._rowId }; // Preserve internal ID
+      
+      // Apply column mappings
+      Object.entries(columnMapping).forEach(([targetFieldId, sourceColumn]) => {
+        const targetField = selectedShape.fields.find(f => f.id === targetFieldId);
+        if (targetField && row[sourceColumn] !== undefined) {
+          newRow[targetField.name] = row[sourceColumn];
+        }
+      });
+      
+      return newRow;
+    });
+
+    // Update data in store
+    dispatch(setData(transformedData));
+    
+    // Exit mapping mode
+    setMappingMode(false);
+    setSelectedShape(null);
+    setColumnMapping({});
+    router.push('/playground/data-table');
+
+    toast({
+      title: "Mapping applied successfully",
+      description: `Data transformed according to "${selectedShape.name}" target shape`,
+    });
   };
 
   const handleCreateFromData = () => {
@@ -127,6 +183,7 @@ export default function DataTablePage() {
                   </Button>
                   <Button
                     size="sm"
+                    onClick={handleApplyMapping}
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                   >
                     <ArrowRight className="w-4 h-4" />
@@ -136,44 +193,13 @@ export default function DataTablePage() {
               )}
             </div>
             {mappingMode && selectedShape && (
-              <Card className="mb-4">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="w-5 h-5" />
-                    Column Mapping Preview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium mb-2">Import Columns</h4>
-                      <div className="space-y-1">
-                        {data.length > 0 && Object.keys(data[0]).filter(key => !key.startsWith('_')).map(column => (
-                          <div key={column} className="p-2 bg-muted rounded text-sm">
-                            {column}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium mb-2">Target Shape: {selectedShape.name}</h4>
-                      <div className="space-y-1">
-                        {selectedShape.fields.map(field => (
-                          <div key={field.id} className="p-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded text-sm">
-                            <div className="font-medium text-blue-900 dark:text-blue-100">{field.name}</div>
-                            <div className="text-xs text-blue-600 dark:text-blue-400">
-                              {field.type} {field.required && '(required)'}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-sm text-muted-foreground">
-                    Column mapping interface coming soon. For now, this shows your data structure vs. the target shape.
-                  </div>
-                </CardContent>
-              </Card>
+              <ColumnMapping
+                importColumns={data.length > 0 ? Object.keys(data[0]).filter(key => !key.startsWith('_')) : []}
+                targetShape={selectedShape}
+                onMappingChange={handleMappingChange}
+                onApplyMapping={handleApplyMapping}
+                className="mb-4"
+              />
             )}
             
             <DataTable
