@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
+import { useHydration } from "@/lib/hooks/useHydration";
 import {
   useReactTable,
   getCoreRowModel,
@@ -44,7 +45,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Eye, Sparkles } from "lucide-react";
+import { Eye, Sparkles, Upload, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { CompactHistory } from "@/components/compact-history";
 import { ExportDropdown } from "@/components/export-dropdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,6 +73,7 @@ export function DataTable({
   const dispatch = useAppDispatch();
   const tableState = useAppSelector(state => state.table);
   const currentIndex = useAppSelector(selectCurrentIndex);
+  const { isHydrated } = useHydration();
 
   const {
     sorting,
@@ -467,9 +470,27 @@ export function DataTable({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center"
+                    className="h-32 text-center"
                   >
-                    No results.
+                    {!isHydrated ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <p className="text-muted-foreground">Loading data...</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-4">
+                        <Upload className="h-8 w-8 text-muted-foreground/50" />
+                        <div className="text-center">
+                          <p className="text-muted-foreground mb-2">No data found</p>
+                          <Link href="/playground">
+                            <Button variant="outline" className="flex items-center gap-2">
+                              <ArrowRight className="h-4 w-4" />
+                              Go to Data Import
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               )}

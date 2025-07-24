@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Home, Maximize2, Minimize2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,17 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import StoreProvider from "@/lib/providers";
 import { useLocalStorage } from "usehooks-ts";
 import { useHydration } from "@/lib/hooks/useHydration";
+
+function PlaygroundLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Loading playground...</p>
+      </div>
+    </div>
+  );
+}
 
 export default function PlaygroundLayout({
   children,
@@ -24,7 +36,9 @@ export default function PlaygroundLayout({
   return (
     <StoreProvider>
       <PlaygroundContent isExpanded={isExpanded} setIsExpanded={setIsExpanded}>
-        {children}
+        <Suspense fallback={<PlaygroundLoader />}>
+          {children}
+        </Suspense>
       </PlaygroundContent>
     </StoreProvider>
   );
