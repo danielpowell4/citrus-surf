@@ -31,7 +31,7 @@ interface DataImportProps {
   dataCount: number;
   isLoading?: boolean;
   error?: string | null;
-  onCreateShapeFromData?: (data: any[]) => void; // New prop for creating shape from data
+  onCreateShapeFromData?: (data: any[]) => void;
 }
 
 // Sample data generator with diverse names
@@ -204,12 +204,13 @@ export function DataImport({
       const processedData = injectRowIds(parsedData, true); // Preserve existing IDs
 
       onImport(processedData);
-      setImportData("");
-      setSelectedFile(null);
       toast({
         title: "Data imported successfully",
         description: `${processedData.length} records imported`,
       });
+
+      setImportData("");
+      setSelectedFile(null);
     } catch (error) {
       console.error("Import error:", error);
       toast({
@@ -406,6 +407,7 @@ export function DataImport({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+
         {/* Import Format Selection */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">

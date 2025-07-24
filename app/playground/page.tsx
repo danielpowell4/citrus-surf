@@ -17,14 +17,22 @@ import {
   Upload,
 } from "lucide-react";
 import { setData } from "@/lib/features/tableSlice";
+import { loadShapes } from "@/lib/features/targetShapesSlice";
 import { DataImport } from "./data-import";
 import { PersistenceStatus } from "@/components/persistence-status";
+import type { TargetShape } from "@/lib/types/target-shapes";
+import { useEffect } from "react";
 
 export default function PlaygroundPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   const { data } = useAppSelector(state => state.table);
+
+  // Load target shapes on component mount
+  useEffect(() => {
+    dispatch(loadShapes());
+  }, [dispatch]);
 
   const handleImport = (importedData: any[]) => {
     dispatch(setData(importedData));
@@ -33,6 +41,7 @@ export default function PlaygroundPage() {
       router.push("/playground/data-table");
     }, 100);
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,7 +62,10 @@ export default function PlaygroundPage() {
           </div>
 
           {/* Main Data Import Section */}
-          <DataImport onImport={handleImport} dataCount={data.length} />
+          <DataImport 
+            onImport={handleImport} 
+            dataCount={data.length} 
+          />
 
           {/* Additional Tools Section */}
           <div className="mt-8">

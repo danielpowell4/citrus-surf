@@ -78,6 +78,15 @@
 - Maintain responsive design patterns
 - Use consistent spacing and typography
 
+## Theming and Color Guidelines
+- **ALWAYS test components in both light and dark modes**
+- **NEVER use hardcoded colors** - always use semantic tokens
+- **ALWAYS apply `dark:` modifiers** for any custom colored elements
+- Use semantic color tokens: `bg-background`, `text-foreground`, `text-muted-foreground`
+- For custom colors, always provide dark mode variants (e.g., `bg-blue-50 dark:bg-blue-950`)
+- Test theme switching before considering component complete
+- Use existing color schemes: `primary`, `secondary`, `muted`, `accent`, `destructive`
+
 ## Data Processing Rules
 - Validate all inputs through target shapes
 - Handle errors gracefully with user-friendly messages

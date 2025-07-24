@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import {
   FileText,
   Database,
   ArrowLeft,
+  Target,
+  ArrowRight,
 } from "lucide-react";
 import { TargetShape } from "@/lib/types/target-shapes";
 import { DataTable } from "../data-table";
@@ -21,23 +23,46 @@ import { DataTable } from "../data-table";
 export default function DataTablePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
   const [showDrawer, setShowDrawer] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
   const [selectedShape, setSelectedShape] = useState<TargetShape | null>(null);
+  const [mappingMode, setMappingMode] = useState(false);
 
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
+
+  // Check URL parameters for target shape mapping mode
+  useEffect(() => {
+    const targetShapeId = searchParams.get('targetShape');
+    const mode = searchParams.get('mode');
+    
+    if (targetShapeId && mode === 'mapping') {
+      const shape = shapes.find(s => s.id === targetShapeId);
+      if (shape) {
+        setSelectedShape(shape);
+        setMappingMode(true);
+      }
+    }
+  }, [searchParams, shapes]);
 
   const handleApplyTemplate = async (shape: TargetShape) => {
     setIsApplyingTemplate(true);
     setSelectedShape(shape);
 
-    // Simulate template application
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setIsApplyingTemplate(false);
+    // Enter mapping mode with the selected shape
+    setMappingMode(true);
     setShowDrawer(false);
-    // TODO: Apply the template to the data
+    setIsApplyingTemplate(false);
+    
+    // Update URL to reflect mapping mode
+    router.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
+  };
+
+  const handleExitMappingMode = () => {
+    setMappingMode(false);
+    setSelectedShape(null);
+    router.push('/playground/data-table');
   };
 
   const handleCreateFromData = () => {
@@ -60,9 +85,20 @@ export default function DataTablePage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="max-w-none">
-          <h1 className="text-2xl sm:text-3xl font-bold">Data Table</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            Data Table
+            {mappingMode && selectedShape && (
+              <Badge variant="secondary" className="ml-3">
+                <Target className="w-4 h-4 mr-1" />
+                Mapping to {selectedShape.name}
+              </Badge>
+            )}
+          </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            View, edit, and transform your imported data
+            {mappingMode 
+              ? "Map your data columns to the target shape fields"
+              : "View, edit, and transform your imported data"
+            }
           </p>
         </div>
 
@@ -78,7 +114,68 @@ export default function DataTablePage() {
                 <ArrowLeft className="w-4 h-4" />
                 Back to Import
               </Button>
+              
+              {mappingMode && selectedShape && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExitMappingMode}
+                    className="flex items-center gap-2"
+                  >
+                    Exit Mapping Mode
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    Apply Mapping
+                  </Button>
+                </div>
+              )}
             </div>
+            {mappingMode && selectedShape && (
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Column Mapping Preview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Import Columns</h4>
+                      <div className="space-y-1">
+                        {data.length > 0 && Object.keys(data[0]).filter(key => !key.startsWith('_')).map(column => (
+                          <div key={column} className="p-2 bg-muted rounded text-sm">
+                            {column}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Target Shape: {selectedShape.name}</h4>
+                      <div className="space-y-1">
+                        {selectedShape.fields.map(field => (
+                          <div key={field.id} className="p-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded text-sm">
+                            <div className="font-medium text-blue-900 dark:text-blue-100">{field.name}</div>
+                            <div className="text-xs text-blue-600 dark:text-blue-400">
+                              {field.type} {field.required && '(required)'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-muted-foreground">
+                    Column mapping interface coming soon. For now, this shows your data structure vs. the target shape.
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             <DataTable
               data={data}
               currentVersion={1}

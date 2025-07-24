@@ -56,6 +56,33 @@ npx shadcn@latest add [component-name]
 # This copies the component to components/ui/ and adds necessary Radix UI primitives
 ```
 
+### 🌓 Theming System
+
+**Light/Dark Mode Support:**
+
+- **Built-in**: shadcn/ui provides automatic light/dark mode theming
+- **Implementation**: Uses CSS variables and Tailwind's `dark:` modifier
+- **Theme Colors**: Defined in `app/globals.css` with HSL values for both modes
+- **Component Support**: All UI components must support both light and dark themes
+
+**Key Theming Principles:**
+
+- Always use semantic color tokens (e.g., `bg-background`, `text-foreground`)
+- Apply `dark:` modifiers for any custom colored elements
+- Test components in both light and dark modes
+- Use `text-muted-foreground` for secondary text
+- Leverage existing color schemes: `primary`, `secondary`, `muted`, `accent`, `destructive`
+
+**Color Usage Guidelines:**
+
+- **Background**: `bg-background` (main), `bg-card` (elevated surfaces)
+- **Text**: `text-foreground` (primary), `text-muted-foreground` (secondary)
+- **Borders**: `border-border` (standard), `border-input` (form elements)
+- **Interactive**: `bg-primary` (buttons), `bg-accent` (hover states)
+- **Status**: `bg-destructive` (errors), `bg-green-*` (success) with dark variants
+
+**Complete Style Guide:** See `docs/style-guide.md` for comprehensive theming patterns, component examples, and implementation guidelines.
+
 ---
 
 ## 🗂️ Step 0 MVP — Core Features
