@@ -150,8 +150,8 @@ interface TableState {
 }
 
 const initialState: TableState = {
-  data: defaultData,
-  sorting: [{ id: "id", desc: false }], // Default sort by leftmost column (ID)
+  data: [],
+  sorting: [], // Will be set dynamically when data is loaded
   columnFilters: [],
   columnVisibility: {}, // No hidden columns by default
   rowSelection: {},
@@ -176,6 +176,14 @@ export const tableSlice = createSlice({
     setData: (state, action: PayloadAction<Person[]>) => {
       state.data = action.payload;
       state.error = null;
+      
+      // Set default sorting to first column when data is loaded
+      if (action.payload.length > 0 && state.sorting.length === 0) {
+        const firstColumnKey = Object.keys(action.payload[0]).find(key => !key.startsWith('_'));
+        if (firstColumnKey) {
+          state.sorting = [{ id: firstColumnKey, desc: false }];
+        }
+      }
     },
 
     // Table state management
@@ -272,6 +280,14 @@ export const tableSlice = createSlice({
           state.data = parsedData;
           state.importData = "";
           state.error = null;
+          
+          // Set default sorting to first column when data is imported
+          if (parsedData.length > 0 && state.sorting.length === 0) {
+            const firstColumnKey = Object.keys(parsedData[0]).find(key => !key.startsWith('_'));
+            if (firstColumnKey) {
+              state.sorting = [{ id: firstColumnKey, desc: false }];
+            }
+          }
         } else {
           state.error = "Data must be an array";
         }
