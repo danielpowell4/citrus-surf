@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { reduxPersistence } from "@/lib/utils/redux-persistence";
-import { loadShapes } from "@/lib/features/targetShapesSlice";
+import { restoreFromStorage } from "@/lib/store";
 
 /**
  * Hook to handle client-side hydration and load persisted state
@@ -14,18 +14,12 @@ export function useHydration() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Load persisted state on client side
+    // Load persisted state on client side after initial render
     const persistedState = reduxPersistence.loadState();
 
     if (persistedState) {
-      // If we have persisted state, dispatch actions to sync it
-      // Note: The Redux store already has this state from preloadedState,
-      // but we need to ensure other parts of the app are aware of it
-
-      // Load target shapes if they exist in persisted state
-      if (persistedState.targetShapes?.shapes?.length > 0) {
-        dispatch(loadShapes());
-      }
+      // Restore entire state with a single action
+      dispatch(restoreFromStorage(persistedState));
     }
 
     // Mark as hydrated
