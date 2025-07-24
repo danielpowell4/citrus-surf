@@ -1,5 +1,6 @@
 import type { TargetShape, ShapeTemplate } from "@/lib/types/target-shapes";
 import { generateShapeId } from "@/lib/utils/id-generator";
+import { storage } from "@/lib/utils/localStorage";
 
 const STORAGE_KEY = "citrus-surf-target-shapes";
 const TEMPLATES_KEY = "citrus-surf-shape-templates";
@@ -9,8 +10,8 @@ export const targetShapesStorage = {
   // Get all saved shapes
   getAll(): TargetShape[] {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      const stored = storage.getItem<TargetShape[]>(STORAGE_KEY);
+      return stored ?? [];
     } catch (error) {
       console.error("Error loading target shapes:", error);
       return [];
@@ -36,7 +37,7 @@ export const targetShapesStorage = {
 
     const shapes = this.getAll();
     shapes.push(newShape);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(shapes));
+    storage.setItem(STORAGE_KEY, shapes);
 
     return newShape;
   },
@@ -54,7 +55,7 @@ export const targetShapesStorage = {
       updatedAt: new Date(),
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(shapes));
+    storage.setItem(STORAGE_KEY, shapes);
     return shapes[index];
   },
 
@@ -65,13 +66,13 @@ export const targetShapesStorage = {
 
     if (filtered.length === shapes.length) return false;
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+    storage.setItem(STORAGE_KEY, filtered);
     return true;
   },
 
   // Clear all shapes
   clear(): void {
-    localStorage.removeItem(STORAGE_KEY);
+    storage.removeItem(STORAGE_KEY);
   },
 };
 
@@ -248,8 +249,7 @@ export const templateStorage = {
   // Get all templates (combines default + custom)
   getAll(): ShapeTemplate[] {
     try {
-      const customTemplates = localStorage.getItem(TEMPLATES_KEY);
-      const custom = customTemplates ? JSON.parse(customTemplates) : [];
+      const custom = storage.getItem<ShapeTemplate[]>(TEMPLATES_KEY) ?? [];
       return [...defaultTemplates, ...custom];
     } catch (error) {
       console.error("Error loading templates:", error);

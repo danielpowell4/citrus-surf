@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { setData } from "@/lib/features/tableSlice";
 import { DataImport } from "./data-import";
+import { PersistenceStatus } from "@/components/persistence-status";
 
 export default function PlaygroundPage() {
   const router = useRouter();
@@ -46,6 +47,11 @@ export default function PlaygroundPage() {
         </div>
 
         <div className="space-y-6 max-w-none">
+          {/* Persistence Status */}
+          <div className="flex justify-end">
+            <PersistenceStatus />
+          </div>
+
           {/* Main Data Import Section */}
           <DataImport onImport={handleImport} dataCount={data.length} />
 

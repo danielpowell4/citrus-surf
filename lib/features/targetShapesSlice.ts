@@ -10,7 +10,7 @@ interface TargetShapesState {
 }
 
 const initialState: TargetShapesState = {
-  shapes: targetShapesStorage.getAll(),
+  shapes: typeof window === "undefined" ? [] : targetShapesStorage.getAll(),
   selectedShapeId: null,
   isLoading: false,
   error: null,

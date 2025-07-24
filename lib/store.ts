@@ -2,6 +2,11 @@ import { configureStore } from "@reduxjs/toolkit";
 import tableReducer from "./features/tableSlice";
 import historyReducer from "./features/historySlice";
 import targetShapesReducer from "./features/targetShapesSlice";
+import persistenceReducer from "./features/persistenceSlice";
+import {
+  reduxPersistence,
+  createPersistenceMiddleware,
+} from "./utils/redux-persistence";
 
 /**
  * History tracking middleware
@@ -65,15 +70,47 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
 };
 
 export const makeStore = () => {
-  return configureStore({
+  // Load persisted state only on client side
+  // During SSR, we always start with empty state to prevent hydration mismatches
+  const persistedState =
+    typeof window === "undefined" ? undefined : reduxPersistence.loadState();
+
+  // Create persistence middleware with configuration
+  const persistenceMiddleware = createPersistenceMiddleware({
+    enabled: true,
+    debounceDelay: 1000,
+    meaningfulActions: [
+      // Only persist meaningful data changes
+      "table/setData",
+      "table/importJsonData",
+      "table/updateCell",
+      "table/setSorting",
+      "table/toggleColumnSort",
+      "targetShapes/addShape",
+      "targetShapes/updateShape",
+      "targetShapes/deleteShape",
+    ],
+    debug: process.env.NODE_ENV === "development",
+  });
+
+  const store = configureStore({
     reducer: {
       table: tableReducer,
       history: historyReducer,
       targetShapes: targetShapesReducer,
+      persistence: persistenceReducer,
     },
+    preloadedState: persistedState,
     middleware: getDefaultMiddleware =>
-      getDefaultMiddleware().concat(historyMiddleware),
+      getDefaultMiddleware().concat(historyMiddleware, persistenceMiddleware),
   });
+
+  // Mark persistence as initialized only on client side
+  if (typeof window !== "undefined") {
+    reduxPersistence.markInitialized();
+  }
+
+  return store;
 };
 
 // Infer the type of makeStore
