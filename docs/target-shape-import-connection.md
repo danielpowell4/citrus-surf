@@ -70,13 +70,20 @@ Import Data → Data Table → Apply Target Shape → Mapping Mode → Active Wo
 - [x] Apply target shapes post-import
 - [x] URL-based mapping mode state
 - [x] Visual mapping mode indicators
-- [x] Column mapping preview interface
+- [x] Interactive 1:1 column mapping interface
+- [x] Auto-suggestion for similar column names
+- [x] Required field validation and coverage
+- [x] Apply mapping data transformation
 - [x] Exit mapping mode capability
 
 ### ✅ User Experience
 - [x] Clear visual feedback for mapping mode
-- [x] Side-by-side column comparison
-- [x] Target shape field requirements display
+- [x] Interactive dropdown column selection
+- [x] Real-time mapping validation
+- [x] Auto-suggested column mappings
+- [x] Visual status indicators (✓, ⚠️, ⚠️)
+- [x] Required field coverage tracking
+- [x] Unmapped column warnings
 - [x] Seamless mode transitions
 - [x] Persistent URL state
 
@@ -89,27 +96,36 @@ Import Data → Data Table → Apply Target Shape → Mapping Mode → Active Wo
 
 ## Testing
 
-Tests are located in `lib/utils/target-shape-mapping.test.ts` and cover:
-- Column extraction from imported data
-- Column mapping suggestions
-- Data integrity preservation
-- Edge cases (empty data, no fields)
+### Core Logic Tests
+Tests are located in `lib/utils/column-mapping-logic.test.ts` and cover:
+- Column mapping auto-suggestions
 - Required field validation
+- Data transformation with mappings
+- Edge cases (empty data, missing columns)
+- Internal ID preservation
+
+### Component Tests  
+Tests are located in `components/column-mapping.test.tsx` and cover:
+- Interactive mapping interface
+- Dropdown selections and validations
+- Auto-mapping initialization
+- Required field coverage indicators
 
 Run tests with:
 ```bash
-npm test target-shape-mapping
+npm test column-mapping-logic
+npm test column-mapping
 ```
 
 ## Future Enhancements
 
 ### Planned Features
-- [ ] Interactive column mapping drag-and-drop
-- [ ] Auto-suggestion of column mappings
-- [ ] Real-time validation feedback
+- [ ] Drag-and-drop column mapping
 - [ ] Data transformation preview
-- [ ] Bulk mapping operations
+- [ ] Bulk mapping operations  
 - [ ] Mapping templates and presets
+- [ ] Advanced pattern matching
+- [ ] Custom transformation rules
 
 ### Advanced Mapping
 - [ ] Complex field transformations

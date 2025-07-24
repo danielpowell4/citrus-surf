@@ -4,6 +4,79 @@
 
 The import system provides a unified, intelligent data import experience for the table playground. It supports multiple formats (JSON, CSV, TSV) with automatic format and delimiter detection, file upload with preview, and a streamlined user interface.
 
+## User Flow Design
+
+The playground follows a clean, intentional user journey designed around the most common data workflow:
+
+### 1. Import First Approach
+
+**Philosophy**: Users import data first, then apply transformations and target shapes.
+
+```
+Import Data → View/Edit in Data Table → Apply Target Shapes → Export
+```
+
+**Benefits**:
+- Natural workflow that matches how users think about data processing
+- No overwhelming choices before seeing the data
+- Target shapes become transformation tools rather than upfront requirements
+
+### 2. Clean Initial States
+
+**No Default Data**: The playground starts completely empty, providing a clean slate for users.
+
+- **Import Page**: Empty textarea with clear upload/paste options
+- **Data Table**: Shows loading state while hydrating, then helpful empty state if no data
+- **Templates**: Only visible after data is imported
+
+**Benefits**:
+- No sample data cluttering the experience
+- Clear guidance about next steps
+- Professional, production-ready feel
+
+### 3. Helpful Empty States
+
+When users navigate to sections without the required data, they see contextual guidance:
+
+#### Data Table Empty State
+```tsx
+<div className="flex flex-col items-center gap-4">
+  <Upload className="h-8 w-8 text-muted-foreground/50" />
+  <div className="text-center">
+    <p className="text-muted-foreground mb-2">No data found</p>
+    <Link href="/playground">
+      <Button variant="outline">Go to Data Import</Button>
+    </Link>
+  </div>
+</div>
+```
+
+**Features**:
+- Clear visual indicator (upload icon)
+- Helpful message explaining the situation
+- Direct action button to resolve the issue
+- Maintains user flow continuity
+
+### 4. Loading States During Hydration
+
+To prevent hydration mismatches, components show loading states while client-side data loads:
+
+```tsx
+{!isHydrated ? (
+  <div className="flex flex-col items-center gap-3">
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+    <p className="text-muted-foreground">Loading data...</p>
+  </div>
+) : (
+  // Actual content
+)}
+```
+
+**Benefits**:
+- Prevents content jumping as data loads
+- Professional loading experience
+- Eliminates hydration mismatch errors
+
 ## Key Features
 
 - **Auto-Detection**: Automatically detects data format (JSON vs CSV/TSV) and delimiter (comma vs tab)

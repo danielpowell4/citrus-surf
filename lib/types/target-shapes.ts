@@ -5,8 +5,8 @@ export interface TargetShape {
   name: string;
   description?: string;
   version: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
   fields: TargetField[];
   metadata?: {
     category?: string;

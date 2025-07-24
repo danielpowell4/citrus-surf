@@ -31,8 +31,8 @@ export const targetShapesStorage = {
     const newShape: TargetShape = {
       ...shape,
       id: generateShapeId(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     const shapes = this.getAll();
@@ -52,7 +52,7 @@ export const targetShapesStorage = {
     shapes[index] = {
       ...shapes[index],
       ...updates,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     };
 
     storage.setItem(STORAGE_KEY, shapes);

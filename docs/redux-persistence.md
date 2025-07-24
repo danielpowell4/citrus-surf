@@ -11,7 +11,7 @@ The Redux persistence system provides:
 - **Debounced writes** - Prevents excessive localStorage operations
 - **Type safety** - Full TypeScript support
 - **Error handling** - Graceful fallbacks and error logging
-- **SSR compatibility** - Works correctly in server-side rendering
+- **SSR compatibility** - Works correctly in server-side rendering with hydration-safe approach
 
 ## Architecture
 
@@ -471,10 +471,132 @@ describe("usePersistence", () => {
    });
    ```
 
+## SSR and Hydration Strategy
+
+### Hydration-Safe Approach
+
+To prevent hydration mismatches between server and client, the persistence system uses a two-phase loading approach:
+
+#### Phase 1: Consistent Initial State
+
+```typescript
+// In makeStore() - lib/store.ts
+export const makeStore = () => {
+  // Always start with empty state during SSR and initial client render
+  const persistedState = undefined;
+  
+  const store = configureStore({
+    preloadedState: persistedState, // undefined for both server and client
+    // ... rest of config
+  });
+};
+```
+
+**Why this works:**
+- Server renders with empty state
+- Client also starts with empty state
+- No hydration mismatch occurs
+
+#### Phase 2: Post-Hydration Loading
+
+```typescript
+// In useHydration hook - lib/hooks/useHydration.ts
+useEffect(() => {
+  // Load persisted state AFTER initial render
+  const persistedState = reduxPersistence.loadState();
+  
+  if (persistedState) {
+    // Restore entire state with a single action
+    dispatch(restoreFromStorage(persistedState));
+  }
+  
+  setIsHydrated(true);
+}, [dispatch]);
+```
+
+### State Restoration Middleware
+
+The `restoreFromStorage` action is handled by a dedicated middleware that orchestrates the restoration:
+
+```typescript
+// In lib/store.ts
+const stateRestorationMiddleware = (store: any) => (next: any) => (action: any) => {
+  if (action.type === RESTORE_FROM_STORAGE) {
+    const { payload } = action;
+    
+    // Restore table data if it exists
+    if (payload?.table?.data?.length > 0) {
+      store.dispatch({ type: 'table/setData', payload: payload.table.data });
+    }
+    
+    // Restore table state (sorting, filters, pagination, etc.)
+    if (payload?.table) {
+      const tableState = payload.table;
+      if (tableState.sorting) {
+        store.dispatch({ type: 'table/setSorting', payload: tableState.sorting });
+      }
+      // ... other table state restoration
+    }
+    
+    // Load target shapes if they exist
+    if (payload?.targetShapes?.shapes?.length > 0) {
+      store.dispatch({ type: 'targetShapes/loadShapes' });
+    }
+    
+    // Update persistence status
+    store.dispatch({ 
+      type: 'persistence/setPersistenceStatus', 
+      payload: { hasPersistedState: true, lastLoadedAt: Date.now() } 
+    });
+  }
+  
+  return next(action);
+};
+```
+
+**Benefits**:
+- **Single Action**: One dispatch call restores entire application state
+- **Extensible**: Easy to add new slices without modifying useHydration hook
+- **Centralized**: All restoration logic in one place
+- **Type-Safe**: Proper action dispatching with correct payloads
+
+### Integration with Components
+
+Components that depend on persisted data should use the hydration hook:
+
+```typescript
+import { useHydration } from "@/lib/hooks/useHydration";
+
+function DataTableComponent() {
+  const { isHydrated } = useHydration();
+  const data = useAppSelector(state => state.table.data);
+  
+  if (!isHydrated) {
+    return <LoadingSpinner />;
+  }
+  
+  if (data.length === 0) {
+    return <EmptyState />;
+  }
+  
+  return <DataTable data={data} />;
+}
+```
+
+### Benefits
+
+- **No Hydration Mismatches**: Server and client render identically initially
+- **Better UX**: Clear loading states during hydration
+- **Maintainable**: Single pattern for all components
+- **Future-Proof**: Works with any new persistence features
+
+See [Hydration Handling Documentation](./hydration-handling.md) for detailed implementation guidelines.
+
 ## Best Practices
 
 1. **Configure meaningful actions** - Only persist important data changes
 2. **Monitor storage size** - Clear old data periodically
 3. **Handle errors gracefully** - Don't break the app if persistence fails
-4. **Test thoroughly** - Verify persistence works in your specific use case
-5. **Document customizations** - Keep track of any custom persistence logic
+4. **Use hydration hooks** - For components depending on persisted data
+5. **Test thoroughly** - Verify persistence works in your specific use case
+6. **Document customizations** - Keep track of any custom persistence logic

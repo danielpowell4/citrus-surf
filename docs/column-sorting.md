@@ -4,9 +4,35 @@ The table now supports advanced column sorting with the following features:
 
 ## Default Behavior
 
-- **Default Sort**: By default, the table is sorted by the leftmost column (ID field)
+- **Dynamic Default Sort**: By default, the table is sorted by the first column in the imported data (not hardcoded to "ID")
 - **Visual Indicators**: Column headers show sort state with arrow icons
 - **Three-State Sorting**: Each column cycles through ascending → descending → no sort
+
+### Dynamic First Column Sorting
+
+The system automatically detects and sorts by the first column when data is loaded:
+
+```typescript
+// In tableSlice.ts - setData action
+if (action.payload.length > 0 && state.sorting.length === 0) {
+  const firstColumnKey = Object.keys(action.payload[0]).find(key => !key.startsWith('_'));
+  if (firstColumnKey) {
+    state.sorting = [{ id: firstColumnKey, desc: false }];
+  }
+}
+```
+
+**Benefits**:
+- **Works with any dataset**: No assumption about column names
+- **Skips internal fields**: Ignores fields starting with `_` (like `_rowId`)
+- **User-friendly**: Always provides initial order rather than random display
+- **Flexible**: Adapts to different data structures automatically
+
+**Behavior**:
+- When data is imported via CSV, JSON, or manual entry
+- Only sets default sort if no sorting is currently applied
+- Chooses the first non-internal column alphabetically from the first row
+- Applied in ascending order by default
 
 ## Sorting Controls
 
