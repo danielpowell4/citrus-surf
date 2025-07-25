@@ -54,8 +54,8 @@ interface TargetShape {
   name: string;
   description: string;
   version: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string; // ISO 8601 string (e.g., "2024-07-24T14:33:54.443Z")
+  updatedAt: string; // ISO 8601 string (e.g., "2024-07-24T14:33:54.443Z")
   fields: TargetField[];
   metadata: {
     category: string;
@@ -259,33 +259,39 @@ interface TransformationRule {
 
 ## User Workflow
 
-### 1. Define Target Shape
+### 1. Import Raw Data
 
-Users start by defining what their clean data should look like:
-
-```typescript
-// User creates or selects a target shape
-const targetShape = {
-  name: "Employee Records",
-  fields: [
-    { name: "employee_id", type: "string", required: true },
-    { name: "full_name", type: "string", required: true },
-    { name: "email", type: "email", required: true },
-    { name: "department", type: "string", required: true },
-    { name: "salary", type: "currency", required: false },
-  ],
-};
-```
-
-### 2. Import Raw Data
-
-Users import their messy data:
+Users start by importing their messy data:
 
 ```csv
 emp_id,first_name,last_name,email_addr,dept,sal
 E001,John,Doe,john.doe@company.com,Engineering,75000
 E002,Jane,Smith,jane.smith@company.com,Marketing,65000
 ```
+
+### 2. Define Target Shape
+
+Users either select an existing saved shape or create a new one using a visual, no-code interface:
+
+**Choose Your Approach:**
+
+- **Use Saved Shape**: Pick from your previously created target shapes
+- **Start from Template**: Begin with a pre-built template (Customer, Product, Employee)
+- **Create New**: Build a custom shape from scratch
+
+**Visual Template Builder (for new shapes):**
+
+- **Add Fields**: Click "Add Field" to add new columns
+- **Field Types**: Select from dropdown (string, email, number, date, etc.)
+- **Validation**: Toggle required fields, add format rules
+- **Preview**: See the target structure as you build
+
+**No Code Required:**
+
+- Drag-and-drop field reordering
+- Visual validation rule builder
+- Save shapes for future use
+- Real-time preview of target structure
 
 ### 3. Map to Target Shape
 
@@ -349,7 +355,11 @@ E002,Jane Smith,jane.smith@company.com,Marketing,65000.00
 
 ### UI Components
 
-- **Shape Editor**: Visual editor for creating/editing target shapes
+- **Visual Template Builder**: No-code interface for creating target shapes
+  - Drag-and-drop field management
+  - Visual validation rule builder
+  - Real-time preview of target structure
+  - Template library with common shapes
 - **Shape Selector**: Dropdown to choose from available shapes
 - **Mapping Interface**: Drag-and-drop column mapping
 - **Validation Preview**: Real-time validation feedback
@@ -382,6 +392,77 @@ E002,Jane Smith,jane.smith@company.com,Marketing,65000.00
 - **Testing**: Easy to test data transformations
 - **Documentation**: Self-documenting data schemas
 - **Integration**: Predictable data formats for APIs
+
+## Working with Date Fields
+
+### Date Storage Format
+
+Target Shape metadata uses ISO 8601 strings for `createdAt` and `updatedAt` fields:
+
+```typescript
+{
+  id: "user-profile-v1",
+  name: "User Profile",
+  createdAt: "2024-07-24T14:33:54.443Z", // ISO 8601 string
+  updatedAt: "2024-07-24T15:20:31.256Z", // ISO 8601 string
+  // ... rest of shape
+}
+```
+
+### Benefits of ISO Strings
+
+- **Redux Serialization**: Compatible with Redux state management
+- **JSON Safe**: Easily serialized/deserialized for storage and APIs
+- **Timezone Aware**: Includes timezone information (UTC)
+- **Standard Format**: Follows international standards
+
+### Converting for Display
+
+When displaying dates in the UI, convert ISO strings to Date objects:
+
+```typescript
+// For user-friendly display
+const displayDate = new Date(targetShape.createdAt).toLocaleDateString();
+// Result: "7/24/2024"
+
+// For detailed timestamps
+const displayTimestamp = new Date(targetShape.updatedAt).toLocaleString();
+// Result: "7/24/2024, 3:20:31 PM"
+
+// For relative time (with a library like date-fns)
+import { formatDistanceToNow } from 'date-fns';
+const relativeTime = formatDistanceToNow(new Date(targetShape.updatedAt));
+// Result: "2 hours ago"
+```
+
+### Creating New Shapes
+
+When creating new target shapes, the system automatically sets ISO string dates:
+
+```typescript
+// In targetShapesStorage.save()
+const newShape: TargetShape = {
+  ...shape,
+  id: generateShapeId(),
+  createdAt: new Date().toISOString(), // Automatically set
+  updatedAt: new Date().toISOString(), // Automatically set
+};
+```
+
+### Updating Shapes
+
+When updating existing shapes, `updatedAt` is automatically refreshed:
+
+```typescript
+// In targetShapesStorage.update()
+shapes[index] = {
+  ...shapes[index],
+  ...updates,
+  updatedAt: new Date().toISOString(), // Auto-updated
+};
+```
+
+This approach ensures consistent date handling across the application while maintaining Redux compatibility and following web standards.
 
 ## Future Enhancements
 

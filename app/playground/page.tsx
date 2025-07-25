@@ -1,510 +1,153 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getGroupedRowModel,
-  getExpandedRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  flexRender,
-  type ColumnDef,
-} from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import {
-  setSorting,
-  toggleColumnSort,
-  setColumnFilters,
-  setColumnVisibility,
-  setRowSelection,
-  setGlobalFilter,
-  setGrouping,
-  setExpanded,
-  setPagination,
-  setData,
-  importJsonData,
-  resetData,
-  updateCell,
-} from "@/lib/features/tableSlice";
-import { selectCurrentIndex } from "@/lib/features/historySlice";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye } from "lucide-react";
-import { DataImport } from "./data-import";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
-  transformColumns,
-  type SimpleColumnDef,
-} from "@/lib/utils/column-transformer";
-import { CompactHistory } from "@/components/compact-history";
-import { ExportDropdown } from "@/components/export-dropdown";
-
-// Import the Person type from the slice
-import type { Person } from "@/lib/features/tableSlice";
+  Plus,
+  Sparkles,
+  Wand2,
+  FileText,
+  Database,
+  Table,
+  ArrowRight,
+  Upload,
+} from "lucide-react";
+import { setData } from "@/lib/features/tableSlice";
+import { loadShapes } from "@/lib/features/targetShapesSlice";
+import { DataImport } from "./data-import";
+import { PersistenceStatus } from "@/components/persistence-status";
+import type { TargetShape } from "@/lib/types/target-shapes";
+import { useEffect } from "react";
 
 export default function PlaygroundPage() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
-  const tableState = useAppSelector(state => state.table);
-  const currentIndex = useAppSelector(selectCurrentIndex);
-  const currentVersion = currentIndex + 1; // Convert to 1-indexed version number
 
-  const {
-    data,
-    sorting,
-    columnFilters,
-    columnVisibility,
-    rowSelection,
-    globalFilter,
-    grouping,
-    expanded,
-    pagination,
-    importData,
-    isLoading,
-    error,
-    editingCell = null, // Add fallback value
-  } = tableState;
+  const { data } = useAppSelector(state => state.table);
 
-  // Safe access to editingCell
-  const currentEditingCell = tableState?.editingCell || null;
+  // Load target shapes on component mount
+  useEffect(() => {
+    dispatch(loadShapes());
+  }, [dispatch]);
 
-  // Define simplified column definitions
-  const simpleColumns: SimpleColumnDef<Person>[] = [
-    {
-      accessorKey: "id",
-      header: "ID",
-      size: 60,
-      meta: { sortable: true, editable: false },
-    },
-    {
-      accessorKey: "firstName",
-      header: "First Name",
-      meta: {
-        editable: {
-          type: "text",
-          placeholder: "Enter first name",
-          maxLength: 50,
-        },
-      },
-    },
-    {
-      accessorKey: "lastName",
-      header: "Last Name",
-      meta: {
-        editable: {
-          type: "text",
-          placeholder: "Enter last name",
-          maxLength: 50,
-        },
-      },
-    },
-    {
-      accessorKey: "age",
-      header: "Age",
-      size: 80,
-      meta: {
-        editable: {
-          type: "number",
-          min: 18,
-          max: 100,
-          precision: "integer",
-        },
-      },
-    },
-    {
-      accessorKey: "visits",
-      header: "Visits",
-      size: 80,
-      meta: {
-        editable: {
-          type: "number",
-          min: 0,
-          max: 1000,
-          precision: "integer",
-        },
-      },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      size: 100,
-      meta: {
-        editable: {
-          type: "select",
-          options: [
-            { value: "Active", label: "Active" },
-            { value: "Inactive", label: "Inactive" },
-          ],
-        },
-      },
-    },
-    {
-      accessorKey: "progress",
-      header: "Progress",
-      size: 120,
-      cell: info => (
-        <div className="w-full bg-secondary rounded-full h-2">
-          <div
-            className="bg-primary h-2 rounded-full"
-            style={{ width: `${info.getValue()}%` }}
-          />
-        </div>
-      ),
-      meta: {
-        editable: false,
-      },
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      meta: {
-        editable: {
-          type: "text",
-          placeholder: "Enter email address",
-          maxLength: 100,
-        },
-      },
-    },
-    {
-      accessorKey: "department",
-      header: "Department",
-      meta: {
-        editable: {
-          type: "select",
-          options: [
-            { value: "Engineering", label: "Engineering" },
-            { value: "Marketing", label: "Marketing" },
-            { value: "Sales", label: "Sales" },
-            { value: "HR", label: "HR" },
-            { value: "Finance", label: "Finance" },
-            { value: "Operations", label: "Operations" },
-          ],
-        },
-      },
-    },
-    {
-      accessorKey: "salary",
-      header: "Salary",
-      size: 120,
-      meta: {
-        editable: {
-          type: "currency",
-          currency: "USD",
-          min: 0,
-          precision: "integer",
-        },
-      },
-    },
-    {
-      accessorKey: "startDate",
-      header: "Start Date",
-      size: 120,
-      meta: {
-        editable: {
-          type: "date",
-          format: "MM/DD/YYYY",
-        },
-      },
-    },
-  ];
-
-  // Transform simple columns to TanStack table columns
-  const columns = useMemo<ColumnDef<Person>[]>(
-    () =>
-      transformColumns(
-        simpleColumns,
-        payload => dispatch(toggleColumnSort(payload)),
-        sorting
-      ),
-    [dispatch, sorting]
-  );
-
-  // Memoize change handlers to prevent unnecessary re-renders
-  const onRowSelectionChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(rowSelection) : updater;
-      dispatch(setRowSelection(newValue));
-    },
-    [dispatch, rowSelection]
-  );
-
-  const onSortingChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(sorting) : updater;
-      dispatch(setSorting(newValue));
-    },
-    [dispatch, sorting]
-  );
-
-  const onColumnFiltersChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(columnFilters) : updater;
-      dispatch(setColumnFilters(newValue));
-    },
-    [dispatch, columnFilters]
-  );
-
-  const onColumnVisibilityChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(columnVisibility) : updater;
-      dispatch(setColumnVisibility(newValue));
-    },
-    [dispatch, columnVisibility]
-  );
-
-  const onGlobalFilterChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(globalFilter) : updater;
-      dispatch(setGlobalFilter(newValue));
-    },
-    [dispatch, globalFilter]
-  );
-
-  const onGroupingChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(grouping) : updater;
-      dispatch(setGrouping(newValue));
-    },
-    [dispatch, grouping]
-  );
-
-  const onExpandedChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(expanded) : updater;
-      dispatch(setExpanded(newValue));
-    },
-    [dispatch, expanded]
-  );
-
-  const onPaginationChange = useCallback(
-    (updater: any) => {
-      const newValue =
-        typeof updater === "function" ? updater(pagination) : updater;
-      dispatch(setPagination(newValue));
-    },
-    [dispatch, pagination]
-  );
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
-      grouping,
-      expanded,
-      pagination,
-    },
-    enableRowSelection: true,
-    enableSorting: true,
-    enableMultiSort: true,
-    onRowSelectionChange,
-    onSortingChange,
-    onColumnFiltersChange,
-    onColumnVisibilityChange,
-    onGlobalFilterChange,
-    onGroupingChange,
-    onExpandedChange,
-    onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getGroupedRowModel: getGroupedRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-  });
-
-  const handleReset = () => {
-    dispatch(resetData());
+  const handleImport = (importedData: any[]) => {
+    dispatch(setData(importedData));
+    // Add a small delay to ensure the data is set before redirecting
+    setTimeout(() => {
+      router.push("/playground/data-table");
+    }, 100);
   };
 
+
   return (
-    <div className="space-y-6">
-      {/* Import Section */}
-      <DataImport
-        onImport={data => dispatch(setData(data))}
-        onReset={handleReset}
-        dataCount={data.length}
-        isLoading={isLoading}
-        error={error}
-      />
-
-      {/* Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between mb-2">
-            <CardTitle>
-              Data Table ({table.getFilteredRowModel().rows.length} rows)
-            </CardTitle>
-            <CompactHistory />
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Double-click any cell to edit. Press Enter to save or Escape to
-            cancel. Click column headers to sort. Hold Shift to multi-sort.
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <div className="max-w-none">
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            Citrus Surf Playground
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Import, transform, and export your data with ease
           </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Table Controls */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search all columns..."
-                value={globalFilter ?? ""}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  dispatch(setGlobalFilter(event.target.value))
-                }
-                className="max-w-sm"
-              />
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <ExportDropdown
-                data={data}
-                currentVersion={currentVersion}
-                disabled={data.length === 0}
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Columns
+        </div>
+
+        <div className="space-y-6 max-w-none">
+          {/* Persistence Status */}
+          <div className="flex justify-end">
+            <PersistenceStatus />
+          </div>
+
+          {/* Main Data Import Section */}
+          <DataImport 
+            onImport={handleImport} 
+            dataCount={data.length} 
+          />
+
+          {/* Additional Tools Section */}
+          <div className="mt-8">
+            <Separator className="my-6" />
+            <h2 className="text-lg font-semibold mb-4">Other Tools</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Data Table Card */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Table className="w-4 h-4" />
+                    Data Table
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    View and edit your imported data in an interactive table
+                    with sorting and filtering.
+                  </p>
+                  <Button
+                    onClick={() => router.push("/playground/data-table")}
+                    size="sm"
+                    className="w-full"
+                    disabled={data.length === 0}
+                  >
+                    Open Data Table
+                    <ArrowRight className="w-3 h-3 ml-2" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {table
-                    .getAllColumns()
-                    .filter(column => column.getCanHide())
-                    .map(column => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={value =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.id}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+                </CardContent>
+              </Card>
 
-          {/* Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map(headerGroup => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map(header => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map(row => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className={
-                        currentEditingCell?.rowId === row.original.id
-                          ? "bg-primary/5 ring-1 ring-primary/20"
-                          : ""
-                      }
-                    >
-                      {row.getVisibleCells().map(cell => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              {/* Template Builder Card */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Wand2 className="w-4 h-4" />
+                    Template Builder
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    Create target shapes and templates to define data structure
+                    and validation rules.
+                  </p>
+                  <Button
+                    onClick={() =>
+                      router.push("/playground/template-builder?source=scratch")
+                    }
+                    size="sm"
+                    className="w-full"
+                  >
+                    Create Template
+                    <ArrowRight className="w-3 h-3 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
-            </div>
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </Button>
+              {/* Coming Soon Card */}
+              <Card className="hover:shadow-lg transition-shadow opacity-75">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Database className="w-4 h-4" />
+                    Data Transformations
+                    <Badge variant="secondary" className="text-xs">
+                      Coming Soon
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm mb-3">
+                    Apply transformations, filters, and data cleaning
+                    operations.
+                  </p>
+                  <Button disabled size="sm" className="w-full">
+                    Coming Soon
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

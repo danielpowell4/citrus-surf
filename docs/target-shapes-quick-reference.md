@@ -139,8 +139,8 @@ C002,jane@example.com,Jane Smith,active
 
 ## Workflow Steps
 
-1. **Define Shape** → What should your clean data look like?
-2. **Import Data** → Upload your messy CSV/JSON
+1. **Import Data** → Upload your messy CSV/JSON
+2. **Define Shape** → Pick saved shape or create new one (Visual, no-code builder)
 3. **Map Columns** → Match input columns to target fields
 4. **Apply Rules** → Transform and validate data
 5. **Export Clean** → Get data in your desired format

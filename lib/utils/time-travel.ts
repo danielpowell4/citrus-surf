@@ -2,8 +2,8 @@ import { AppDispatch } from "@/lib/store";
 import { HistoryAction } from "@/lib/features/historySlice";
 import {
   setData,
-  resetData,
   setSorting,
+  defaultData,
   setColumnFilters,
   setColumnVisibility,
   setRowSelection,
@@ -112,7 +112,7 @@ export const restoreStateToAction = (
 
 export const resetToInitialState = (dispatch: AppDispatch) => {
   // Reset all table state to initial values
-  dispatch(resetData());
+  dispatch(setData(defaultData));
   dispatch(setSorting([{ id: "id", desc: false }]));
   dispatch(setColumnFilters([]));
   dispatch(setColumnVisibility({}));
@@ -144,8 +144,6 @@ export const getActionSummary = (action: HistoryAction) => {
       return `Loaded ${action.payload?.length || 0} rows of data`;
     case "importJsonData":
       return "Imported JSON data";
-    case "resetData":
-      return "Reset to default data";
     case "updateCell":
       return `Updated cell: ${action.payload?.rowId} - ${action.payload?.columnId}`;
     case "setSorting":
@@ -185,7 +183,6 @@ export const getActionCategory = (actionType: string) => {
   if (
     actionType.includes("setData") ||
     actionType.includes("importJsonData") ||
-    actionType.includes("resetData") ||
     actionType.includes("updateCell")
   ) {
     return "data";

@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "@/components/footer";
+import { ErrorLoggerProvider } from "@/components/error-logger-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,19 +24,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          themes={["light", "dark", "system"]}
-          disableTransitionOnChange={false}
-        >
-          <div className="min-h-screen flex flex-col">
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
-        </ThemeProvider>
+        <ErrorLoggerProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            themes={["light", "dark", "system"]}
+            disableTransitionOnChange={false}
+          >
+            <div className="min-h-screen flex flex-col">
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </ThemeProvider>
+        </ErrorLoggerProvider>
       </body>
     </html>
   );

@@ -10,7 +10,8 @@ import {
 
 // Sample data structure
 export type Person = {
-  id: string;
+  id: string; // User-input ID field
+  _rowId?: string; // Vendor-prefixed row ID injected during import
   firstName: string;
   lastName: string;
   age: number;
@@ -24,9 +25,9 @@ export type Person = {
 };
 
 // Sample data
-const defaultData: Person[] = [
+export const defaultData: Person[] = [
   {
-    id: "1",
+    id: "EMP001",
     firstName: "John",
     lastName: "Doe",
     age: 30,
@@ -39,7 +40,7 @@ const defaultData: Person[] = [
     startDate: "2023-01-15",
   },
   {
-    id: "2",
+    id: "EMP002",
     firstName: "Jane",
     lastName: "Smith",
     age: 28,
@@ -52,7 +53,7 @@ const defaultData: Person[] = [
     startDate: "2023-03-20",
   },
   {
-    id: "3",
+    id: "EMP003",
     firstName: "Bob",
     lastName: "Johnson",
     age: 35,
@@ -65,7 +66,7 @@ const defaultData: Person[] = [
     startDate: "2022-11-10",
   },
   {
-    id: "4",
+    id: "EMP004",
     firstName: "Alice",
     lastName: "Brown",
     age: 32,
@@ -78,7 +79,7 @@ const defaultData: Person[] = [
     startDate: "2023-02-05",
   },
   {
-    id: "5",
+    id: "EMP005",
     firstName: "Charlie",
     lastName: "Wilson",
     age: 29,
@@ -89,6 +90,45 @@ const defaultData: Person[] = [
     department: "Marketing",
     salary: 60000,
     startDate: "2023-04-12",
+  },
+  {
+    id: "EMP006",
+    firstName: "David",
+    lastName: "Miller",
+    age: 25,
+    visits: 2,
+    status: "Active",
+    progress: 30,
+    email: "david.miller@example.com",
+    department: "Engineering",
+    salary: 55000,
+    startDate: "2023-05-01",
+  },
+  {
+    id: "EMP007",
+    firstName: "Eva",
+    lastName: "Garcia",
+    age: 40,
+    visits: 100,
+    status: "Active",
+    progress: 95,
+    email: "eva.garcia@example.com",
+    department: "Sales",
+    salary: 85000,
+    startDate: "2022-08-15",
+  },
+  {
+    id: "EMP008",
+    firstName: "Frank",
+    lastName: "Taylor",
+    age: 22,
+    visits: 1,
+    status: "Inactive",
+    progress: 15,
+    email: "frank.taylor@example.com",
+    department: "HR",
+    salary: 45000,
+    startDate: "2023-06-10",
   },
 ];
 
@@ -110,10 +150,10 @@ interface TableState {
 }
 
 const initialState: TableState = {
-  data: defaultData,
-  sorting: [{ id: "id", desc: false }], // Default sort by import order (id)
+  data: [],
+  sorting: [], // Will be set dynamically when data is loaded
   columnFilters: [],
-  columnVisibility: {},
+  columnVisibility: {}, // No hidden columns by default
   rowSelection: {},
   globalFilter: "",
   grouping: [],
@@ -136,10 +176,14 @@ export const tableSlice = createSlice({
     setData: (state, action: PayloadAction<Person[]>) => {
       state.data = action.payload;
       state.error = null;
-    },
-    resetData: state => {
-      state.data = defaultData;
-      state.error = null;
+      
+      // Set default sorting to first column when data is loaded
+      if (action.payload.length > 0 && state.sorting.length === 0) {
+        const firstColumnKey = Object.keys(action.payload[0]).find(key => !key.startsWith('_'));
+        if (firstColumnKey) {
+          state.sorting = [{ id: firstColumnKey, desc: false }];
+        }
+      }
     },
 
     // Table state management
@@ -236,6 +280,14 @@ export const tableSlice = createSlice({
           state.data = parsedData;
           state.importData = "";
           state.error = null;
+          
+          // Set default sorting to first column when data is imported
+          if (parsedData.length > 0 && state.sorting.length === 0) {
+            const firstColumnKey = Object.keys(parsedData[0]).find(key => !key.startsWith('_'));
+            if (firstColumnKey) {
+              state.sorting = [{ id: firstColumnKey, desc: false }];
+            }
+          }
         } else {
           state.error = "Data must be an array";
         }
@@ -297,7 +349,6 @@ export const tableSlice = createSlice({
 
 export const {
   setData,
-  resetData,
   setSorting,
   toggleColumnSort,
   setColumnFilters,

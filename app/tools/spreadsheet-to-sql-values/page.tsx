@@ -305,6 +305,7 @@ BEGIN
           })
           .join(", ")}
         WHERE ${whereCol} = row_data.${mappedHeaders[0]}${finalCastings[0] ? finalCastings[0] : ""};
+        -- HEY HUMAN!! REMEMBER TO ADD ANY ADDITIONAL 'WHERE' conditions beyond this 1:1 match
     END LOOP;
 END $$;`;
 

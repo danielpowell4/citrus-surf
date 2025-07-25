@@ -23,21 +23,22 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { injectRowIds } from "@/lib/utils/data-processing";
 
 interface DataImportProps {
   onImport: (data: any[]) => void;
-  onReset: () => void;
   onExport?: () => void;
   dataCount: number;
   isLoading?: boolean;
   error?: string | null;
+  onCreateShapeFromData?: (data: any[]) => void;
 }
 
 // Sample data generator with diverse names
 const generateSampleData = () => {
   const sampleData = [
     {
-      id: "1",
+      id: 1,
       firstName: "Aisha",
       lastName: "Patel",
       age: 28,
@@ -47,7 +48,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "2",
+      id: 2,
       firstName: "Marcus",
       lastName: "Chen",
       age: 32,
@@ -57,7 +58,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "3",
+      id: 3,
       firstName: "Sofia",
       lastName: "Rodriguez",
       age: 25,
@@ -67,7 +68,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "4",
+      id: 4,
       firstName: "Kofi",
       lastName: "Mensah",
       age: 35,
@@ -77,7 +78,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "5",
+      id: 5,
       firstName: "Priya",
       lastName: "Sharma",
       age: 29,
@@ -87,7 +88,7 @@ const generateSampleData = () => {
       status: "Inactive",
     },
     {
-      id: "6",
+      id: 6,
       firstName: "Javier",
       lastName: "Garcia",
       age: 31,
@@ -97,7 +98,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "7",
+      id: 7,
       firstName: "Zara",
       lastName: "Ahmed",
       age: 27,
@@ -107,7 +108,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "8",
+      id: 8,
       firstName: "David",
       lastName: "Kim",
       age: 33,
@@ -117,7 +118,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "9",
+      id: 9,
       firstName: "Fatima",
       lastName: "Al-Zahra",
       age: 26,
@@ -127,7 +128,7 @@ const generateSampleData = () => {
       status: "Active",
     },
     {
-      id: "10",
+      id: 10,
       firstName: "Lucas",
       lastName: "Thompson",
       age: 30,
@@ -143,11 +144,11 @@ const generateSampleData = () => {
 
 export function DataImport({
   onImport,
-  onReset,
   onExport,
   dataCount,
   isLoading = false,
   error = null,
+  onCreateShapeFromData,
 }: DataImportProps) {
   const [importData, setImportData] = useState("");
   const [importFormat, setImportFormat] = useState<"csv" | "json">("csv");
@@ -199,13 +200,17 @@ export function DataImport({
         });
       }
 
-      onImport(parsedData);
-      setImportData("");
-      setSelectedFile(null);
+      // Inject unique row IDs
+      const processedData = injectRowIds(parsedData, true); // Preserve existing IDs
+
+      onImport(processedData);
       toast({
         title: "Data imported successfully",
-        description: `${parsedData.length} records imported`,
+        description: `${processedData.length} records imported`,
       });
+
+      setImportData("");
+      setSelectedFile(null);
     } catch (error) {
       console.error("Import error:", error);
       toast({
@@ -402,6 +407,7 @@ export function DataImport({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+
         {/* Import Format Selection */}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -409,7 +415,7 @@ export function DataImport({
             <RadioGroup
               value={importFormat}
               onValueChange={value => setImportFormat(value as "json" | "csv")}
-              className="flex space-x-4"
+              className="flex flex-wrap gap-4"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="csv" id="csv" />
@@ -434,13 +440,13 @@ export function DataImport({
           {importFormat === "csv" && (
             <div className="space-y-2">
               <Label>CSV Options</Label>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <RadioGroup
                   value={csvDelimiter}
                   onValueChange={value =>
                     setCsvDelimiter(value as "tab" | "comma")
                   }
-                  className="flex space-x-4"
+                  className="flex flex-wrap gap-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="comma" id="comma" />
@@ -451,16 +457,18 @@ export function DataImport({
                     <Label htmlFor="tab">Tab</Label>
                   </div>
                 </RadioGroup>
-                <input
-                  type="checkbox"
-                  id="hasHeaders"
-                  checked={hasHeaders}
-                  onChange={e => setHasHeaders(e.target.checked)}
-                  className="rounded border-gray-300 ml-4"
-                />
-                <Label htmlFor="hasHeaders" className="text-sm">
-                  First row contains headers
-                </Label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="hasHeaders"
+                    checked={hasHeaders}
+                    onChange={e => setHasHeaders(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor="hasHeaders" className="text-sm">
+                    First row contains headers
+                  </Label>
+                </div>
               </div>
             </div>
           )}
@@ -468,8 +476,8 @@ export function DataImport({
 
         {/* Data Input Section */}
         <div className="space-y-2">
-          <div className="flex items-center gap-4">
-            <Label htmlFor="importData">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <Label htmlFor="importData" className="whitespace-nowrap">
               {importFormat === "json" ? "JSON Data" : "CSV/TSV Data"}
             </Label>
             <input
@@ -492,12 +500,14 @@ export function DataImport({
             </Button>
             {selectedFile && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{selectedFile.name}</span>
+                <span className="truncate max-w-32 sm:max-w-48">
+                  {selectedFile.name}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearSelectedFile}
-                  className="h-6 w-6 p-0"
+                  className="h-6 w-6 p-0 flex-shrink-0"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -513,7 +523,7 @@ export function DataImport({
             }
             value={importData}
             onChange={handlePasteChange}
-            className="min-h-[150px] font-mono text-sm"
+            className="min-h-[150px] font-mono text-sm w-full"
             rows={6}
           />
         </div>
@@ -521,7 +531,7 @@ export function DataImport({
         {/* Error Display */}
         {error && (
           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive break-words">{error}</p>
           </div>
         )}
 
@@ -535,6 +545,61 @@ export function DataImport({
             <Upload className="h-4 w-4" />
             Import Data
           </Button>
+
+          {/* Create Shape from Data Button */}
+          {importData.trim() && onCreateShapeFromData && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                try {
+                  let parsedData: any[];
+                  if (importFormat === "json") {
+                    const jsonData = JSON.parse(importData);
+                    if (!Array.isArray(jsonData)) {
+                      throw new Error("JSON data must be an array");
+                    }
+                    parsedData = jsonData;
+                  } else {
+                    const lines = importData.trim().split("\n");
+                    if (lines.length === 0) {
+                      throw new Error("No data found");
+                    }
+                    const delimChar = csvDelimiter === "tab" ? "\t" : ",";
+                    const startIndex = hasHeaders ? 1 : 0;
+                    const headers = hasHeaders
+                      ? parseCsvLine(lines[0], delimChar)
+                      : [];
+
+                    parsedData = lines.slice(startIndex).map((line, index) => {
+                      const values = parseCsvLine(line, delimChar);
+                      if (hasHeaders) {
+                        const row: any = {};
+                        headers.forEach((header, i) => {
+                          row[header] = values[i] || "";
+                        });
+                        return row;
+                      } else {
+                        return values;
+                      }
+                    });
+                  }
+                  onCreateShapeFromData(parsedData);
+                } catch (error) {
+                  toast({
+                    title: "Invalid data",
+                    description:
+                      "Please ensure your data is in the correct format",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Create Shape from Data
+            </Button>
+          )}
+
           <Button
             variant="outline"
             onClick={loadSampleData}
@@ -544,14 +609,6 @@ export function DataImport({
             Load Sample
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={onReset}
-            className="flex items-center gap-2"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Reset Data
-          </Button>
           {dataCount > 0 && onExport && (
             <Button
               variant="outline"

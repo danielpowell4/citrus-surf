@@ -56,6 +56,33 @@ npx shadcn@latest add [component-name]
 # This copies the component to components/ui/ and adds necessary Radix UI primitives
 ```
 
+### 🌓 Theming System
+
+**Light/Dark Mode Support:**
+
+- **Built-in**: shadcn/ui provides automatic light/dark mode theming
+- **Implementation**: Uses CSS variables and Tailwind's `dark:` modifier
+- **Theme Colors**: Defined in `app/globals.css` with HSL values for both modes
+- **Component Support**: All UI components must support both light and dark themes
+
+**Key Theming Principles:**
+
+- Always use semantic color tokens (e.g., `bg-background`, `text-foreground`)
+- Apply `dark:` modifiers for any custom colored elements
+- Test components in both light and dark modes
+- Use `text-muted-foreground` for secondary text
+- Leverage existing color schemes: `primary`, `secondary`, `muted`, `accent`, `destructive`
+
+**Color Usage Guidelines:**
+
+- **Background**: `bg-background` (main), `bg-card` (elevated surfaces)
+- **Text**: `text-foreground` (primary), `text-muted-foreground` (secondary)
+- **Borders**: `border-border` (standard), `border-input` (form elements)
+- **Interactive**: `bg-primary` (buttons), `bg-accent` (hover states)
+- **Status**: `bg-destructive` (errors), `bg-green-*` (success) with dark variants
+
+**Complete Style Guide:** See `docs/style-guide.md` for comprehensive theming patterns, component examples, and implementation guidelines.
+
 ---
 
 ## 🗂️ Step 0 MVP — Core Features
@@ -81,6 +108,83 @@ Target Shapes define the desired clean output format for data imports. They act 
 - **Clarity** - Clear expectations for data format
 
 **Documentation:** See `docs/target-shapes.md` for complete system documentation.
+
+---
+
+## 📚 Documentation Strategy
+
+Citrus Surf follows a **comprehensive documentation-first approach** to ensure maintainability, onboarding, and knowledge sharing.
+
+### 📖 Documentation Structure
+
+```
+docs/
+├── README.md                           # Documentation overview
+├── target-shapes.md                    # Target shapes system
+├── import-system.md                    # Data import workflow
+├── export-system.md                    # Data export functionality
+├── history-system.md                   # Time-travel and undo/redo
+├── column-types-reference.md           # Supported data types
+├── column-sorting.md                   # Sorting implementation
+├── editable-cells.md                   # Inline editing system
+├── id-system.md                        # Row ID generation
+├── sort-utils.md                       # Sorting utilities
+├── target-shapes-quick-reference.md    # Quick reference guide
+├── superjson-storage.md                # SuperJSON localStorage integration
+└── redux-persistence.md                # Redux state persistence
+```
+
+### 🎯 Documentation Principles
+
+- **Developer-Focused**: Written for developers who will maintain and extend the system
+- **Example-Rich**: Every concept includes practical examples
+- **Workflow-Oriented**: Documentation follows user workflows, not technical architecture
+- **Living Documentation**: Updated alongside code changes
+- **Searchable**: Clear structure and cross-references
+
+### 📋 Key Documentation Areas
+
+#### **System Architecture**
+
+- **Target Shapes**: Complete data transformation system
+- **Import/Export**: End-to-end data processing workflows
+- **State Management**: Redux patterns and persistence
+
+#### **Developer Guides**
+
+- **Column Types**: All supported data types and validations
+- **Sorting System**: Multi-column sorting implementation
+- **Editable Cells**: Inline editing capabilities
+- **ID System**: Row identification and management
+
+#### **Integration Guides**
+
+- **SuperJSON Storage**: Complex type serialization
+- **Redux Persistence**: State persistence with debouncing
+- **History System**: Time-travel and undo functionality
+
+### 🔄 Documentation Workflow
+
+1. **New Features**: Documentation created alongside implementation
+2. **API Changes**: Documentation updated before code changes
+3. **Bug Fixes**: Documentation updated to reflect fixes
+4. **Reviews**: Code reviews include documentation review
+
+### 📝 Documentation Standards
+
+- **Markdown Format**: All docs use consistent markdown
+- **Code Examples**: TypeScript examples for all APIs
+- **Cross-References**: Links between related documentation
+- **Version Notes**: Clear indication of feature availability
+- **Troubleshooting**: Common issues and solutions
+
+### 🎨 Documentation Style
+
+- **Clear Headers**: Hierarchical structure with clear navigation
+- **Code Blocks**: Syntax-highlighted TypeScript/JavaScript
+- **Screenshots**: UI examples where helpful
+- **Diagrams**: Architecture and workflow diagrams
+- **Quick References**: Cheat sheets for common tasks
 
 ---
 
@@ -160,3 +264,9 @@ A client-only web app that:
 ✔ Fix column names, apply simple transforms.  
 ✔ Validate required fields and types.  
 ✔ Export clean data in <2 minutes.
+
+---
+
+## 🤖 Claude Development Rules
+
+For AI-assisted development with Claude, follow the comprehensive guidelines in [`claude-rules.md`](./claude-rules.md). These rules ensure consistency with the project's architecture, tech stack, and core values while maintaining code quality and brand alignment.
