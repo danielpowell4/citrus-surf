@@ -5,7 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "@/components/footer";
-import { ErrorLoggerProvider } from "@/components/error-logger-provider";
+import { ClaudeHelperProvider } from "@/components/claude-helper-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ErrorLoggerProvider>
+        <ClaudeHelperProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -38,7 +38,7 @@ export default function RootLayout({
             </div>
             <Toaster />
           </ThemeProvider>
-        </ErrorLoggerProvider>
+        </ClaudeHelperProvider>
       </body>
     </html>
   );

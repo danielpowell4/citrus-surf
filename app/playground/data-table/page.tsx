@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
@@ -34,14 +34,31 @@ export default function DataTablePage() {
   const [selectedShape, setSelectedShape] = useState<TargetShape | null>(null);
   const [mappingMode, setMappingMode] = useState(false);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
 
-  // Load target shapes on component mount
+  // Memoize importColumns to prevent unnecessary re-renders
+  const importColumns = useMemo(() => {
+    return data.length > 0 ? Object.keys(data[0]).filter(key => !key.startsWith('_')) : [];
+  }, [data]);
+
+  // Load target shapes on component mount and handle data check
   useEffect(() => {
     dispatch(loadShapes());
-  }, [dispatch]);
+    
+    // Check for data after a short delay to allow hydration
+    const timer = setTimeout(() => {
+      if (data.length === 0) {
+        router.push("/playground");
+      } else {
+        setIsLoading(false);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [dispatch, data.length, router]);
 
   // Check URL parameters for target shape mapping mode
   useEffect(() => {
@@ -131,10 +148,17 @@ export default function DataTablePage() {
     setShowDrawer(false);
   };
 
-  // If no data, redirect back to playground
-  if (data.length === 0) {
-    router.push("/playground");
-    return null;
+  // Show loading state during hydration
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -194,7 +218,7 @@ export default function DataTablePage() {
             </div>
             {mappingMode && selectedShape && (
               <ColumnMapping
-                importColumns={data.length > 0 ? Object.keys(data[0]).filter(key => !key.startsWith('_')) : []}
+                importColumns={importColumns}
                 targetShape={selectedShape}
                 onMappingChange={handleMappingChange}
                 onApplyMapping={handleApplyMapping}

@@ -87,14 +87,11 @@ export function ColumnMapping({
     const suggestedMapping = suggestColumnMapping(importColumns, targetShape.fields);
     setMapping(suggestedMapping);
     setUsedColumns(new Set(Object.values(suggestedMapping)));
-    // Call immediately with suggested mapping
-    onMappingChangeRef.current(suggestedMapping);
+    // Only notify parent if there are actual mappings to avoid infinite loops
+    if (Object.keys(suggestedMapping).length > 0) {
+      onMappingChangeRef.current(suggestedMapping);
+    }
   }, [importColumns, targetShape.fields]);
-
-  // Notify parent of mapping changes
-  useEffect(() => {
-    onMappingChangeRef.current(mapping);
-  }, [mapping]);
 
   const handleMappingChange = (fieldId: string, columnName: string) => {
     const newMapping = { ...mapping };
@@ -115,7 +112,7 @@ export function ColumnMapping({
 
     setMapping(newMapping);
     setUsedColumns(newUsedColumns);
-    onMappingChange(newMapping);
+    onMappingChangeRef.current(newMapping);
   };
 
   const getAvailableColumns = (currentFieldId: string): string[] => {
