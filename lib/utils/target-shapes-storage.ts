@@ -257,6 +257,16 @@ export const templateStorage = {
     }
   },
 
+  // Get only custom templates (excludes defaults)
+  getCustom(): ShapeTemplate[] {
+    try {
+      return storage.getItem<ShapeTemplate[]>(TEMPLATES_KEY) ?? [];
+    } catch (error) {
+      console.error("Error loading custom templates:", error);
+      return [];
+    }
+  },
+
   // Get templates by category
   getByCategory(category: string): ShapeTemplate[] {
     return this.getAll().filter(template => template.category === category);
@@ -265,5 +275,50 @@ export const templateStorage = {
   // Get a specific template by ID
   getById(id: string): ShapeTemplate | null {
     return this.getAll().find(template => template.id === id) || null;
+  },
+
+  // Save a custom template
+  save(template: Omit<ShapeTemplate, "id">): ShapeTemplate {
+    const custom = this.getCustom();
+    const newTemplate: ShapeTemplate = {
+      ...template,
+      id: `tmpl_custom_${Date.now()}`,
+    };
+
+    custom.push(newTemplate);
+    storage.setItem(TEMPLATES_KEY, custom);
+    return newTemplate;
+  },
+
+  // Update a custom template (cannot update default templates)
+  update(id: string, updates: Partial<ShapeTemplate>): ShapeTemplate | null {
+    const custom = this.getCustom();
+    const index = custom.findIndex(template => template.id === id);
+
+    if (index === -1) return null;
+
+    custom[index] = {
+      ...custom[index],
+      ...updates,
+    };
+
+    storage.setItem(TEMPLATES_KEY, custom);
+    return custom[index];
+  },
+
+  // Delete a custom template (cannot delete default templates)
+  delete(id: string): boolean {
+    const custom = this.getCustom();
+    const filtered = custom.filter(template => template.id !== id);
+
+    if (filtered.length === custom.length) return false;
+
+    storage.setItem(TEMPLATES_KEY, filtered);
+    return true;
+  },
+
+  // Check if template is custom (can be edited/deleted)
+  isCustom(id: string): boolean {
+    return !defaultTemplates.some(template => template.id === id);
   },
 };

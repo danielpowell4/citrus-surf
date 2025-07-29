@@ -31,6 +31,48 @@ interface ErrorLog {
   componentStack?: string;
 }
 
+// Helper function to safely get className as string
+const getClassNameString = (element: Element): string => {
+  if (!element.className) return '';
+  return typeof element.className === 'string' 
+    ? element.className 
+    : element.className.toString();
+};
+
+// Helper function to safely stringify objects with circular references
+const safeStringify = (obj: any, maxDepth: number = 2): string => {
+  const seen = new WeakSet();
+  const stringify = (value: any, depth: number): any => {
+    if (depth > maxDepth) return '[Max Depth Reached]';
+    if (value === null) return null;
+    if (typeof value !== 'object') return value;
+    if (seen.has(value)) return '[Circular Reference]';
+    
+    seen.add(value);
+    
+    if (Array.isArray(value)) {
+      return value.map(item => stringify(item, depth + 1));
+    }
+    
+    const result: any = {};
+    for (const [key, val] of Object.entries(value)) {
+      // Skip function properties and some common problematic props
+      if (typeof val === 'function' || key.startsWith('_') || key === 'children') {
+        result[key] = '[Function/Complex]';
+      } else {
+        result[key] = stringify(val, depth + 1);
+      }
+    }
+    return result;
+  };
+  
+  try {
+    return JSON.stringify(stringify(obj, 0), null, 2);
+  } catch (error) {
+    return `[Stringify Error: ${error}]`;
+  }
+};
+
 export function DevClaudeHelper() {
   const [isOpen, setIsOpen] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
@@ -67,7 +109,10 @@ export function DevClaudeHelper() {
     while (current && current !== document.body) {
       let selector = current.tagName.toLowerCase();
       if (current.id) selector += `#${current.id}`;
-      if (current.className) selector += `.${current.className.split(' ').join('.')}`;
+      const classNames = getClassNameString(current);
+      if (classNames) {
+        selector += `.${classNames.split(' ').join('.')}`;
+      }
       hierarchy.unshift(selector);
       current = current.parentElement;
     }
@@ -107,7 +152,10 @@ export function DevClaudeHelper() {
     output += `--- ELEMENT INFO ---\n`;
     output += `Tag: <${context.element.tagName}>\n`;
     if (context.element.id) output += `ID: ${context.element.id}\n`;
-    if (context.element.className) output += `Classes: ${context.element.className}\n`;
+    const classNames = getClassNameString(context.element);
+    if (classNames) {
+      output += `Classes: ${classNames}\n`;
+    }
     if (context.element.textContent) output += `Text: ${context.element.textContent}\n`;
     
     output += `\n--- ATTRIBUTES ---\n`;
@@ -127,7 +175,7 @@ export function DevClaudeHelper() {
       output += `\n--- REACT COMPONENT ---\n`;
       output += `Component: ${context.reactInfo.componentName}\n`;
       if (context.reactInfo.props) {
-        output += `Props: ${JSON.stringify(context.reactInfo.props, null, 2)}\n`;
+        output += `Props: ${safeStringify(context.reactInfo.props)}\n`;
       }
     }
     
@@ -177,27 +225,60 @@ export function DevClaudeHelper() {
       globalLogger.selectedElementContext = context;
       globalLogger.copyElementForClaude = () => {
         const formatted = formatElementContextForClaude(context);
-        navigator.clipboard.writeText(formatted).then(() => {
-          console.log('✅ Element context copied to clipboard for Claude!');
-        }).catch(() => {
+        navigator.clipboard.writeText(formatted).catch(() => {
           console.log('📋 Copy this element context for Claude:');
           console.log(formatted);
         });
       };
     }
 
-    console.log('🎯 Element selected for Claude context:', context);
-    
     // Immediately copy to clipboard when element is selected
     const formatted = formatElementContextForClaude(context);
-    navigator.clipboard.writeText(formatted).then(() => {
-      console.log('✅ Element context automatically copied to clipboard for Claude!');
-    }).catch(() => {
+    
+    // Try clipboard API first, fallback to console if it fails
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(formatted).then(() => {
+        // Show visual feedback
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed; top: 20px; right: 20px; z-index: 10000;
+          background: #10b981; color: white; padding: 12px 16px;
+          border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          font-family: system-ui; font-size: 14px;
+        `;
+        notification.textContent = '✅ Element copied to clipboard!';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+      }).catch((error) => {
+        console.log('📋 Copy this element context for Claude:');
+        console.log(formatted);
+        // Show error notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed; top: 20px; right: 20px; z-index: 10000;
+          background: #ef4444; color: white; padding: 12px 16px;
+          border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          font-family: system-ui; font-size: 14px;
+        `;
+        notification.textContent = '❌ Clipboard failed - check console for data';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
+      });
+    } else {
       console.log('📋 Copy this element context for Claude:');
       console.log(formatted);
-    });
-    
-    console.log('💡 Element context has been copied to clipboard automatically');
+      // Show warning notification
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        background: #f59e0b; color: white; padding: 12px 16px;
+        border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-family: system-ui; font-size: 14px;
+      `;
+      notification.textContent = '⚠️ Check console for element data';
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 5000);
+    }
   }, [getElementHierarchy, extractReactInfo, formatElementContextForClaude]);
 
   // Element selection handlers
@@ -222,7 +303,6 @@ export function DevClaudeHelper() {
       setSelectedElement(target);
       extractElementContext(target);
       setIsSelectMode(false);
-      console.log('🎯 Element selected:', target);
     }
   }, [isSelectMode, extractElementContext]);
 
@@ -316,13 +396,6 @@ export function DevClaudeHelper() {
           button.textContent = originalText;
         }, 2000);
       }
-    } else {
-      console.warn('⚠️ No element selected or copy function not available');
-      console.log('Debug info:', { 
-        globalLogger: !!globalLogger, 
-        copyFunction: !!globalLogger?.copyElementForClaude,
-        selectedElement: !!selectedElement 
-      });
     }
   };
 
@@ -330,10 +403,6 @@ export function DevClaudeHelper() {
     const newMode = !isSelectMode;
     setIsSelectMode(newMode);
     setSelectedElement(null);
-    console.log(`🎯 Element selection mode: ${newMode ? 'ENABLED' : 'DISABLED'}`);
-    if (newMode) {
-      console.log('💡 Hover over elements to see them highlighted, click to select');
-    }
   };
 
   const clearErrors = () => {
@@ -514,7 +583,7 @@ export function DevClaudeHelper() {
                     <div className="text-green-700 dark:text-green-300 font-mono">
                       {selectedElement.tagName.toLowerCase()}
                       {selectedElement.id && `#${selectedElement.id}`}
-                      {selectedElement.className && `.${selectedElement.className.split(' ')[0]}`}
+                      {getClassNameString(selectedElement) && `.${getClassNameString(selectedElement).split(' ')[0]}`}
                     </div>
                     <div className="text-green-600 dark:text-green-400 text-xs mt-1">
                       ✅ Copied to clipboard automatically - includes page URL and full context
@@ -563,7 +632,7 @@ export function DevClaudeHelper() {
               <>
                 {hoveredElement.tagName.toLowerCase()}
                 {hoveredElement.id && `#${hoveredElement.id}`}
-                {hoveredElement.className && `.${hoveredElement.className.split(' ')[0]}`}
+                {getClassNameString(hoveredElement) && `.${getClassNameString(hoveredElement).split(' ')[0]}`}
               </>
             )}
           </div>

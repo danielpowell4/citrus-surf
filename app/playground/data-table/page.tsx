@@ -4,18 +4,19 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Plus,
-  Sparkles,
   Wand2,
   FileText,
-  Database,
   ArrowLeft,
   Target,
   ArrowRight,
+  MoreHorizontal,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { TargetShape } from "@/lib/types/target-shapes";
 import { DataTable } from "../data-table";
@@ -23,7 +24,23 @@ import { ColumnMapping } from "@/components/column-mapping";
 import { setData } from "@/lib/features/tableSlice";
 import { loadShapes } from "@/lib/features/targetShapesSlice";
 import { toast } from "@/components/ui/use-toast";
-import { debugStorage } from "@/lib/utils/debug-storage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
 
 export default function DataTablePage() {
   const router = useRouter();
@@ -35,6 +52,10 @@ export default function DataTablePage() {
   const [mappingMode, setMappingMode] = useState(false);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Template management state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<TargetShape | null>(null);
 
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
@@ -146,6 +167,41 @@ export default function DataTablePage() {
   const handleCreateFromScratch = () => {
     router.push("/playground/template-builder?source=scratch");
     setShowDrawer(false);
+  };
+
+  // Template management functions
+  const handleEditTemplate = (shape: TargetShape) => {
+    router.push(`/playground/template-builder?edit=${shape.id}`);
+    setShowDrawer(false);
+  };
+
+
+  const handleDeleteTemplate = (shape: TargetShape) => {
+    setTemplateToDelete(shape);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteTemplate = () => {
+    if (!templateToDelete) return;
+
+    const success = targetShapesStorage.delete(templateToDelete.id);
+
+    if (success) {
+      dispatch(loadShapes()); // Refresh the shapes list
+      toast({
+        title: "Template deleted",
+        description: `"${templateToDelete.name}" has been deleted.`,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete template.",
+        variant: "destructive",
+      });
+    }
+
+    setShowDeleteDialog(false);
+    setTemplateToDelete(null);
   };
 
   // Show loading state during hydration
@@ -281,20 +337,48 @@ export default function DataTablePage() {
                                   {shape.fields.length} fields
                                 </p>
                               </div>
-                              <Button
-                                size="sm"
-                                onClick={() => handleApplyTemplate(shape)}
-                                disabled={isApplyingTemplate}
-                                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white flex-shrink-0 ml-2"
-                              >
-                                {isApplyingTemplate &&
-                                selectedShape?.id === shape.id ? (
-                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                ) : (
-                                  <Wand2 className="w-4 h-4 mr-2" />
-                                )}
-                                Apply
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApplyTemplate(shape)}
+                                  disabled={isApplyingTemplate}
+                                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white flex-shrink-0"
+                                >
+                                  {isApplyingTemplate &&
+                                  selectedShape?.id === shape.id ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                  ) : (
+                                    <Wand2 className="w-4 h-4 mr-2" />
+                                  )}
+                                  Apply
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem 
+                                      onClick={() => handleEditTemplate(shape)}
+                                    >
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => handleDeleteTemplate(shape)}
+                                      className="text-destructive"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </div>
                           </CardContent>
                         </Card>
@@ -345,6 +429,27 @@ export default function DataTablePage() {
           </div>
         </div>
       )}
+
+      {/* Delete Template Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{templateToDelete?.name}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteTemplate}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

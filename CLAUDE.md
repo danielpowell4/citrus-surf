@@ -156,7 +156,13 @@ The core data transformation system based on schema definitions:
 - **Never create documentation files** unless explicitly requested
 - **Always run tests** before moving on - ensure all tests pass
 - **Write tests as you go** alongside implementation
-- **Update documentation** when making changes to features
+
+### Documentation Maintenance
+- **IMPORTANT**: When implementing new features or making significant changes, always check if documentation needs updating
+- **Update relevant docs**: Check `docs/` directory for files that may need updates (target-shapes.md, import-system.md, etc.)
+- **Update CLAUDE.md**: Add new patterns, conventions, or critical information for future development
+- **Update tests**: Ensure test coverage matches new functionality
+- **Consider user impact**: Document any user-facing changes or new workflows
 
 ### Performance Considerations
 - Client-side only processing (no backend in Step 0 MVP)

@@ -12,8 +12,13 @@ function TemplateBuilderContent() {
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const { data } = useAppSelector(state => state.table);
+  const { shapes } = useAppSelector(state => state.targetShapes);
 
   const source = searchParams.get("source");
+  const editId = searchParams.get("edit");
+  
+  // Find the shape to edit if in edit mode
+  const shapeToEdit = editId ? shapes.find(shape => shape.id === editId) : undefined;
 
   const handleShapeCreated = (shape: TargetShape) => {
     // Select the newly created shape
@@ -36,10 +41,12 @@ function TemplateBuilderContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">
-            Create Target Shape
+            {editId ? "Edit Target Shape" : "Create Target Shape"}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            {source === "data"
+            {editId
+              ? `Edit the structure and fields of "${shapeToEdit?.name || 'target shape'}"`
+              : source === "data"
               ? "Define the structure for your clean data output based on imported data"
               : "Define the structure for your clean data output"}
           </p>
@@ -47,6 +54,7 @@ function TemplateBuilderContent() {
 
         <TargetShapeWorkflow
           importedData={source === "data" ? data : []}
+          initialShape={shapeToEdit}
           onShapeCreated={handleShapeCreated}
           onCancel={handleCancel}
         />

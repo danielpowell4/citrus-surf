@@ -19,7 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Eye } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAppDispatch } from "@/lib/hooks";
-import { saveTargetShape } from "@/lib/features/targetShapesSlice";
+import { saveTargetShape, updateTargetShape } from "@/lib/features/targetShapesSlice";
 import { generateShapeId, generateFieldId } from "@/lib/utils/id-generator";
 import { analyzeDataForTargetShape } from "@/lib/utils/data-analysis";
 import type {
@@ -45,6 +45,7 @@ interface WorkflowStepProps {
   isFirst: boolean;
   isLast: boolean;
   onShapeCreated?: (shape: TargetShape) => void;
+  isEditMode?: boolean;
 }
 
 // Step 1: Basic Information
@@ -348,17 +349,34 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
   onBack,
   isLast,
   onShapeCreated,
+  isEditMode,
 }) => {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
 
   const handleSave = () => {
     try {
-      dispatch(saveTargetShape(data));
-      toast({
-        title: "Target Shape Saved",
-        description: `"${data.name}" has been saved successfully.`,
-      });
+      if (isEditMode) {
+        // Update existing shape
+        dispatch(updateTargetShape({ 
+          id: data.id, 
+          updates: {
+            ...data,
+            updatedAt: new Date().toISOString()
+          }
+        }));
+        toast({
+          title: "Target Shape Updated",
+          description: `"${data.name}" has been updated successfully.`,
+        });
+      } else {
+        // Create new shape
+        dispatch(saveTargetShape(data));
+        toast({
+          title: "Target Shape Saved",
+          description: `"${data.name}" has been saved successfully.`,
+        });
+      }
 
       // Call the callback if provided
       if (onShapeCreated) {
@@ -366,8 +384,8 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
       }
     } catch (error) {
       toast({
-        title: "Save Failed",
-        description: "Failed to save target shape. Please try again.",
+        title: isEditMode ? "Update Failed" : "Save Failed",
+        description: `Failed to ${isEditMode ? 'update' : 'save'} target shape. Please try again.`,
         variant: "destructive",
       });
     }
@@ -475,7 +493,7 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
         </Button>
         <Button onClick={handleSave}>
           <Save className="mr-2 h-4 w-4" />
-          Save Target Shape
+          {isEditMode ? "Update Target Shape" : "Save Target Shape"}
         </Button>
       </div>
     </div>
@@ -621,17 +639,24 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
 // Main Workflow Component
 interface TargetShapeWorkflowProps {
   importedData?: any[]; // Optional imported data for analysis
+  initialShape?: TargetShape; // Optional initial shape for editing
   onShapeCreated?: (shape: TargetShape) => void; // Callback when shape is created
   onCancel?: () => void; // Callback when user cancels the workflow
 }
 
 export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
   importedData = [],
+  initialShape,
   onShapeCreated,
   onCancel,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [shapeData, setShapeData] = useState<TargetShape>(() => {
+    // If editing an existing shape, use it as initial data
+    if (initialShape) {
+      return initialShape;
+    }
+    
     // Initialize with data analysis if imported data is provided
     if (importedData.length > 0) {
       const analysis = analyzeDataForTargetShape(importedData);
@@ -762,6 +787,7 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
         isFirst={currentStep === 0}
         isLast={currentStep === steps.length - 1}
         onShapeCreated={onShapeCreated}
+        isEditMode={!!initialShape}
       />
     </div>
   );
