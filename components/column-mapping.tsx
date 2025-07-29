@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Target, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
+import { Target, ArrowRight, AlertCircle, CheckCircle, Sparkles } from "lucide-react";
 import type { TargetShape, TargetField } from "@/lib/types/target-shapes";
+import { generateMappingSuggestions, getDetailedMappingSuggestions } from "@/lib/utils/mapping-suggestion-engine";
 
 interface ColumnMappingProps {
   importColumns: string[];
@@ -22,69 +23,10 @@ interface ColumnMappingProps {
   className?: string;
 }
 
-// Helper function to suggest column mappings based on name similarity
+// Legacy helper function kept for backward compatibility
 function suggestColumnMapping(importColumns: string[], targetFields: TargetField[]): Record<string, string> {
-  const mapping: Record<string, string> = {};
-  
-  for (const field of targetFields) {
-    const fieldName = field.name.toLowerCase();
-    const fieldId = field.id.toLowerCase();
-    
-    // First pass: exact matches (highest priority)
-    for (const column of importColumns) {
-      const columnName = column.toLowerCase();
-      
-      if (columnName === fieldName || columnName === fieldId) {
-        mapping[field.id] = column;
-        break;
-      }
-    }
-    
-    // Skip if we found an exact match
-    if (mapping[field.id]) continue;
-    
-    // Second pass: partial matches (lower priority)
-    for (const column of importColumns) {
-      const columnName = column.toLowerCase();
-      
-      // Email patterns
-      if (fieldId.includes('email') && columnName.includes('email')) {
-        mapping[field.id] = column;
-        break;
-      }
-      
-      // Name patterns - be more specific
-      if ((fieldName === 'firstname' || fieldId === 'firstname') && columnName === 'firstname') {
-        mapping[field.id] = column;
-        break;
-      }
-      
-      if ((fieldName === 'lastname' || fieldId === 'lastname') && columnName === 'lastname') {
-        mapping[field.id] = column;
-        break;
-      }
-      
-      // Generic name pattern (fallback)
-      if (fieldId.includes('name') && columnName.includes('name')) {
-        mapping[field.id] = column;
-        break;
-      }
-      
-      // ID patterns
-      if (fieldId.includes('id') && columnName === 'id') {
-        mapping[field.id] = column;
-        break;
-      }
-      
-      // Department variations
-      if (fieldName.includes('department') && (columnName === 'dept' || columnName.includes('department'))) {
-        mapping[field.id] = column;
-        break;
-      }
-    }
-  }
-  
-  return mapping;
+  // Use the new sophisticated suggestion engine
+  return generateMappingSuggestions(importColumns, targetFields);
 }
 
 export function ColumnMapping({
@@ -96,6 +38,7 @@ export function ColumnMapping({
 }: ColumnMappingProps) {
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [usedColumns, setUsedColumns] = useState<Set<string>>(new Set());
+  const [suggestions, setSuggestions] = useState<ReturnType<typeof getDetailedMappingSuggestions>>([]);
   const onMappingChangeRef = useRef(onMappingChange);
   
   // Keep ref updated
@@ -106,13 +49,28 @@ export function ColumnMapping({
   // Initialize with suggested mappings
   useEffect(() => {
     const suggestedMapping = suggestColumnMapping(importColumns, targetShape.fields);
+    const detailedSuggestions = getDetailedMappingSuggestions(importColumns, targetShape.fields);
+    
     setMapping(suggestedMapping);
     setUsedColumns(new Set(Object.values(suggestedMapping)));
+    setSuggestions(detailedSuggestions);
+    
     // Only notify parent if there are actual mappings to avoid infinite loops
     if (Object.keys(suggestedMapping).length > 0) {
       onMappingChangeRef.current(suggestedMapping);
     }
   }, [importColumns, targetShape.fields]);
+
+  // Function to regenerate suggestions
+  const regenerateSuggestions = () => {
+    const suggestedMapping = generateMappingSuggestions(importColumns, targetShape.fields);
+    const detailedSuggestions = getDetailedMappingSuggestions(importColumns, targetShape.fields);
+    
+    setMapping(suggestedMapping);
+    setUsedColumns(new Set(Object.values(suggestedMapping)));
+    setSuggestions(detailedSuggestions);
+    onMappingChangeRef.current(suggestedMapping);
+  };
 
   const handleMappingChange = (fieldId: string, columnName: string) => {
     const newMapping = { ...mapping };
@@ -143,6 +101,27 @@ export function ColumnMapping({
     );
   };
 
+  // Get suggestion info for a field
+  const getSuggestionInfo = (fieldId: string) => {
+    return suggestions.find(s => s.targetFieldId === fieldId);
+  };
+
+  // Get match type display info
+  const getMatchTypeInfo = (matchType: string) => {
+    switch (matchType) {
+      case 'exact':
+        return { label: 'Exact', color: 'text-green-600 dark:text-green-400' };
+      case 'snake_case':
+        return { label: 'Snake Case', color: 'text-blue-600 dark:text-blue-400' };
+      case 'camel_case':
+        return { label: 'Camel Case', color: 'text-purple-600 dark:text-purple-400' };
+      case 'fuzzy':
+        return { label: 'Fuzzy', color: 'text-orange-600 dark:text-orange-400' };
+      default:
+        return { label: 'Unknown', color: 'text-gray-600 dark:text-gray-400' };
+    }
+  };
+
   const requiredFields = targetShape.fields.filter(f => f.required);
   const mappedRequiredFields = requiredFields.filter(f => mapping[f.id]);
   const unmappedRequiredFields = requiredFields.filter(f => !mapping[f.id]);
@@ -152,10 +131,21 @@ export function ColumnMapping({
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="w-5 h-5" />
-          Column Mapping: {targetShape.name}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Column Mapping: {targetShape.name}
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={regenerateSuggestions}
+            className="flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            Auto-Suggest
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Mapping Status */}
@@ -197,6 +187,27 @@ export function ColumnMapping({
                         Required
                       </Badge>
                     )}
+                    {(() => {
+                      const suggestionInfo = getSuggestionInfo(field.id);
+                      if (suggestionInfo && mapping[field.id]) {
+                        const confidencePercent = Math.round(suggestionInfo.confidence * 100);
+                        
+                        // Only show confidence badges for non-perfect matches (less than 100%)
+                        // This reduces visual clutter for obvious exact matches
+                        if (confidencePercent < 100) {
+                          const matchInfo = getMatchTypeInfo(suggestionInfo.matchType);
+                          return (
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${matchInfo.color}`}
+                            >
+                              {matchInfo.label} ({confidencePercent}%)
+                            </Badge>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {field.type} • {field.description || "No description"}
