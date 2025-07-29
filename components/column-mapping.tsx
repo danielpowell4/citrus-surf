@@ -30,26 +30,47 @@ function suggestColumnMapping(importColumns: string[], targetFields: TargetField
     const fieldName = field.name.toLowerCase();
     const fieldId = field.id.toLowerCase();
     
+    // First pass: exact matches (highest priority)
     for (const column of importColumns) {
       const columnName = column.toLowerCase();
       
-      // Exact match
       if (columnName === fieldName || columnName === fieldId) {
         mapping[field.id] = column;
         break;
       }
+    }
+    
+    // Skip if we found an exact match
+    if (mapping[field.id]) continue;
+    
+    // Second pass: partial matches (lower priority)
+    for (const column of importColumns) {
+      const columnName = column.toLowerCase();
       
-      // Partial match for common patterns
+      // Email patterns
       if (fieldId.includes('email') && columnName.includes('email')) {
         mapping[field.id] = column;
         break;
       }
       
+      // Name patterns - be more specific
+      if ((fieldName === 'firstname' || fieldId === 'firstname') && columnName === 'firstname') {
+        mapping[field.id] = column;
+        break;
+      }
+      
+      if ((fieldName === 'lastname' || fieldId === 'lastname') && columnName === 'lastname') {
+        mapping[field.id] = column;
+        break;
+      }
+      
+      // Generic name pattern (fallback)
       if (fieldId.includes('name') && columnName.includes('name')) {
         mapping[field.id] = column;
         break;
       }
       
+      // ID patterns
       if (fieldId.includes('id') && columnName === 'id') {
         mapping[field.id] = column;
         break;

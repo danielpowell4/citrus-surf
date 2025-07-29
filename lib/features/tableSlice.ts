@@ -8,24 +8,13 @@ import {
   PaginationState,
 } from "@tanstack/react-table";
 
-// Sample data structure
-export type Person = {
-  id: string; // User-input ID field
+// Flexible row data type for dynamic data import and transformation
+export type TableRow = Record<string, unknown> & {
   _rowId?: string; // Vendor-prefixed row ID injected during import
-  firstName: string;
-  lastName: string;
-  age: number;
-  visits: number;
-  status: string;
-  progress: number;
-  email: string;
-  department: string;
-  salary: number;
-  startDate: string;
 };
 
 // Sample data
-export const defaultData: Person[] = [
+export const defaultData: TableRow[] = [
   {
     id: "EMP001",
     firstName: "John",
@@ -133,7 +122,7 @@ export const defaultData: Person[] = [
 ];
 
 interface TableState {
-  data: Person[];
+  data: TableRow[];
   sorting: SortingState;
   columnFilters: ColumnFiltersState;
   columnVisibility: VisibilityState;
@@ -146,7 +135,7 @@ interface TableState {
   isLoading: boolean;
   error: string | null;
   // Add edit state tracking
-  editingCell: { rowId: string; columnId: keyof Person } | null;
+  editingCell: { rowId: string; columnId: string } | null;
 }
 
 const initialState: TableState = {
@@ -173,13 +162,15 @@ export const tableSlice = createSlice({
   initialState,
   reducers: {
     // Data management
-    setData: (state, action: PayloadAction<Person[]>) => {
+    setData: (state, action: PayloadAction<TableRow[]>) => {
       state.data = action.payload;
       state.error = null;
-      
+
       // Set default sorting to first column when data is loaded
       if (action.payload.length > 0 && state.sorting.length === 0) {
-        const firstColumnKey = Object.keys(action.payload[0]).find(key => !key.startsWith('_'));
+        const firstColumnKey = Object.keys(action.payload[0]).find(
+          key => !key.startsWith("_")
+        );
         if (firstColumnKey) {
           state.sorting = [{ id: firstColumnKey, desc: false }];
         }
@@ -187,17 +178,42 @@ export const tableSlice = createSlice({
     },
 
     // Apply template transformation to data
-    applyTemplate: (state, action: PayloadAction<{
-      data: Person[];
-      templateName: string;
-      templateId: string;
-    }>) => {
-      state.data = action.payload.data;
+    applyTemplate: (
+      state,
+      action: PayloadAction<{
+        targetShapeName: string;
+        columnMapping: Record<string, string>;
+        fieldMappings: Record<string, string>; // targetFieldId -> targetFieldName
+      }>
+    ) => {
+      const { targetShapeName, columnMapping, fieldMappings } = action.payload;
+
+      // Transform data according to mapping using current state data
+      const transformedData = state.data.map(row => {
+        const newRow: Record<string, unknown> = { _rowId: row._rowId }; // Preserve internal ID
+
+        // Apply column mappings
+        Object.entries(fieldMappings).forEach(
+          ([targetFieldId, sourceColumn]) => {
+            const targetFieldName = columnMapping[targetFieldId];
+            console.log(targetFieldName, sourceColumn, row[sourceColumn]);
+            if (targetFieldName && row[sourceColumn] !== undefined) {
+              newRow[targetFieldName] = row[sourceColumn];
+            }
+          }
+        );
+
+        return newRow;
+      });
+
+      state.data = transformedData;
       state.error = null;
-      
+
       // Set default sorting to first column when data is transformed
-      if (action.payload.data.length > 0 && state.sorting.length === 0) {
-        const firstColumnKey = Object.keys(action.payload.data[0]).find(key => !key.startsWith('_'));
+      if (transformedData.length > 0 && state.sorting.length === 0) {
+        const firstColumnKey = Object.keys(transformedData[0]).find(
+          key => !key.startsWith("_")
+        );
         if (firstColumnKey) {
           state.sorting = [{ id: firstColumnKey, desc: false }];
         }
@@ -298,10 +314,12 @@ export const tableSlice = createSlice({
           state.data = parsedData;
           state.importData = "";
           state.error = null;
-          
+
           // Set default sorting to first column when data is imported
           if (parsedData.length > 0 && state.sorting.length === 0) {
-            const firstColumnKey = Object.keys(parsedData[0]).find(key => !key.startsWith('_'));
+            const firstColumnKey = Object.keys(parsedData[0]).find(
+              key => !key.startsWith("_")
+            );
             if (firstColumnKey) {
               state.sorting = [{ id: firstColumnKey, desc: false }];
             }
@@ -321,7 +339,7 @@ export const tableSlice = createSlice({
       state,
       action: PayloadAction<{
         rowId: string;
-        columnId: keyof Person;
+        columnId: string;
         value: any;
       }>
     ) => {
@@ -339,7 +357,7 @@ export const tableSlice = createSlice({
       state,
       action: PayloadAction<{
         rowId: string;
-        columnId: keyof Person;
+        columnId: string;
       }>
     ) => {
       state.editingCell = action.payload;

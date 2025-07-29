@@ -56,11 +56,11 @@ import {
 } from "@/lib/utils/column-transformer";
 import { naturalSortForTable } from "@/lib/utils/sort-utils";
 
-// Import the Person type from the slice
-import type { Person } from "@/lib/features/tableSlice";
+// Import the TableRow type from the slice
+import type { TableRow } from "@/lib/features/tableSlice";
 
 interface DataTableProps {
-  data: Person[];
+  data: TableRow[];
   currentVersion: number;
   onOpenTemplates?: () => void;
 }
@@ -91,7 +91,7 @@ export function DataTable({
   const currentEditingCell = tableState?.editingCell || null;
 
   // Define simplified column definitions
-  const simpleColumns: SimpleColumnDef<Person>[] = [
+  const simpleColumns: SimpleColumnDef<TableRow>[] = [
     {
       accessorKey: "id",
       header: "ID",
@@ -219,7 +219,7 @@ export function DataTable({
   ];
 
   // Transform simple columns to TanStack Table columns
-  const columns = useMemo<ColumnDef<Person>[]>(
+  const columns = useMemo<ColumnDef<TableRow>[]>(
     () =>
       transformColumns(
         simpleColumns,
@@ -431,7 +431,7 @@ export function DataTable({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map(header => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} data-field={header.column.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -457,7 +457,7 @@ export function DataTable({
                     }
                   >
                     {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} data-field={cell.column.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

@@ -129,26 +129,20 @@ export default function DataTablePage() {
       return;
     }
 
-    // Transform data according to mapping
-    const transformedData = data.map(row => {
-      const newRow: any = { _rowId: row._rowId }; // Preserve internal ID
-      
-      // Apply column mappings
-      Object.entries(columnMapping).forEach(([targetFieldId, sourceColumn]) => {
-        const targetField = selectedShape.fields.find(f => f.id === targetFieldId);
-        if (targetField && row[sourceColumn] !== undefined) {
-          newRow[targetField.name] = row[sourceColumn];
-        }
-      });
-      
-      return newRow;
-    });
+    console.log('Applying mapping:', columnMapping);
+    console.log('Selected shape fields:', selectedShape.fields.map(f => ({ id: f.id, name: f.name })));
 
-    // Update data in store with template context
+    // Create field mappings (targetFieldId -> targetFieldName)
+    const fieldMappings = selectedShape.fields.reduce((acc, field) => {
+      acc[field.id] = field.name;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Let Redux handle the data transformation using current state data
     dispatch(applyTemplate({
-      data: transformedData,
-      templateName: selectedShape.name,
-      templateId: selectedShape.id,
+      targetShapeName: selectedShape.name,
+      columnMapping,
+      fieldMappings,
     }));
     
     // Exit mapping mode
