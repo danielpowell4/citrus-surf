@@ -186,6 +186,24 @@ export const tableSlice = createSlice({
       }
     },
 
+    // Apply template transformation to data
+    applyTemplate: (state, action: PayloadAction<{
+      data: Person[];
+      templateName: string;
+      templateId: string;
+    }>) => {
+      state.data = action.payload.data;
+      state.error = null;
+      
+      // Set default sorting to first column when data is transformed
+      if (action.payload.data.length > 0 && state.sorting.length === 0) {
+        const firstColumnKey = Object.keys(action.payload.data[0]).find(key => !key.startsWith('_'));
+        if (firstColumnKey) {
+          state.sorting = [{ id: firstColumnKey, desc: false }];
+        }
+      }
+    },
+
     // Table state management
     setSorting: (state, action: PayloadAction<SortingState>) => {
       state.sorting = action.payload;
@@ -349,6 +367,7 @@ export const tableSlice = createSlice({
 
 export const {
   setData,
+  applyTemplate,
   setSorting,
   toggleColumnSort,
   setColumnFilters,

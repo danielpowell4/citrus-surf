@@ -36,6 +36,7 @@ The history middleware automatically captures table actions that are meaningful 
 // Only these actions are tracked in history
 const meaningfulActions = [
   "table/setData", // Data loading/resetting
+  "table/applyTemplate", // Template/shape application
   "table/importJsonData",
   "table/updateCell", // Cell editing
   "table/setSorting", // Sorting changes

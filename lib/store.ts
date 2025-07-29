@@ -32,6 +32,7 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
   // Add new action types here to include them in history tracking
   const meaningfulActions = [
     "table/setData", // Data loading/resetting
+    "table/applyTemplate", // Template application
     "table/importJsonData", // JSON data import
     "table/updateCell", // Cell editing
     "table/setSorting", // Column sorting

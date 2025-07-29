@@ -21,7 +21,7 @@ import {
 import { TargetShape } from "@/lib/types/target-shapes";
 import { DataTable } from "../data-table";
 import { ColumnMapping } from "@/components/column-mapping";
-import { setData } from "@/lib/features/tableSlice";
+import { applyTemplate } from "@/lib/features/tableSlice";
 import { loadShapes } from "@/lib/features/targetShapesSlice";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -144,8 +144,12 @@ export default function DataTablePage() {
       return newRow;
     });
 
-    // Update data in store
-    dispatch(setData(transformedData));
+    // Update data in store with template context
+    dispatch(applyTemplate({
+      data: transformedData,
+      templateName: selectedShape.name,
+      templateId: selectedShape.id,
+    }));
     
     // Exit mapping mode
     setMappingMode(false);
@@ -328,36 +332,23 @@ export default function DataTablePage() {
                           className="hover:shadow-md transition-shadow"
                         >
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="min-w-0 flex-1">
-                                <h4 className="font-medium truncate">
-                                  {shape.name}
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {shape.fields.length} fields
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleApplyTemplate(shape)}
-                                  disabled={isApplyingTemplate}
-                                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white flex-shrink-0"
-                                >
-                                  {isApplyingTemplate &&
-                                  selectedShape?.id === shape.id ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                  ) : (
-                                    <Wand2 className="w-4 h-4 mr-2" />
-                                  )}
-                                  Apply
-                                </Button>
+                            <div className="space-y-3">
+                              {/* Template Info - Full Width */}
+                              <div className="flex items-start justify-between">
+                                <div className="min-w-0 flex-1 pr-2">
+                                  <h4 className="font-medium leading-tight">
+                                    {shape.name}
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {shape.fields.length} fields
+                                  </p>
+                                </div>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-8 w-8 p-0"
+                                      className="h-8 w-8 p-0 flex-shrink-0"
                                     >
                                       <MoreHorizontal className="h-4 w-4" />
                                     </Button>
@@ -379,6 +370,22 @@ export default function DataTablePage() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
+                              
+                              {/* Apply Button - Full Width */}
+                              <Button
+                                size="sm"
+                                onClick={() => handleApplyTemplate(shape)}
+                                disabled={isApplyingTemplate}
+                                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                              >
+                                {isApplyingTemplate &&
+                                selectedShape?.id === shape.id ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                ) : (
+                                  <Wand2 className="w-4 h-4 mr-2" />
+                                )}
+                                Apply Template
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
