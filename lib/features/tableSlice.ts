@@ -182,8 +182,8 @@ export const tableSlice = createSlice({
       state,
       action: PayloadAction<{
         targetShapeName: string;
-        columnMapping: Record<string, string>;
-        fieldMappings: Record<string, string>; // targetFieldId -> targetFieldName
+        columnMapping: Record<string, string>; // targetFieldId -> targetFieldName
+        fieldMappings: Record<string, string>; // targetFieldId -> originalFieldName
       }>
     ) => {
       const { targetShapeName, columnMapping, fieldMappings } = action.payload;
@@ -196,7 +196,6 @@ export const tableSlice = createSlice({
         Object.entries(fieldMappings).forEach(
           ([targetFieldId, sourceColumn]) => {
             const targetFieldName = columnMapping[targetFieldId];
-            console.log(targetFieldName, sourceColumn, row[sourceColumn]);
             if (targetFieldName && row[sourceColumn] !== undefined) {
               newRow[targetFieldName] = row[sourceColumn];
             }
