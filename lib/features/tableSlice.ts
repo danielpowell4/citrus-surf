@@ -123,6 +123,8 @@ export const defaultData: TableRow[] = [
 
 interface TableState {
   data: TableRow[];
+  columnOrder: string[]; // Array of field keys that determines column display order
+  appliedTargetShapeId: string | null; // ID of currently applied target shape (null = default shape)
   sorting: SortingState;
   columnFilters: ColumnFiltersState;
   columnVisibility: VisibilityState;
@@ -140,6 +142,8 @@ interface TableState {
 
 const initialState: TableState = {
   data: [],
+  columnOrder: [], // Will be set when data is loaded
+  appliedTargetShapeId: null, // null = default/auto-generated shape
   sorting: [], // Will be set dynamically when data is loaded
   columnFilters: [],
   columnVisibility: {}, // No hidden columns by default
@@ -166,11 +170,19 @@ export const tableSlice = createSlice({
       state.data = action.payload;
       state.error = null;
 
-      // Set default sorting to first column when data is loaded
-      if (action.payload.length > 0 && state.sorting.length === 0) {
-        const firstColumnKey = Object.keys(action.payload[0]).find(
+      // Set column order from data keys if not already set
+      if (action.payload.length > 0 && state.columnOrder.length === 0) {
+        state.columnOrder = Object.keys(action.payload[0]).filter(
           key => !key.startsWith("_")
         );
+      }
+
+      // Set default sorting to first column when data is loaded
+      if (action.payload.length > 0 && state.sorting.length === 0) {
+        const firstColumnKey =
+          state.columnOrder.length > 0
+            ? state.columnOrder[0]
+            : Object.keys(action.payload[0]).find(key => !key.startsWith("_"));
         if (firstColumnKey) {
           state.sorting = [{ id: firstColumnKey, desc: false }];
         }
@@ -181,23 +193,31 @@ export const tableSlice = createSlice({
     applyTemplate: (
       state,
       action: PayloadAction<{
+        targetShapeId: string;
         targetShapeName: string;
-        columnMapping: Record<string, string>; // targetFieldId -> targetFieldName
-        fieldMappings: Record<string, string>; // targetFieldId -> originalFieldName
+        columnMapping: Record<string, string>; // targetFieldId -> sourceColumnName
+        fieldMappings: Record<string, string>; // targetFieldId -> targetFieldName
+        targetFields: Array<{ id: string; name: string }>; // Target shape fields in order
       }>
     ) => {
-      const { targetShapeName, columnMapping, fieldMappings } = action.payload;
+      const {
+        targetShapeId,
+        targetShapeName,
+        columnMapping,
+        fieldMappings,
+        targetFields,
+      } = action.payload;
 
       // Transform data according to mapping using current state data
       const transformedData = state.data.map(row => {
         const newRow: Record<string, unknown> = { _rowId: row._rowId }; // Preserve internal ID
 
         // Apply column mappings
-        Object.entries(fieldMappings).forEach(
+        Object.entries(columnMapping).forEach(
           ([targetFieldId, sourceColumn]) => {
-            const targetFieldName = columnMapping[targetFieldId];
-            if (targetFieldName && row[sourceColumn] !== undefined) {
-              newRow[targetFieldName] = row[sourceColumn];
+            const targetField = targetFields.find(f => f.id === targetFieldId);
+            if (targetField && row[sourceColumn] !== undefined) {
+              newRow[targetField.name] = row[sourceColumn];
             }
           }
         );
@@ -208,14 +228,17 @@ export const tableSlice = createSlice({
       state.data = transformedData;
       state.error = null;
 
+      // Set applied target shape ID
+      state.appliedTargetShapeId = targetShapeId;
+
+      // Set column order based on target shape field order
+      state.columnOrder = targetFields
+        .filter(field => columnMapping[field.id]) // Only include mapped fields
+        .map(field => field.name); // Use target field names from targetFields
+
       // Set default sorting to first column when data is transformed
-      if (transformedData.length > 0 && state.sorting.length === 0) {
-        const firstColumnKey = Object.keys(transformedData[0]).find(
-          key => !key.startsWith("_")
-        );
-        if (firstColumnKey) {
-          state.sorting = [{ id: firstColumnKey, desc: false }];
-        }
+      if (state.columnOrder.length > 0) {
+        state.sorting = [{ id: state.columnOrder[0], desc: false }];
       }
     },
 
@@ -286,6 +309,21 @@ export const tableSlice = createSlice({
       state.pagination = action.payload;
     },
 
+    // Column order management
+    setColumnOrder: (state, action: PayloadAction<string[]>) => {
+      state.columnOrder = action.payload;
+    },
+    reorderColumns: (
+      state,
+      action: PayloadAction<{ from: number; to: number }>
+    ) => {
+      const { from, to } = action.payload;
+      const newColumnOrder = [...state.columnOrder];
+      const [removed] = newColumnOrder.splice(from, 1);
+      newColumnOrder.splice(to, 0, removed);
+      state.columnOrder = newColumnOrder;
+    },
+
     // Import/Export management
     setImportData: (state, action: PayloadAction<string>) => {
       state.importData = action.payload;
@@ -314,13 +352,15 @@ export const tableSlice = createSlice({
           state.importData = "";
           state.error = null;
 
-          // Set default sorting to first column when data is imported
-          if (parsedData.length > 0 && state.sorting.length === 0) {
-            const firstColumnKey = Object.keys(parsedData[0]).find(
+          // Set column order from data keys
+          if (parsedData.length > 0) {
+            state.columnOrder = Object.keys(parsedData[0]).filter(
               key => !key.startsWith("_")
             );
-            if (firstColumnKey) {
-              state.sorting = [{ id: firstColumnKey, desc: false }];
+
+            // Set default sorting to first column when data is imported
+            if (state.sorting.length === 0 && state.columnOrder.length > 0) {
+              state.sorting = [{ id: state.columnOrder[0], desc: false }];
             }
           }
         } else {
@@ -394,6 +434,8 @@ export const {
   setGrouping,
   setExpanded,
   setPagination,
+  setColumnOrder,
+  reorderColumns,
   setImportData,
   clearImportData,
   setLoading,

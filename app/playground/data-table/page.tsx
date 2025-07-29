@@ -140,9 +140,11 @@ export default function DataTablePage() {
 
     // Let Redux handle the data transformation using current state data
     dispatch(applyTemplate({
+      targetShapeId: selectedShape.id,
       targetShapeName: selectedShape.name,
       columnMapping,
       fieldMappings,
+      targetFields: selectedShape.fields.map(f => ({ id: f.id, name: f.name })),
     }));
     
     // Exit mapping mode

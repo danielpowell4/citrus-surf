@@ -80,19 +80,26 @@ describe("Table Slice", () => {
 
       // Apply template transformation
       store.dispatch(applyTemplate({
+        targetShapeId: 'employee-template',
         targetShapeName: 'Employee Template',
         columnMapping: {
-          'field_id': 'ID',
-          'field_firstName': 'First Name', 
-          'field_lastName': 'Last Name',
-          'field_email': 'Email',
-        },
-        fieldMappings: {
           'field_id': 'id',
           'field_firstName': 'firstname',
           'field_lastName': 'lastname', 
           'field_email': 'email',
         },
+        fieldMappings: {
+          'field_id': 'ID',
+          'field_firstName': 'First Name',
+          'field_lastName': 'Last Name', 
+          'field_email': 'Email',
+        },
+        targetFields: [
+          { id: 'field_id', name: 'ID' },
+          { id: 'field_firstName', name: 'First Name' },
+          { id: 'field_lastName', name: 'Last Name' },
+          { id: 'field_email', name: 'Email' },
+        ],
       }));
 
       const state = store.getState().table;
@@ -132,19 +139,26 @@ describe("Table Slice", () => {
       store.dispatch(setData(sourceData));
 
       store.dispatch(applyTemplate({
+        targetShapeId: 'employee-template',
         targetShapeName: 'Employee Template',
         columnMapping: {
-          'field_id': 'ID',
-          'field_firstName': 'First Name',
-          'field_lastName': 'Last Name', // This will be missing in source
-          'field_email': 'Email',
-        },
-        fieldMappings: {
           'field_id': 'id',
           'field_firstName': 'firstname',
-          'field_lastName': 'lastname', // Missing in source
+          'field_lastName': 'lastname', // This will be missing in source
           'field_email': 'email',
         },
+        fieldMappings: {
+          'field_id': 'ID',
+          'field_firstName': 'First Name',
+          'field_lastName': 'Last Name', // Missing in source
+          'field_email': 'Email',
+        },
+        targetFields: [
+          { id: 'field_id', name: 'ID' },
+          { id: 'field_firstName', name: 'First Name' },
+          { id: 'field_lastName', name: 'Last Name' },
+          { id: 'field_email', name: 'Email' },
+        ],
       }));
 
       const state = store.getState().table;
@@ -182,15 +196,20 @@ describe("Table Slice", () => {
       // Apply the cleared state by dispatching a custom action or directly modifying for test
       // For this test, we'll directly test the reducer
       const action = applyTemplate({
+        targetShapeId: 'employee-template',
         targetShapeName: 'Employee Template',
         columnMapping: {
-          'field_id': 'Employee ID',
-          'field_name': 'Full Name',
-        },
-        fieldMappings: {
           'field_id': 'id',
           'field_name': 'name',
         },
+        fieldMappings: {
+          'field_id': 'Employee ID',
+          'field_name': 'Full Name',
+        },
+        targetFields: [
+          { id: 'field_id', name: 'Employee ID' },
+          { id: 'field_name', name: 'Full Name' },
+        ],
       });
 
       const finalState = tableReducer(stateWithoutSorting, action);
@@ -217,6 +236,7 @@ describe("Table Slice", () => {
       expect(initialState.sorting).toEqual([{ id: 'id', desc: false }]);
 
       store.dispatch(applyTemplate({
+        targetShapeId: 'employee-template',
         targetShapeName: 'Employee Template',
         columnMapping: {
           'field_id': 'Employee ID',
@@ -226,6 +246,10 @@ describe("Table Slice", () => {
           'field_id': 'id',
           'field_name': 'name',
         },
+        targetFields: [
+          { id: 'field_id', name: 'id' },
+          { id: 'field_name', name: 'name' },
+        ],
       }));
 
       const state = store.getState().table;
@@ -254,13 +278,17 @@ describe("Table Slice", () => {
       };
 
       store.dispatch(applyTemplate({
+        targetShapeId: 'employee-template',
         targetShapeName: 'Employee Template',
         columnMapping: {
-          'field_id': 'Employee ID',
-        },
-        fieldMappings: {
           'field_id': 'id',
         },
+        fieldMappings: {
+          'field_id': 'Employee ID',
+        },
+        targetFields: [
+          { id: 'field_id', name: 'Employee ID' },
+        ],
       }));
 
       const state = store.getState().table;
@@ -283,15 +311,21 @@ describe("Table Slice", () => {
       store.dispatch(setData(sourceData));
 
       store.dispatch(applyTemplate({
+        targetShapeId: 'employee-template',
         targetShapeName: 'Employee Template',
         columnMapping: {
-          'field_id': 'Employee ID',
-          'field_missing': 'Missing Field', // This key doesn't exist in fieldMappings
+          'field_id': 'id',
+          'field_missing': 'missing_field', // This source column doesn't exist
         },
         fieldMappings: {
-          'field_id': 'id',
-          'field_other': 'name', // This key doesn't exist in columnMapping
+          'field_id': 'Employee ID',
+          'field_other': 'Other Field', // This target field isn't in columnMapping
         },
+        targetFields: [
+          { id: 'field_id', name: 'Employee ID' },
+          { id: 'field_missing', name: 'Missing Field' },
+          { id: 'field_other', name: 'Other Field' },
+        ],
       }));
 
       const state = store.getState().table;

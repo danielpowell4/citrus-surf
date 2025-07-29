@@ -31,10 +31,12 @@ export function analyzeDataForTargetShape(data: any[]): {
   const sampleValues: Record<string, any[]> = {};
   const dataTypes: Record<string, string> = {};
 
-  // Collect all keys and sample values
+  // Collect all keys and sample values (excluding vendor-prefixed fields)
   data.forEach((row, index) => {
-    Object.keys(row).forEach(key => {
-      allKeys.add(key);
+    Object.keys(row)
+      .filter(key => !key.startsWith('_')) // Exclude vendor-prefixed fields like _rowId
+      .forEach(key => {
+        allKeys.add(key);
 
       if (!uniqueValues[key]) {
         uniqueValues[key] = new Set();
