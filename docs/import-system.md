@@ -17,6 +17,7 @@ Import Data → View/Edit in Data Table → Apply Target Shapes → Export
 ```
 
 **Benefits**:
+
 - Natural workflow that matches how users think about data processing
 - No overwhelming choices before seeing the data
 - Target shapes become transformation tools rather than upfront requirements
@@ -30,6 +31,7 @@ Import Data → View/Edit in Data Table → Apply Target Shapes → Export
 - **Templates**: Only visible after data is imported
 
 **Benefits**:
+
 - No sample data cluttering the experience
 - Clear guidance about next steps
 - Professional, production-ready feel
@@ -39,6 +41,7 @@ Import Data → View/Edit in Data Table → Apply Target Shapes → Export
 When users navigate to sections without the required data, they see contextual guidance:
 
 #### Data Table Empty State
+
 ```tsx
 <div className="flex flex-col items-center gap-4">
   <Upload className="h-8 w-8 text-muted-foreground/50" />
@@ -52,6 +55,7 @@ When users navigate to sections without the required data, they see contextual g
 ```
 
 **Features**:
+
 - Clear visual indicator (upload icon)
 - Helpful message explaining the situation
 - Direct action button to resolve the issue
@@ -73,6 +77,7 @@ To prevent hydration mismatches, components show loading states while client-sid
 ```
 
 **Benefits**:
+
 - Prevents content jumping as data loads
 - Professional loading experience
 - Eliminates hydration mismatch errors

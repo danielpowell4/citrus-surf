@@ -484,7 +484,7 @@ To prevent hydration mismatches between server and client, the persistence syste
 export const makeStore = () => {
   // Always start with empty state during SSR and initial client render
   const persistedState = undefined;
-  
+
   const store = configureStore({
     preloadedState: persistedState, // undefined for both server and client
     // ... rest of config
@@ -493,6 +493,7 @@ export const makeStore = () => {
 ```
 
 **Why this works:**
+
 - Server renders with empty state
 - Client also starts with empty state
 - No hydration mismatch occurs
@@ -504,12 +505,12 @@ export const makeStore = () => {
 useEffect(() => {
   // Load persisted state AFTER initial render
   const persistedState = reduxPersistence.loadState();
-  
+
   if (persistedState) {
     // Restore entire state with a single action
     dispatch(restoreFromStorage(persistedState));
   }
-  
+
   setIsHydrated(true);
 }, [dispatch]);
 ```
@@ -520,41 +521,46 @@ The `restoreFromStorage` action is handled by a dedicated middleware that orches
 
 ```typescript
 // In lib/store.ts
-const stateRestorationMiddleware = (store: any) => (next: any) => (action: any) => {
-  if (action.type === RESTORE_FROM_STORAGE) {
-    const { payload } = action;
-    
-    // Restore table data if it exists
-    if (payload?.table?.data?.length > 0) {
-      store.dispatch({ type: 'table/setData', payload: payload.table.data });
-    }
-    
-    // Restore table state (sorting, filters, pagination, etc.)
-    if (payload?.table) {
-      const tableState = payload.table;
-      if (tableState.sorting) {
-        store.dispatch({ type: 'table/setSorting', payload: tableState.sorting });
+const stateRestorationMiddleware =
+  (store: any) => (next: any) => (action: any) => {
+    if (action.type === RESTORE_FROM_STORAGE) {
+      const { payload } = action;
+
+      // Restore table data if it exists
+      if (payload?.table?.data?.length > 0) {
+        store.dispatch({ type: "table/setData", payload: payload.table.data });
       }
-      // ... other table state restoration
+
+      // Restore table state (sorting, filters, pagination, etc.)
+      if (payload?.table) {
+        const tableState = payload.table;
+        if (tableState.sorting) {
+          store.dispatch({
+            type: "table/setSorting",
+            payload: tableState.sorting,
+          });
+        }
+        // ... other table state restoration
+      }
+
+      // Load target shapes if they exist
+      if (payload?.targetShapes?.shapes?.length > 0) {
+        store.dispatch({ type: "targetShapes/loadShapes" });
+      }
+
+      // Update persistence status
+      store.dispatch({
+        type: "persistence/setPersistenceStatus",
+        payload: { hasPersistedState: true, lastLoadedAt: Date.now() },
+      });
     }
-    
-    // Load target shapes if they exist
-    if (payload?.targetShapes?.shapes?.length > 0) {
-      store.dispatch({ type: 'targetShapes/loadShapes' });
-    }
-    
-    // Update persistence status
-    store.dispatch({ 
-      type: 'persistence/setPersistenceStatus', 
-      payload: { hasPersistedState: true, lastLoadedAt: Date.now() } 
-    });
-  }
-  
-  return next(action);
-};
+
+    return next(action);
+  };
 ```
 
 **Benefits**:
+
 - **Single Action**: One dispatch call restores entire application state
 - **Extensible**: Easy to add new slices without modifying useHydration hook
 - **Centralized**: All restoration logic in one place
@@ -570,15 +576,15 @@ import { useHydration } from "@/lib/hooks/useHydration";
 function DataTableComponent() {
   const { isHydrated } = useHydration();
   const data = useAppSelector(state => state.table.data);
-  
+
   if (!isHydrated) {
     return <LoadingSpinner />;
   }
-  
+
   if (data.length === 0) {
     return <EmptyState />;
   }
-  
+
   return <DataTable data={data} />;
 }
 ```

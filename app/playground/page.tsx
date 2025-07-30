@@ -42,10 +42,9 @@ export default function PlaygroundPage() {
     }, 100);
   };
 
-
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="mx-auto py-6 space-y-6">
         <div className="max-w-none">
           <h1 className="text-2xl sm:text-3xl font-bold">
             Citrus Surf Playground
@@ -62,10 +61,7 @@ export default function PlaygroundPage() {
           </div>
 
           {/* Main Data Import Section */}
-          <DataImport 
-            onImport={handleImport} 
-            dataCount={data.length} 
-          />
+          <DataImport onImport={handleImport} dataCount={data.length} />
 
           {/* Additional Tools Section */}
           <div className="mt-8">

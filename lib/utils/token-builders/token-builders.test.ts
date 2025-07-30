@@ -33,7 +33,7 @@ describe("Token Builder System", () => {
     class TestTokenBuilder extends BaseTokenBuilder {
       priority = 50;
       supportedTypes = ["string"];
-      
+
       generateTokens(context: TokenContext) {
         const tokens = new Set<string>();
         tokens.add("test_token");
@@ -43,7 +43,7 @@ describe("Token Builder System", () => {
 
     it("should have utility methods for case conversion", () => {
       const builder = new TestTokenBuilder();
-      
+
       expect(builder["toSnakeCase"]("firstName")).toBe("first_name");
       expect(builder["toCamelCase"]("first_name")).toBe("firstName");
     });
@@ -51,7 +51,7 @@ describe("Token Builder System", () => {
     it("should generate case variations", () => {
       const builder = new TestTokenBuilder();
       const variations = builder["generateCaseVariations"]("First Name");
-      
+
       expect(variations.has("first name")).toBe(true);
       expect(variations.has("first_name")).toBe(true);
       expect(variations.has("firstName")).toBe(true);
@@ -59,7 +59,7 @@ describe("Token Builder System", () => {
 
     it("should clean field names", () => {
       const builder = new TestTokenBuilder();
-      
+
       expect(builder["cleanFieldName"]("field_name")).toBe("name");
       expect(builder["cleanFieldName"]("col_email")).toBe("email");
       expect(builder["cleanFieldName"]("name_field")).toBe("name");
@@ -67,7 +67,7 @@ describe("Token Builder System", () => {
 
     it("should check for keywords", () => {
       const builder = new TestTokenBuilder();
-      
+
       expect(builder["containsKeywords"]("user_email", ["email"])).toBe(true);
       expect(builder["containsKeywords"]("firstName", ["name"])).toBe(true);
       expect(builder["containsKeywords"]("age", ["email"])).toBe(false);
@@ -75,9 +75,21 @@ describe("Token Builder System", () => {
 
     it("should check if it can handle a context", () => {
       const builder = new TestTokenBuilder();
-      
-      expect(builder.canHandle({ fieldName: "name", fieldId: "field_name", fieldType: "string" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "age", fieldId: "field_age", fieldType: "integer" })).toBe(false);
+
+      expect(
+        builder.canHandle({
+          fieldName: "name",
+          fieldId: "field_name",
+          fieldType: "string",
+        })
+      ).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "age",
+          fieldId: "field_age",
+          fieldType: "integer",
+        })
+      ).toBe(false);
     });
   });
 
@@ -119,12 +131,25 @@ describe("Token Builder System", () => {
     });
 
     it("should handle email field types", () => {
-      expect(builder.canHandle({ fieldName: "email", fieldId: "field_email", fieldType: "email" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "email",
+          fieldId: "field_email",
+          fieldType: "email",
+        })
+      ).toBe(true);
     });
 
     it("should handle email-related field names", () => {
-      expect(builder.canHandle({ fieldName: "Email Address", fieldId: "field_email" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "user_mail", fieldId: "field_mail" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "Email Address",
+          fieldId: "field_email",
+        })
+      ).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "user_mail", fieldId: "field_mail" })
+      ).toBe(true);
     });
 
     it("should generate email tokens", () => {
@@ -159,13 +184,25 @@ describe("Token Builder System", () => {
     });
 
     it("should handle phone field types", () => {
-      expect(builder.canHandle({ fieldName: "phone", fieldId: "field_phone", fieldType: "phone" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "phone",
+          fieldId: "field_phone",
+          fieldType: "phone",
+        })
+      ).toBe(true);
     });
 
     it("should handle phone-related field names", () => {
-      expect(builder.canHandle({ fieldName: "Phone Number", fieldId: "field_phone" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "mobile", fieldId: "field_mobile" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "telephone", fieldId: "field_tel" })).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "Phone Number", fieldId: "field_phone" })
+      ).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "mobile", fieldId: "field_mobile" })
+      ).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "telephone", fieldId: "field_tel" })
+      ).toBe(true);
     });
 
     it("should generate phone tokens", () => {
@@ -190,8 +227,12 @@ describe("Token Builder System", () => {
     });
 
     it("should handle name-related fields", () => {
-      expect(builder.canHandle({ fieldName: "First Name", fieldId: "field_name" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "user_name", fieldId: "field_username" })).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "First Name", fieldId: "field_name" })
+      ).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "user_name", fieldId: "field_username" })
+      ).toBe(true);
     });
 
     it("should generate first name tokens", () => {
@@ -242,8 +283,15 @@ describe("Token Builder System", () => {
     });
 
     it("should handle ID-related fields", () => {
-      expect(builder.canHandle({ fieldName: "User ID", fieldId: "field_id" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "identifier", fieldId: "field_identifier" })).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "User ID", fieldId: "field_id" })
+      ).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "identifier",
+          fieldId: "field_identifier",
+        })
+      ).toBe(true);
     });
 
     it("should generate basic ID tokens", () => {
@@ -292,13 +340,32 @@ describe("Token Builder System", () => {
     });
 
     it("should handle date/time field types", () => {
-      expect(builder.canHandle({ fieldName: "created", fieldId: "field_date", fieldType: "date" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "timestamp", fieldId: "field_time", fieldType: "datetime" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "created",
+          fieldId: "field_date",
+          fieldType: "date",
+        })
+      ).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "timestamp",
+          fieldId: "field_time",
+          fieldType: "datetime",
+        })
+      ).toBe(true);
     });
 
     it("should handle date-related field names", () => {
-      expect(builder.canHandle({ fieldName: "Created Date", fieldId: "field_created" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "updated_at", fieldId: "field_updated" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "Created Date",
+          fieldId: "field_created",
+        })
+      ).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "updated_at", fieldId: "field_updated" })
+      ).toBe(true);
     });
 
     it("should generate general date tokens", () => {
@@ -347,9 +414,27 @@ describe("Token Builder System", () => {
     });
 
     it("should handle numeric field types", () => {
-      expect(builder.canHandle({ fieldName: "amount", fieldId: "field_amount", fieldType: "number" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "count", fieldId: "field_count", fieldType: "integer" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "price", fieldId: "field_price", fieldType: "currency" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "amount",
+          fieldId: "field_amount",
+          fieldType: "number",
+        })
+      ).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "count",
+          fieldId: "field_count",
+          fieldType: "integer",
+        })
+      ).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "price",
+          fieldId: "field_price",
+          fieldType: "currency",
+        })
+      ).toBe(true);
     });
 
     it("should generate age tokens", () => {
@@ -399,8 +484,15 @@ describe("Token Builder System", () => {
     });
 
     it("should handle address-related fields", () => {
-      expect(builder.canHandle({ fieldName: "Street Address", fieldId: "field_address" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "zip_code", fieldId: "field_zip" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "Street Address",
+          fieldId: "field_address",
+        })
+      ).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "zip_code", fieldId: "field_zip" })
+      ).toBe(true);
     });
 
     it("should generate address tokens", () => {
@@ -451,12 +543,22 @@ describe("Token Builder System", () => {
     });
 
     it("should handle URL field types", () => {
-      expect(builder.canHandle({ fieldName: "website", fieldId: "field_url", fieldType: "url" })).toBe(true);
+      expect(
+        builder.canHandle({
+          fieldName: "website",
+          fieldId: "field_url",
+          fieldType: "url",
+        })
+      ).toBe(true);
     });
 
     it("should handle URL-related field names", () => {
-      expect(builder.canHandle({ fieldName: "Website", fieldId: "field_website" })).toBe(true);
-      expect(builder.canHandle({ fieldName: "homepage", fieldId: "field_link" })).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "Website", fieldId: "field_website" })
+      ).toBe(true);
+      expect(
+        builder.canHandle({ fieldName: "homepage", fieldId: "field_link" })
+      ).toBe(true);
     });
 
     it("should generate URL tokens", () => {
@@ -537,8 +639,12 @@ describe("Token Builder System", () => {
     });
 
     it("should generate field variations", () => {
-      const variations = generateFieldVariations("Email Address", "field_email", "email");
-      
+      const variations = generateFieldVariations(
+        "Email Address",
+        "field_email",
+        "email"
+      );
+
       expect(variations.has("email")).toBe(true);
       expect(variations.has("mail")).toBe(true);
       expect(variations.has("email_address")).toBe(true);
@@ -547,15 +653,19 @@ describe("Token Builder System", () => {
 
     it("should generate column variations", () => {
       const variations = generateColumnVariations("user_email");
-      
+
       expect(variations.has("user_email")).toBe(true);
       expect(variations.has("userEmail")).toBe(true);
       expect(variations.size).toBeGreaterThan(1);
     });
 
     it("should generate field variations with metadata", () => {
-      const result = generateFieldVariationsWithMetadata("Phone Number", "field_phone", "phone");
-      
+      const result = generateFieldVariationsWithMetadata(
+        "Phone Number",
+        "field_phone",
+        "phone"
+      );
+
       expect(result.tokens.has("phone")).toBe(true);
       expect(result.tokens.has("tel")).toBe(true);
       expect(result.metadata?.abbreviations).toContain("tel");
@@ -565,7 +675,7 @@ describe("Token Builder System", () => {
       class CustomBuilder extends BaseTokenBuilder {
         priority = 90;
         supportedTypes = ["custom"];
-        
+
         generateTokens() {
           return { tokens: new Set(["custom_token"]) };
         }
@@ -573,7 +683,7 @@ describe("Token Builder System", () => {
 
       addCustomTokenBuilder(new CustomBuilder());
       const builders = getRegisteredBuilders();
-      
+
       expect(builders.some(b => b instanceof CustomBuilder)).toBe(true);
     });
 
@@ -586,16 +696,22 @@ describe("Token Builder System", () => {
           return { tokens: new Set(["custom_token"]) };
         }
       }
-      
+
       addCustomTokenBuilder(new CustomBuilder());
-      expect(getRegisteredBuilders().some(b => b instanceof CustomBuilder)).toBe(true);
+      expect(
+        getRegisteredBuilders().some(b => b instanceof CustomBuilder)
+      ).toBe(true);
 
       // Reset and check it's gone
       resetTokenRegistry();
-      expect(getRegisteredBuilders().some(b => b instanceof CustomBuilder)).toBe(false);
-      
+      expect(
+        getRegisteredBuilders().some(b => b instanceof CustomBuilder)
+      ).toBe(false);
+
       // But default builders should still be there
-      expect(getRegisteredBuilders().some(b => b instanceof EmailTokenBuilder)).toBe(true);
+      expect(
+        getRegisteredBuilders().some(b => b instanceof EmailTokenBuilder)
+      ).toBe(true);
     });
   });
 });

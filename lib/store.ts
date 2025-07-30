@@ -71,7 +71,7 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
 };
 
 // Global action type for restoring from storage
-const RESTORE_FROM_STORAGE = 'global/RESTORE_FROM_STORAGE';
+const RESTORE_FROM_STORAGE = "global/RESTORE_FROM_STORAGE";
 
 // Action creator for restoring from storage
 export const restoreFromStorage = (persistedState: any) => ({
@@ -80,64 +80,80 @@ export const restoreFromStorage = (persistedState: any) => ({
 });
 
 // Middleware to handle global state restoration
-const stateRestorationMiddleware = (store: any) => (next: any) => (action: any) => {
-  if (action.type === RESTORE_FROM_STORAGE) {
-    const { payload } = action;
-    
-    // Restore table data if it exists
-    if (payload?.table?.data?.length > 0) {
-      store.dispatch({ type: 'table/setData', payload: payload.table.data });
+const stateRestorationMiddleware =
+  (store: any) => (next: any) => (action: any) => {
+    if (action.type === RESTORE_FROM_STORAGE) {
+      const { payload } = action;
+
+      // Restore table data if it exists
+      if (payload?.table?.data?.length > 0) {
+        store.dispatch({ type: "table/setData", payload: payload.table.data });
+      }
+
+      // Restore other table state (sorting, filters, etc.)
+      if (payload?.table) {
+        const tableState = payload.table;
+
+        // Restore sorting
+        if (tableState.sorting) {
+          store.dispatch({
+            type: "table/setSorting",
+            payload: tableState.sorting,
+          });
+        }
+
+        // Restore column filters
+        if (tableState.columnFilters) {
+          store.dispatch({
+            type: "table/setColumnFilters",
+            payload: tableState.columnFilters,
+          });
+        }
+
+        // Restore column visibility
+        if (tableState.columnVisibility) {
+          store.dispatch({
+            type: "table/setColumnVisibility",
+            payload: tableState.columnVisibility,
+          });
+        }
+
+        // Restore global filter
+        if (tableState.globalFilter) {
+          store.dispatch({
+            type: "table/setGlobalFilter",
+            payload: tableState.globalFilter,
+          });
+        }
+
+        // Restore pagination
+        if (tableState.pagination) {
+          store.dispatch({
+            type: "table/setPagination",
+            payload: tableState.pagination,
+          });
+        }
+      }
+
+      // Load target shapes if they exist
+      if (payload?.targetShapes?.shapes?.length > 0) {
+        store.dispatch({ type: "targetShapes/loadShapes" });
+      }
+
+      // Update persistence state
+      store.dispatch({
+        type: "persistence/setPersistenceStatus",
+        payload: {
+          hasPersistedState: true,
+          lastLoadedAt: Date.now(),
+        },
+      });
+
+      return next(action);
     }
-    
-    // Restore other table state (sorting, filters, etc.)
-    if (payload?.table) {
-      const tableState = payload.table;
-      
-      // Restore sorting
-      if (tableState.sorting) {
-        store.dispatch({ type: 'table/setSorting', payload: tableState.sorting });
-      }
-      
-      // Restore column filters
-      if (tableState.columnFilters) {
-        store.dispatch({ type: 'table/setColumnFilters', payload: tableState.columnFilters });
-      }
-      
-      // Restore column visibility
-      if (tableState.columnVisibility) {
-        store.dispatch({ type: 'table/setColumnVisibility', payload: tableState.columnVisibility });
-      }
-      
-      // Restore global filter
-      if (tableState.globalFilter) {
-        store.dispatch({ type: 'table/setGlobalFilter', payload: tableState.globalFilter });
-      }
-      
-      // Restore pagination
-      if (tableState.pagination) {
-        store.dispatch({ type: 'table/setPagination', payload: tableState.pagination });
-      }
-    }
-    
-    // Load target shapes if they exist
-    if (payload?.targetShapes?.shapes?.length > 0) {
-      store.dispatch({ type: 'targetShapes/loadShapes' });
-    }
-    
-    // Update persistence state
-    store.dispatch({ 
-      type: 'persistence/setPersistenceStatus', 
-      payload: { 
-        hasPersistedState: true, 
-        lastLoadedAt: Date.now() 
-      } 
-    });
-    
+
     return next(action);
-  }
-  
-  return next(action);
-};
+  };
 
 export const makeStore = () => {
   // Always start with empty state during SSR and initial client render
@@ -156,7 +172,7 @@ export const makeStore = () => {
       "table/setSorting",
       "table/toggleColumnSort",
       "targetShapes/saveTargetShape",
-      "targetShapes/updateTargetShape", 
+      "targetShapes/updateTargetShape",
       "targetShapes/deleteTargetShape",
     ],
     debug: process.env.NODE_ENV === "development",
@@ -171,7 +187,11 @@ export const makeStore = () => {
     },
     preloadedState: persistedState,
     middleware: getDefaultMiddleware =>
-      getDefaultMiddleware().concat(historyMiddleware, persistenceMiddleware, stateRestorationMiddleware),
+      getDefaultMiddleware().concat(
+        historyMiddleware,
+        persistenceMiddleware,
+        stateRestorationMiddleware
+      ),
   });
 
   // Mark persistence as initialized only on client side

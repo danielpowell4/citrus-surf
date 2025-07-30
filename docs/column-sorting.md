@@ -15,7 +15,9 @@ The system automatically detects and sorts by the first column when data is load
 ```typescript
 // In tableSlice.ts - setData action
 if (action.payload.length > 0 && state.sorting.length === 0) {
-  const firstColumnKey = Object.keys(action.payload[0]).find(key => !key.startsWith('_'));
+  const firstColumnKey = Object.keys(action.payload[0]).find(
+    key => !key.startsWith("_")
+  );
   if (firstColumnKey) {
     state.sorting = [{ id: firstColumnKey, desc: false }];
   }
@@ -23,12 +25,14 @@ if (action.payload.length > 0 && state.sorting.length === 0) {
 ```
 
 **Benefits**:
+
 - **Works with any dataset**: No assumption about column names
 - **Skips internal fields**: Ignores fields starting with `_` (like `_rowId`)
 - **User-friendly**: Always provides initial order rather than random display
 - **Flexible**: Adapts to different data structures automatically
 
 **Behavior**:
+
 - When data is imported via CSV, JSON, or manual entry
 - Only sets default sort if no sorting is currently applied
 - Chooses the first non-internal column alphabetically from the first row

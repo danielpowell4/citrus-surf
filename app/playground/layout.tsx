@@ -36,9 +36,7 @@ export default function PlaygroundLayout({
   return (
     <StoreProvider>
       <PlaygroundContent isExpanded={isExpanded} setIsExpanded={setIsExpanded}>
-        <Suspense fallback={<PlaygroundLoader />}>
-          {children}
-        </Suspense>
+        <Suspense fallback={<PlaygroundLoader />}>{children}</Suspense>
       </PlaygroundContent>
     </StoreProvider>
   );
@@ -59,11 +57,8 @@ function PlaygroundContent({
   return (
     <div
       className={`container mx-auto py-10 px-4 transition-all duration-300 ease-in-out ${
-        isExpanded ? "max-w-[1600px]" : "max-w-4xl"
+        isExpanded ? "max-w-[1440px]" : "max-w-4xl"
       }`}
-      style={{
-        maxWidth: isExpanded ? "min(1600px, 100vw - 2rem)" : undefined,
-      }}
     >
       <div className="flex items-center justify-between mb-6">
         <div>

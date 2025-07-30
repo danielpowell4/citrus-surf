@@ -430,7 +430,7 @@ const displayTimestamp = new Date(targetShape.updatedAt).toLocaleString();
 // Result: "7/24/2024, 3:20:31 PM"
 
 // For relative time (with a library like date-fns)
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from "date-fns";
 const relativeTime = formatDistanceToNow(new Date(targetShape.updatedAt));
 // Result: "2 hours ago"
 ```

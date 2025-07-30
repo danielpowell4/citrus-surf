@@ -31,10 +31,12 @@ describe("Mapping Suggestion Engine", () => {
       });
     });
 
-
     describe("generateFieldVariations", () => {
       it("should generate all variations for a field", () => {
-        const variations = generateFieldVariations("First Name", "field_firstName");
+        const variations = generateFieldVariations(
+          "First Name",
+          "field_firstName"
+        );
         expect(variations).toContain("first name");
         expect(variations).toContain("field_firstname");
         expect(variations).toContain("first_name");
@@ -69,7 +71,7 @@ describe("Mapping Suggestion Engine", () => {
         transformation: [],
       },
       {
-        id: "field_lastName", 
+        id: "field_lastName",
         name: "Last Name",
         type: "string",
         required: true,
@@ -99,8 +101,16 @@ describe("Mapping Suggestion Engine", () => {
 
     describe("Exact Match Priority", () => {
       it("should prioritize exact matches", () => {
-        const importColumns = ["First Name", "Last Name", "Email Address", "Age"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const importColumns = [
+          "First Name",
+          "Last Name",
+          "Email Address",
+          "Age",
+        ];
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         expect(mapping["field_firstName"]).toBe("First Name");
         expect(mapping["field_lastName"]).toBe("Last Name");
@@ -110,7 +120,10 @@ describe("Mapping Suggestion Engine", () => {
 
       it("should handle case-insensitive exact matches", () => {
         const importColumns = ["first name", "LAST NAME", "email address"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         expect(mapping["field_firstName"]).toBe("first name");
         expect(mapping["field_lastName"]).toBe("LAST NAME");
@@ -120,8 +133,16 @@ describe("Mapping Suggestion Engine", () => {
 
     describe("Snake Case Match Priority", () => {
       it("should match snake_case variations", () => {
-        const importColumns = ["first_name", "last_name", "email_address", "user_age"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const importColumns = [
+          "first_name",
+          "last_name",
+          "email_address",
+          "user_age",
+        ];
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         expect(mapping["field_firstName"]).toBe("first_name");
         expect(mapping["field_lastName"]).toBe("last_name");
@@ -131,7 +152,10 @@ describe("Mapping Suggestion Engine", () => {
 
       it("should prefer exact over snake_case", () => {
         const importColumns = ["First Name", "first_name", "Last Name"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         // Should prefer exact match over snake_case variation
         expect(mapping["field_firstName"]).toBe("First Name");
@@ -143,8 +167,16 @@ describe("Mapping Suggestion Engine", () => {
 
     describe("Camel Case Match Priority", () => {
       it("should match camelCase variations", () => {
-        const importColumns = ["firstName", "lastName", "emailAddress", "userAge"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const importColumns = [
+          "firstName",
+          "lastName",
+          "emailAddress",
+          "userAge",
+        ];
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         expect(mapping["field_firstName"]).toBe("firstName");
         expect(mapping["field_lastName"]).toBe("lastName");
@@ -154,7 +186,10 @@ describe("Mapping Suggestion Engine", () => {
 
       it("should prefer snake_case over camelCase", () => {
         const importColumns = ["first_name", "firstName", "lastName"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         // Should prefer snake_case over camelCase - but exact algorithm may vary
         // The important thing is that both fields get mapped to appropriate columns
@@ -166,7 +201,10 @@ describe("Mapping Suggestion Engine", () => {
     describe("Fuzzy Match Priority", () => {
       it("should match similar strings with fuzzy matching", () => {
         const importColumns = ["fname", "lname", "email", "years"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         // These should match with fuzzy logic
         expect(mapping["field_firstName"]).toBe("fname");
@@ -176,28 +214,39 @@ describe("Mapping Suggestion Engine", () => {
 
       it("should handle dissimilar strings appropriately", () => {
         const importColumns = ["xyz", "abc", "def"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         // With the new sophisticated token system, we may find more matches
         // due to better field variations and abbreviations. This is actually good!
         // The important thing is that confidence scores are appropriate
-        const detailedSuggestions = getDetailedMappingSuggestions(importColumns, mockTargetFields);
-        
+        const detailedSuggestions = getDetailedMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
+
         // All matches should have some minimum confidence
         detailedSuggestions.forEach(suggestion => {
           expect(suggestion.confidence).toBeGreaterThan(0.25);
         });
-        
+
         // The total number of matches should be reasonable (not matching everything)
-        expect(detailedSuggestions.length).toBeLessThanOrEqual(mockTargetFields.length);
+        expect(detailedSuggestions.length).toBeLessThanOrEqual(
+          mockTargetFields.length
+        );
       });
 
       it("should prefer higher confidence fuzzy matches", () => {
         const importColumns = ["name", "firstname", "user_name"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         // The algorithm prioritizes exact matches for abbreviations
-        // Since both "name" and "firstname" could match "First Name", 
+        // Since both "name" and "firstname" could match "First Name",
         // "name" wins because it's a simpler exact match for the field variations
         expect(mapping["field_firstName"]).toBe("name");
       });
@@ -206,11 +255,14 @@ describe("Mapping Suggestion Engine", () => {
     describe("Required Fields Priority", () => {
       it("should prioritize required fields", () => {
         const importColumns = ["fname", "years_old"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         // Required fields should get priority - fname should match firstName field
         expect(mapping["field_firstName"]).toBe("fname");
-        
+
         // Non-required field with lower confidence may not get mapped
         // This is expected behavior - only map when confidence is reasonable
         expect(Object.keys(mapping)).toContain("field_firstName");
@@ -220,7 +272,10 @@ describe("Mapping Suggestion Engine", () => {
     describe("Column Uniqueness", () => {
       it("should not map same column to multiple fields", () => {
         const importColumns = ["name", "other_field"];
-        const mapping = generateMappingSuggestions(importColumns, mockTargetFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          mockTargetFields
+        );
 
         const mappedColumns = Object.values(mapping);
         const uniqueColumns = new Set(mappedColumns);
@@ -256,7 +311,10 @@ describe("Mapping Suggestion Engine", () => {
         ];
 
         const importColumns = ["special_field_name", "Special Field Name"];
-        const mapping = generateMappingSuggestions(importColumns, specialFields);
+        const mapping = generateMappingSuggestions(
+          importColumns,
+          specialFields
+        );
 
         expect(mapping["field_special"]).toBeDefined();
       });
@@ -278,7 +336,10 @@ describe("Mapping Suggestion Engine", () => {
       ];
 
       const importColumns = ["name", "full_name"];
-      const suggestions = getDetailedMappingSuggestions(importColumns, mockFields);
+      const suggestions = getDetailedMappingSuggestions(
+        importColumns,
+        mockFields
+      );
 
       expect(suggestions).toHaveLength(1);
       expect(suggestions[0]).toMatchObject({
@@ -293,7 +354,7 @@ describe("Mapping Suggestion Engine", () => {
       const mockFields: TargetField[] = [
         {
           id: "field_name",
-          name: "Name", 
+          name: "Name",
           type: "string",
           required: true,
           description: "User name",
@@ -305,14 +366,17 @@ describe("Mapping Suggestion Engine", () => {
           name: "Email",
           type: "email",
           required: true,
-          description: "User email", 
+          description: "User email",
           validation: [],
           transformation: [],
         },
       ];
 
       const importColumns = ["email", "nm"]; // exact match for email, fuzzy for name
-      const suggestions = getDetailedMappingSuggestions(importColumns, mockFields);
+      const suggestions = getDetailedMappingSuggestions(
+        importColumns,
+        mockFields
+      );
 
       // Should be sorted by confidence (email should come first)
       expect(suggestions[0].matchType).toBe("exact");
@@ -335,7 +399,7 @@ describe("Mapping Suggestion Engine", () => {
         {
           id: "full_name",
           name: "Full Name",
-          type: "string", 
+          type: "string",
           required: true,
           description: "Customer full name",
           validation: [],

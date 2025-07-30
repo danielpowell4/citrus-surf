@@ -1,6 +1,9 @@
 import React from "react";
 import type { TargetShape, TargetField } from "@/lib/types/target-shapes";
-import type { SimpleColumnDef, ColumnMeta } from "@/lib/utils/column-transformer";
+import type {
+  SimpleColumnDef,
+  ColumnMeta,
+} from "@/lib/utils/column-transformer";
 import type { TableRow } from "@/lib/features/tableSlice";
 
 /**
@@ -12,16 +15,18 @@ export function generateColumnsFromTargetShape(
   data: TableRow[]
 ): SimpleColumnDef<TableRow>[] {
   // Create a field lookup for quick access
-  const fieldLookup = new Map(targetShape.fields.map(field => [field.name, field]));
-  
+  const fieldLookup = new Map(
+    targetShape.fields.map(field => [field.name, field])
+  );
+
   return columnOrder.map(columnKey => {
     const field = fieldLookup.get(columnKey);
-    
+
     if (!field) {
       // Fallback for columns not found in target shape
       return generateDefaultColumn(columnKey, data);
     }
-    
+
     return generateColumnFromTargetField(field, data);
   });
 }
@@ -32,9 +37,9 @@ export function generateColumnsFromTargetShape(
 export function generateDefaultTargetShape(data: TableRow[]): TargetShape {
   if (data.length === 0) {
     return {
-      id: 'default',
-      name: 'Default Shape',
-      description: 'Auto-generated from imported data',
+      id: "default",
+      name: "Default Shape",
+      description: "Auto-generated from imported data",
       fields: [],
       version: 1,
       createdAt: new Date().toISOString(),
@@ -43,45 +48,50 @@ export function generateDefaultTargetShape(data: TableRow[]): TargetShape {
   }
 
   // Get all keys from the first row, excluding vendor-prefixed keys
-  const keys = Object.keys(data[0]).filter(key => !key.startsWith('_'));
-  
+  const keys = Object.keys(data[0]).filter(key => !key.startsWith("_"));
+
   const fields: TargetField[] = keys.map((key, index) => {
     const sampleValue = data[0][key];
-    
+
     // Infer field type from sample data
-    let type: TargetField['type'] = 'string';
-    if (typeof sampleValue === 'number') {
-      type = Number.isInteger(sampleValue) ? 'integer' : 'number';
-    } else if (typeof sampleValue === 'boolean') {
-      type = 'boolean';
+    let type: TargetField["type"] = "string";
+    if (typeof sampleValue === "number") {
+      type = Number.isInteger(sampleValue) ? "integer" : "number";
+    } else if (typeof sampleValue === "boolean") {
+      type = "boolean";
     } else if (sampleValue instanceof Date) {
-      type = 'date';
-    } else if (typeof sampleValue === 'string') {
+      type = "date";
+    } else if (typeof sampleValue === "string") {
       // More strict date detection - only if it contains date-like patterns
       const datePatterns = [
         /^\d{4}-\d{2}-\d{2}/, // YYYY-MM-DD
-        /^\d{2}\/\d{2}\/\d{4}/, // MM/DD/YYYY  
+        /^\d{2}\/\d{2}\/\d{4}/, // MM/DD/YYYY
         /^\d{2}-\d{2}-\d{4}/, // MM-DD-YYYY
         /^\d{4}\/\d{2}\/\d{2}/, // YYYY/MM/DD
       ];
-      
-      const looksLikeDate = datePatterns.some(pattern => pattern.test(sampleValue)) && 
-                           !isNaN(Date.parse(sampleValue));
-      
+
+      const looksLikeDate =
+        datePatterns.some(pattern => pattern.test(sampleValue)) &&
+        !isNaN(Date.parse(sampleValue));
+
       if (looksLikeDate) {
-        type = 'date';
+        type = "date";
       }
-      
+
       // Check for currency patterns
-      if (key.toLowerCase().includes('salary') || key.toLowerCase().includes('price') || 
-          key.toLowerCase().includes('cost') || key.toLowerCase().includes('amount')) {
-        type = 'currency';
+      if (
+        key.toLowerCase().includes("salary") ||
+        key.toLowerCase().includes("price") ||
+        key.toLowerCase().includes("cost") ||
+        key.toLowerCase().includes("amount")
+      ) {
+        type = "currency";
       }
     }
 
     // Create a formatted name from the key
     const name = key
-      .replace(/([A-Z])/g, ' $1') // Add space before capitals
+      .replace(/([A-Z])/g, " $1") // Add space before capitals
       .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
       .trim();
 
@@ -97,9 +107,9 @@ export function generateDefaultTargetShape(data: TableRow[]): TargetShape {
   });
 
   return {
-    id: 'default',
-    name: 'Default Shape',
-    description: 'Auto-generated from imported data',
+    id: "default",
+    name: "Default Shape",
+    description: "Auto-generated from imported data",
     fields,
     version: 1,
     createdAt: new Date().toISOString(),
@@ -110,14 +120,20 @@ export function generateDefaultTargetShape(data: TableRow[]): TargetShape {
 /**
  * Generates a column definition from a target field
  */
-function generateColumnFromTargetField(field: TargetField, data: TableRow[]): SimpleColumnDef<TableRow> {
+function generateColumnFromTargetField(
+  field: TargetField,
+  data: TableRow[]
+): SimpleColumnDef<TableRow> {
   const meta: ColumnMeta = {
     sortType: "natural",
     editable: getEditableConfig(field, data),
   };
 
   // Special handling for progress fields
-  if (field.type === 'number' && field.name.toLowerCase().includes('progress')) {
+  if (
+    field.type === "number" &&
+    field.name.toLowerCase().includes("progress")
+  ) {
     return {
       accessorKey: field.name as keyof TableRow,
       header: field.displayName || field.name,
@@ -139,7 +155,7 @@ function generateColumnFromTargetField(field: TargetField, data: TableRow[]): Si
   return {
     accessorKey: field.name as keyof TableRow,
     header: field.displayName || field.name,
-    size: field.name.toLowerCase() === 'id' ? 80 : undefined,
+    size: field.name.toLowerCase() === "id" ? 80 : undefined,
     meta,
   };
 }
@@ -147,10 +163,13 @@ function generateColumnFromTargetField(field: TargetField, data: TableRow[]): Si
 /**
  * Generates a default column definition for fields not found in target shape
  */
-function generateDefaultColumn(columnKey: string, data: TableRow[]): SimpleColumnDef<TableRow> {
+function generateDefaultColumn(
+  columnKey: string,
+  data: TableRow[]
+): SimpleColumnDef<TableRow> {
   // Create a formatted header from the key
   const header = columnKey
-    .replace(/([A-Z])/g, ' $1') // Add space before capitals
+    .replace(/([A-Z])/g, " $1") // Add space before capitals
     .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
     .trim();
 
@@ -166,7 +185,7 @@ function generateDefaultColumn(columnKey: string, data: TableRow[]): SimpleColum
   };
 
   // Special handling for common field types
-  if (typeof sampleValue === 'number') {
+  if (typeof sampleValue === "number") {
     meta.editable = {
       type: "number",
       precision: "integer",
@@ -176,7 +195,7 @@ function generateDefaultColumn(columnKey: string, data: TableRow[]): SimpleColum
   return {
     accessorKey: columnKey as keyof TableRow,
     header,
-    size: columnKey.toLowerCase() === 'id' ? 80 : undefined,
+    size: columnKey.toLowerCase() === "id" ? 80 : undefined,
     meta,
   };
 }
@@ -184,27 +203,37 @@ function generateDefaultColumn(columnKey: string, data: TableRow[]): SimpleColum
 /**
  * Gets editable configuration for a target field
  */
-function getEditableConfig(field: TargetField, data: TableRow[]): ColumnMeta['editable'] {
+function getEditableConfig(
+  field: TargetField,
+  data: TableRow[]
+): ColumnMeta["editable"] {
   switch (field.type) {
-    case 'string':
+    case "string":
       // Check if it's a select field based on validation rules or data patterns
       if (field.validation?.enum) {
         return {
           type: "select",
-          options: field.validation.enum.map(value => ({ value, label: value })),
+          options: field.validation.enum.map(value => ({
+            value,
+            label: value,
+          })),
         };
       }
-      
+
       // Check for status/department fields and extract unique values from data
-      if (field.name.toLowerCase().includes('status') || field.name.toLowerCase().includes('department')) {
-        const uniqueValues = Array.from(new Set(
-          data.map(row => row[field.name]).filter(Boolean)
-        )).map(value => ({ 
-          value: String(value), 
-          label: String(value) 
+      if (
+        field.name.toLowerCase().includes("status") ||
+        field.name.toLowerCase().includes("department")
+      ) {
+        const uniqueValues = Array.from(
+          new Set(data.map(row => row[field.name]).filter(Boolean))
+        ).map(value => ({
+          value: String(value),
+          label: String(value),
         }));
 
-        if (uniqueValues.length > 0 && uniqueValues.length <= 20) { // Only use select for reasonable number of options
+        if (uniqueValues.length > 0 && uniqueValues.length <= 20) {
+          // Only use select for reasonable number of options
           return {
             type: "select",
             options: uniqueValues,
@@ -218,30 +247,30 @@ function getEditableConfig(field: TargetField, data: TableRow[]): ColumnMeta['ed
         maxLength: field.validation?.maxLength || 100,
       };
 
-    case 'integer':
-    case 'number':
+    case "integer":
+    case "number":
       return {
         type: "number",
         min: field.validation?.min,
         max: field.validation?.max,
-        precision: field.type === 'integer' ? 'integer' : undefined,
+        precision: field.type === "integer" ? "integer" : undefined,
       };
 
-    case 'currency':
+    case "currency":
       return {
         type: "number",
         min: 0,
         precision: "currency",
-        currency: field.validation?.currency || 'USD',
+        currency: field.validation?.currency || "USD",
       };
 
-    case 'date':
+    case "date":
       return {
         type: "date",
-        format: field.validation?.format || 'YYYY-MM-DD',
+        format: field.validation?.format || "YYYY-MM-DD",
       };
 
-    case 'boolean':
+    case "boolean":
       return {
         type: "select",
         options: [

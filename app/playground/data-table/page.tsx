@@ -50,25 +50,31 @@ export default function DataTablePage() {
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
   const [selectedShape, setSelectedShape] = useState<TargetShape | null>(null);
   const [mappingMode, setMappingMode] = useState(false);
-  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>(
+    {}
+  );
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Template management state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [templateToDelete, setTemplateToDelete] = useState<TargetShape | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<TargetShape | null>(
+    null
+  );
 
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
 
   // Memoize importColumns to prevent unnecessary re-renders
   const importColumns = useMemo(() => {
-    return data.length > 0 ? Object.keys(data[0]).filter(key => !key.startsWith('_')) : [];
+    return data.length > 0
+      ? Object.keys(data[0]).filter(key => !key.startsWith("_"))
+      : [];
   }, [data]);
 
   // Load target shapes on component mount and handle data check
   useEffect(() => {
     dispatch(loadShapes());
-    
+
     // Check for data after a short delay to allow hydration
     const timer = setTimeout(() => {
       if (data.length === 0) {
@@ -77,16 +83,16 @@ export default function DataTablePage() {
         setIsLoading(false);
       }
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [dispatch, data.length, router]);
 
   // Check URL parameters for target shape mapping mode
   useEffect(() => {
-    const targetShapeId = searchParams.get('targetShape');
-    const mode = searchParams.get('mode');
-    
-    if (targetShapeId && mode === 'mapping') {
+    const targetShapeId = searchParams.get("targetShape");
+    const mode = searchParams.get("mode");
+
+    if (targetShapeId && mode === "mapping") {
       const shape = shapes.find(s => s.id === targetShapeId);
       if (shape) {
         setSelectedShape(shape);
@@ -103,7 +109,7 @@ export default function DataTablePage() {
     setMappingMode(true);
     setShowDrawer(false);
     setIsApplyingTemplate(false);
-    
+
     // Update URL to reflect mapping mode
     router.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
   };
@@ -112,7 +118,7 @@ export default function DataTablePage() {
     setMappingMode(false);
     setSelectedShape(null);
     setColumnMapping({});
-    router.push('/playground/data-table');
+    router.push("/playground/data-table");
   }, [router]);
 
   const handleMappingChange = useCallback((mapping: Record<string, string>) => {
@@ -129,29 +135,40 @@ export default function DataTablePage() {
       return;
     }
 
-    console.log('Applying mapping:', columnMapping);
-    console.log('Selected shape fields:', selectedShape.fields.map(f => ({ id: f.id, name: f.name })));
+    console.log("Applying mapping:", columnMapping);
+    console.log(
+      "Selected shape fields:",
+      selectedShape.fields.map(f => ({ id: f.id, name: f.name }))
+    );
 
     // Create field mappings (targetFieldId -> targetFieldName)
-    const fieldMappings = selectedShape.fields.reduce((acc, field) => {
-      acc[field.id] = field.name;
-      return acc;
-    }, {} as Record<string, string>);
+    const fieldMappings = selectedShape.fields.reduce(
+      (acc, field) => {
+        acc[field.id] = field.name;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
 
     // Let Redux handle the data transformation using current state data
-    dispatch(applyTemplate({
-      targetShapeId: selectedShape.id,
-      targetShapeName: selectedShape.name,
-      columnMapping,
-      fieldMappings,
-      targetFields: selectedShape.fields.map(f => ({ id: f.id, name: f.name })),
-    }));
-    
+    dispatch(
+      applyTemplate({
+        targetShapeId: selectedShape.id,
+        targetShapeName: selectedShape.name,
+        columnMapping,
+        fieldMappings,
+        targetFields: selectedShape.fields.map(f => ({
+          id: f.id,
+          name: f.name,
+        })),
+      })
+    );
+
     // Exit mapping mode
     setMappingMode(false);
     setSelectedShape(null);
     setColumnMapping({});
-    router.push('/playground/data-table');
+    router.push("/playground/data-table");
 
     toast({
       title: "Mapping applied successfully",
@@ -174,7 +191,6 @@ export default function DataTablePage() {
     router.push(`/playground/template-builder?edit=${shape.id}`);
     setShowDrawer(false);
   };
-
 
   const handleDeleteTemplate = (shape: TargetShape) => {
     setTemplateToDelete(shape);
@@ -219,7 +235,7 @@ export default function DataTablePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="mx-auto py-6">
         <div className="max-w-none">
           <h1 className="text-2xl sm:text-3xl font-bold">
             Data Table
@@ -231,10 +247,9 @@ export default function DataTablePage() {
             )}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            {mappingMode 
+            {mappingMode
               ? "Map your data columns to the target shape fields"
-              : "View, edit, and transform your imported data"
-            }
+              : "View, edit, and transform your imported data"}
           </p>
         </div>
 
@@ -250,7 +265,7 @@ export default function DataTablePage() {
                 <ArrowLeft className="w-4 h-4" />
                 Back to Import
               </Button>
-              
+
               {mappingMode && selectedShape && (
                 <div className="flex items-center gap-2">
                   <Button
@@ -281,7 +296,7 @@ export default function DataTablePage() {
                 className="mb-4"
               />
             )}
-            
+
             <DataTable
               data={data}
               currentVersion={1}
@@ -350,14 +365,16 @@ export default function DataTablePage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                       onClick={() => handleEditTemplate(shape)}
                                     >
                                       <Edit className="mr-2 h-4 w-4" />
                                       Edit
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem 
-                                      onClick={() => handleDeleteTemplate(shape)}
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleDeleteTemplate(shape)
+                                      }
                                       className="text-destructive"
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" />
@@ -366,7 +383,7 @@ export default function DataTablePage() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
-                              
+
                               {/* Apply Button - Full Width */}
                               <Button
                                 size="sm"
@@ -439,7 +456,8 @@ export default function DataTablePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Template</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{templateToDelete?.name}&quot;? This action cannot be undone.
+              Are you sure you want to delete &quot;{templateToDelete?.name}
+              &quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

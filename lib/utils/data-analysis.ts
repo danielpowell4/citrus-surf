@@ -34,23 +34,26 @@ export function analyzeDataForTargetShape(data: any[]): {
   // Collect all keys and sample values (excluding vendor-prefixed fields)
   data.forEach((row, index) => {
     Object.keys(row)
-      .filter(key => !key.startsWith('_')) // Exclude vendor-prefixed fields like _rowId
+      .filter(key => !key.startsWith("_")) // Exclude vendor-prefixed fields like _rowId
       .forEach(key => {
         allKeys.add(key);
 
-      if (!uniqueValues[key]) {
-        uniqueValues[key] = new Set();
-        sampleValues[key] = [];
-      }
+        if (!uniqueValues[key]) {
+          uniqueValues[key] = new Set();
+          sampleValues[key] = [];
+        }
 
-      const value = row[key];
-      uniqueValues[key].add(value);
+        const value = row[key];
+        uniqueValues[key].add(value);
 
-      // Collect sample values (up to 5 unique ones)
-      if (sampleValues[key].length < 5 && !sampleValues[key].includes(value)) {
-        sampleValues[key].push(value);
-      }
-    });
+        // Collect sample values (up to 5 unique ones)
+        if (
+          sampleValues[key].length < 5 &&
+          !sampleValues[key].includes(value)
+        ) {
+          sampleValues[key].push(value);
+        }
+      });
   });
 
   // Analyze data types and generate field suggestions

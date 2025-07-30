@@ -7,6 +7,7 @@ The app now includes a comprehensive error logging system that automatically cap
 ## How to Use
 
 ### 1. Automatic Error Capture
+
 All errors are automatically captured and logged. When an error occurs, you'll see enhanced console output with debugging information.
 
 ### 2. Browser Console Commands
@@ -14,35 +15,43 @@ All errors are automatically captured and logged. When an error occurs, you'll s
 Open DevTools (`F12`) and use these commands:
 
 #### **Copy Errors for Claude (Most Useful)**
+
 ```javascript
-errorLogger.copyForClaude()
+errorLogger.copyForClaude();
 ```
+
 This copies formatted error information to your clipboard that you can paste directly in your conversation with Claude.
 
 #### **View All Errors**
+
 ```javascript
-errorLogger.getAll()
+errorLogger.getAll();
 ```
+
 Returns array of all captured errors.
 
 #### **View Recent Errors**
+
 ```javascript
-errorLogger.getRecent(5)  // Last 5 errors
+errorLogger.getRecent(5); // Last 5 errors
 ```
 
 #### **Clear Error Log**
+
 ```javascript
-errorLogger.clear()
+errorLogger.clear();
 ```
 
 #### **Manually Log an Error**
+
 ```javascript
-errorLogger.log(new Error("Test error"), { context: "additional info" })
+errorLogger.log(new Error("Test error"), { context: "additional info" });
 ```
 
 ### 3. Error Information Captured
 
 For each error, the system captures:
+
 - **Timestamp**: When the error occurred
 - **Type**: javascript, react, promise, or manual
 - **Message**: Error message
@@ -63,6 +72,7 @@ When you encounter an error:
 ## Error Output Format
 
 The formatted output includes:
+
 ```
 === ERRORS FOR CLAUDE DEBUG ===
 Total errors: 3
@@ -76,7 +86,7 @@ Time: 2024-01-15T10:29:55.123Z
 Message: Maximum update depth exceeded
 Stack: Error: Maximum update depth exceeded
     at getRootForUpdatedFiber...
-Component Stack: 
+Component Stack:
     in ColumnMapping
     in DataTablePage
 
@@ -86,6 +96,7 @@ Component Stack:
 ## React Error Boundary
 
 The app also includes an Error Boundary that:
+
 - Catches React component errors
 - Logs them automatically
 - Shows a user-friendly error message
@@ -94,21 +105,23 @@ The app also includes an Error Boundary that:
 ## Integration with Existing Code
 
 ### Manual Error Logging
+
 ```typescript
 try {
   // Risky operation
   someFunction();
 } catch (error) {
-  errorLogger.manualLog(error, { 
-    operation: 'someFunction',
+  errorLogger.manualLog(error, {
+    operation: "someFunction",
     userId: user.id,
-    additionalContext: 'any relevant info'
+    additionalContext: "any relevant info",
   });
   throw error; // Re-throw if needed
 }
 ```
 
 ### Toast Integration
+
 ```typescript
 // In error handlers, you can both show user message and log for debugging
 catch (error) {
@@ -123,7 +136,7 @@ catch (error) {
 
 ## Benefits
 
-1. **No Copy-Paste**: Just run `errorLogger.copyForClaude()` 
+1. **No Copy-Paste**: Just run `errorLogger.copyForClaude()`
 2. **Rich Context**: Includes stack traces, component stacks, and metadata
 3. **Automatic Capture**: No need to manually catch every error
 4. **Development Focus**: Only runs in development, won't affect production
