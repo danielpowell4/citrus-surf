@@ -7,9 +7,11 @@ This style guide ensures consistent, accessible, and theme-aware UI components a
 ## 🌓 Theming System
 
 ### Core Principle
+
 **Every UI element must work perfectly in both light and dark modes.**
 
 ### Implementation
+
 - Uses CSS variables defined in `app/globals.css`
 - Tailwind's `dark:` modifier for dark mode variants
 - Semantic color tokens for consistency
@@ -17,6 +19,7 @@ This style guide ensures consistent, accessible, and theme-aware UI components a
 ### Color System
 
 #### Semantic Colors (ALWAYS USE THESE)
+
 ```css
 /* Backgrounds */
 bg-background      /* Main app background */
@@ -41,19 +44,22 @@ bg-destructive    /* Error states, delete actions */
 ```
 
 #### Custom Colors (USE WITH DARK VARIANTS)
+
 When semantic colors aren't sufficient, always provide dark mode variants:
 
 ```tsx
 // ✅ CORRECT - Both light and dark variants
-className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100"
+className =
+  "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100";
 
 // ❌ WRONG - Only light mode
-className="bg-blue-50 border-blue-200 text-blue-900"
+className = "bg-blue-50 border-blue-200 text-blue-900";
 ```
 
 ## 📋 Component Patterns
 
 ### Cards and Containers
+
 ```tsx
 // Standard card
 <Card className="hover:shadow-lg transition-shadow">
@@ -73,6 +79,7 @@ className="bg-blue-50 border-blue-200 text-blue-900"
 ```
 
 ### Buttons
+
 ```tsx
 // Primary action
 <Button>Primary Action</Button>
@@ -91,6 +98,7 @@ className="bg-blue-50 border-blue-200 text-blue-900"
 ```
 
 ### Text Hierarchy
+
 ```tsx
 // Page title
 <h1 className="text-2xl sm:text-3xl font-bold">Page Title</h1>
@@ -112,6 +120,7 @@ className="bg-blue-50 border-blue-200 text-blue-900"
 ```
 
 ### Status Indicators
+
 ```tsx
 // Success
 <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
@@ -131,6 +140,7 @@ className="bg-blue-50 border-blue-200 text-blue-900"
 ```
 
 ### Form Elements
+
 ```tsx
 // Input with label
 <div className="space-y-2">
@@ -156,23 +166,31 @@ className="bg-blue-50 border-blue-200 text-blue-900"
 ### Recommended Pairings
 
 #### Blue Theme (Information, Primary Actions)
+
 ```tsx
-className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100"
+className =
+  "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100";
 ```
 
 #### Green Theme (Success, Positive Actions)
+
 ```tsx
-className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-900 dark:text-green-100"
+className =
+  "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-900 dark:text-green-100";
 ```
 
 #### Yellow Theme (Warnings, Attention)
+
 ```tsx
-className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800 text-yellow-900 dark:text-yellow-100"
+className =
+  "bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800 text-yellow-900 dark:text-yellow-100";
 ```
 
 #### Red Theme (Errors, Destructive Actions)
+
 ```tsx
-className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-900 dark:text-red-100"
+className =
+  "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-900 dark:text-red-100";
 ```
 
 ## 🔧 Testing Checklist
@@ -190,50 +208,58 @@ Before marking any UI component as complete:
 ## 🚫 Common Mistakes
 
 ### ❌ Hardcoded Colors
+
 ```tsx
 // DON'T
-className="bg-white text-black border-gray-300"
+className = "bg-white text-black border-gray-300";
 ```
 
 ### ✅ Semantic Tokens
+
 ```tsx
 // DO
-className="bg-card text-card-foreground border-border"
+className = "bg-card text-card-foreground border-border";
 ```
 
 ### ❌ Missing Dark Variants
+
 ```tsx
 // DON'T
-className="bg-blue-100 text-blue-800"
+className = "bg-blue-100 text-blue-800";
 ```
 
 ### ✅ Complete Theme Support
+
 ```tsx
 // DO
-className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+className = "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200";
 ```
 
 ### ❌ Insufficient Contrast
+
 ```tsx
 // DON'T - Poor contrast in dark mode
-className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-600"
+className = "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-600";
 ```
 
 ### ✅ Good Contrast
+
 ```tsx
 // DO - Clear contrast in both modes
-className="bg-muted text-muted-foreground"
+className = "bg-muted text-muted-foreground";
 ```
 
 ## 🎨 Brand Colors
 
 ### Primary Palette
+
 - **Citrus Orange**: Used sparingly for brand elements
 - **Ocean Blue**: Primary interactive elements
 - **Fresh Green**: Success states, positive actions
 - **Warm Gray**: Neutral content, backgrounds
 
 ### Usage Guidelines
+
 - Keep brand colors minimal and purposeful
 - Use semantic tokens for 90% of styling
 - Brand colors should enhance, not overwhelm
@@ -242,14 +268,16 @@ className="bg-muted text-muted-foreground"
 ## 📱 Responsive Design
 
 ### Breakpoint Strategy
+
 ```tsx
 // Mobile-first approach
-className="text-sm sm:text-base lg:text-lg"
-className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-className="p-4 sm:p-6 lg:p-8"
+className = "text-sm sm:text-base lg:text-lg";
+className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+className = "p-4 sm:p-6 lg:p-8";
 ```
 
 ### Component Adaptations
+
 - Cards stack on mobile, arrange in grids on desktop
 - Navigation collapses to hamburger on small screens
 - Text sizes scale appropriately
@@ -258,16 +286,19 @@ className="p-4 sm:p-6 lg:p-8"
 ## 🔍 Accessibility Requirements
 
 ### Color and Contrast
+
 - Text contrast ratio ≥ 4.5:1 (WCAG AA)
 - Interactive elements clearly distinguishable
 - Don't rely solely on color to convey information
 
 ### Focus Management
+
 - Visible focus indicators on all interactive elements
 - Logical tab order
 - Proper heading hierarchy (h1 → h2 → h3)
 
 ### Screen Reader Support
+
 - Meaningful alt text for images
 - Proper ARIA labels for complex interactions
 - Semantic HTML structure
@@ -275,6 +306,7 @@ className="p-4 sm:p-6 lg:p-8"
 ## 🛠️ Implementation Tools
 
 ### Development
+
 ```bash
 # Add new shadcn/ui component
 npx shadcn@latest add [component-name]
@@ -284,6 +316,7 @@ npx shadcn@latest add [component-name]
 ```
 
 ### Testing
+
 ```bash
 # Visual regression testing (future)
 npm run test:visual

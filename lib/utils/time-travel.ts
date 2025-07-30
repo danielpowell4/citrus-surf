@@ -143,7 +143,7 @@ export const getActionSummary = (action: HistoryAction) => {
     case "setData":
       return `Loaded ${action.payload?.length || 0} rows of data`;
     case "applyTemplate":
-      return `Applied shape: ${action.payload?.targetShapeName || 'Unknown'}`;
+      return `Applied shape: ${action.payload?.targetShapeName || "Unknown"}`;
     case "importJsonData":
       return "Imported JSON data";
     case "updateCell":

@@ -9,11 +9,13 @@ Citrus Surf uses Next.js with SSR, but the playground functionality relies heavi
 ## The Problem
 
 **Hydration Mismatch**: When server-rendered content differs from client-rendered content, React throws errors like:
+
 ```
 Hydration failed because the server rendered text didn't match the client
 ```
 
 Common causes in our app:
+
 - Server renders empty data tables, client shows persisted data
 - Row counts differ between server (0) and client (actual count)
 - Dynamic content that's only available on the client
@@ -25,9 +27,7 @@ Common causes in our app:
 **File**: `app/playground/layout.tsx`
 
 ```tsx
-<Suspense fallback={<PlaygroundLoader />}>
-  {children}
-</Suspense>
+<Suspense fallback={<PlaygroundLoader />}>{children}</Suspense>
 ```
 
 - **Purpose**: Handles any `useSearchParams()` usage across playground pages
@@ -54,19 +54,19 @@ const persistedState = undefined;
 ```typescript
 useEffect(() => {
   const persistedState = reduxPersistence.loadState();
-  
+
   if (persistedState) {
     // Restore table data if it exists
     if (persistedState.table?.data?.length > 0) {
       dispatch(setData(persistedState.table.data));
     }
-    
+
     // Load target shapes if they exist
     if (persistedState.targetShapes?.shapes?.length > 0) {
       dispatch(loadShapes());
     }
   }
-  
+
   setIsHydrated(true);
 }, [dispatch]);
 ```
@@ -76,22 +76,24 @@ useEffect(() => {
 **File**: `app/playground/data-table.tsx`
 
 ```tsx
-{!isHydrated ? (
-  <div className="flex flex-col items-center gap-3">
-    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-    <p className="text-muted-foreground">Loading data...</p>
-  </div>
-) : (
-  <div className="flex flex-col items-center gap-4">
-    <Upload className="h-8 w-8 text-muted-foreground/50" />
-    <div className="text-center">
-      <p className="text-muted-foreground mb-2">No data found</p>
-      <Link href="/playground">
-        <Button variant="outline">Go to Data Import</Button>
-      </Link>
+{
+  !isHydrated ? (
+    <div className="flex flex-col items-center gap-3">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      <p className="text-muted-foreground">Loading data...</p>
     </div>
-  </div>
-)}
+  ) : (
+    <div className="flex flex-col items-center gap-4">
+      <Upload className="h-8 w-8 text-muted-foreground/50" />
+      <div className="text-center">
+        <p className="text-muted-foreground mb-2">No data found</p>
+        <Link href="/playground">
+          <Button variant="outline">Go to Data Import</Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
 ```
 
 ## User Flow Design
@@ -116,16 +118,17 @@ The hydration strategy supports the intended user workflow:
 1. **Check for Client-Only Data**: Does your component rely on localStorage, Redux state, or other client-only data?
 
 2. **Use Hydration Hook**: If yes, import and use the hydration hook:
+
    ```tsx
    import { useHydration } from "@/lib/hooks/useHydration";
-   
+
    function MyComponent() {
      const { isHydrated } = useHydration();
-     
+
      if (!isHydrated) {
        return <LoadingSpinner />;
      }
-     
+
      // Render with client data
    }
    ```
@@ -137,6 +140,7 @@ The hydration strategy supports the intended user workflow:
 ### Common Patterns
 
 #### Dynamic Counts
+
 ```tsx
 // ❌ Bad - causes hydration mismatch
 <h1>Data Table ({data.length} rows)</h1>
@@ -146,12 +150,17 @@ The hydration strategy supports the intended user workflow:
 ```
 
 #### Conditional Rendering
+
 ```tsx
 // ❌ Bad - different server/client content
-{data.length > 0 && <DataDisplay />}
+{
+  data.length > 0 && <DataDisplay />;
+}
 
 // ✅ Good - consistent initial state
-{isHydrated && data.length > 0 && <DataDisplay />}
+{
+  isHydrated && data.length > 0 && <DataDisplay />;
+}
 ```
 
 ## Debugging Hydration Issues
@@ -159,6 +168,7 @@ The hydration strategy supports the intended user workflow:
 ### Enable Hydration Warnings
 
 In development, React will warn about hydration mismatches. Look for:
+
 - Different text content between server and client
 - Different component structure
 - Conditional rendering based on client-only state
@@ -173,6 +183,7 @@ In development, React will warn about hydration mismatches. Look for:
 ### Testing
 
 Test your components by:
+
 1. Refreshing the page multiple times
 2. Checking browser console for hydration warnings
 3. Testing with JavaScript disabled (should show loading state)

@@ -103,29 +103,33 @@ describe("Data Analysis - Field Type Detection", () => {
 
   it("should exclude vendor-prefixed fields like _rowId from target shape generation", () => {
     const testData = [
-      { 
-        id: "EMP001", 
-        firstName: "John", 
-        lastName: "Doe", 
-        _rowId: "cs_01H9X2K3L4M5N6P7Q8R9S0T1U" 
+      {
+        id: "EMP001",
+        firstName: "John",
+        lastName: "Doe",
+        _rowId: "cs_01H9X2K3L4M5N6P7Q8R9S0T1U",
       },
-      { 
-        id: "EMP002", 
-        firstName: "Jane", 
-        lastName: "Smith", 
-        _rowId: "cs_01H9X2K3L4M5N6P7Q8R9S0T2V" 
-      }
+      {
+        id: "EMP002",
+        firstName: "Jane",
+        lastName: "Smith",
+        _rowId: "cs_01H9X2K3L4M5N6P7Q8R9S0T2V",
+      },
     ];
 
     const result = analyzeDataForTargetShape(testData);
 
     // Should not include _rowId field
-    const rowIdField = result.suggestedFields.find(f => f.name === "_rowId" || f.name === "rowid");
+    const rowIdField = result.suggestedFields.find(
+      f => f.name === "_rowId" || f.name === "rowid"
+    );
     expect(rowIdField).toBeUndefined();
 
     // Should include regular fields
     const idField = result.suggestedFields.find(f => f.name === "id");
-    const firstNameField = result.suggestedFields.find(f => f.name === "firstname");
+    const firstNameField = result.suggestedFields.find(
+      f => f.name === "firstname"
+    );
     expect(idField).toBeDefined();
     expect(firstNameField).toBeDefined();
 

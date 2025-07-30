@@ -2,7 +2,7 @@ import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
 // Mock scrollIntoView for jsdom
-Object.defineProperty(Element.prototype, 'scrollIntoView', {
+Object.defineProperty(Element.prototype, "scrollIntoView", {
   value: vi.fn(),
   writable: true,
 });

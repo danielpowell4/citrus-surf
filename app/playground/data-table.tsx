@@ -53,9 +53,9 @@ import {
   type SimpleColumnDef,
 } from "@/lib/utils/column-transformer";
 import { naturalSortForTable } from "@/lib/utils/sort-utils";
-import { 
-  generateColumnsFromTargetShape, 
-  generateDefaultTargetShape 
+import {
+  generateColumnsFromTargetShape,
+  generateDefaultTargetShape,
 } from "@/lib/utils/column-generator";
 
 // Import the TableRow type from the slice
@@ -113,7 +113,11 @@ export function DataTable({
       currentTargetShape = generateDefaultTargetShape(data);
     }
 
-    return generateColumnsFromTargetShape(currentTargetShape, columnOrder, data);
+    return generateColumnsFromTargetShape(
+      currentTargetShape,
+      columnOrder,
+      data
+    );
   }, [data, columnOrder, appliedTargetShapeId, targetShapesState.shapes]);
 
   // Transform simple columns to TanStack Table columns
@@ -379,9 +383,14 @@ export function DataTable({
                       <div className="flex flex-col items-center gap-4">
                         <Upload className="h-8 w-8 text-muted-foreground/50" />
                         <div className="text-center">
-                          <p className="text-muted-foreground mb-2">No data found</p>
+                          <p className="text-muted-foreground mb-2">
+                            No data found
+                          </p>
                           <Link href="/playground">
-                            <Button variant="outline" className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              className="flex items-center gap-2"
+                            >
                               <ArrowRight className="h-4 w-4" />
                               Go to Data Import
                             </Button>

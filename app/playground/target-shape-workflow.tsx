@@ -19,7 +19,10 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Eye } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAppDispatch } from "@/lib/hooks";
-import { saveTargetShape, updateTargetShape } from "@/lib/features/targetShapesSlice";
+import {
+  saveTargetShape,
+  updateTargetShape,
+} from "@/lib/features/targetShapesSlice";
 import { generateShapeId, generateFieldId } from "@/lib/utils/id-generator";
 import { analyzeDataForTargetShape } from "@/lib/utils/data-analysis";
 import type {
@@ -358,13 +361,15 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
     try {
       if (isEditMode) {
         // Update existing shape
-        dispatch(updateTargetShape({ 
-          id: data.id, 
-          updates: {
-            ...data,
-            updatedAt: new Date().toISOString()
-          }
-        }));
+        dispatch(
+          updateTargetShape({
+            id: data.id,
+            updates: {
+              ...data,
+              updatedAt: new Date().toISOString(),
+            },
+          })
+        );
         toast({
           title: "Target Shape Updated",
           description: `"${data.name}" has been updated successfully.`,
@@ -385,7 +390,7 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
     } catch (error) {
       toast({
         title: isEditMode ? "Update Failed" : "Save Failed",
-        description: `Failed to ${isEditMode ? 'update' : 'save'} target shape. Please try again.`,
+        description: `Failed to ${isEditMode ? "update" : "save"} target shape. Please try again.`,
         variant: "destructive",
       });
     }
@@ -656,7 +661,7 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
     if (initialShape) {
       return initialShape;
     }
-    
+
     // Initialize with data analysis if imported data is provided
     if (importedData.length > 0) {
       const analysis = analyzeDataForTargetShape(importedData);
