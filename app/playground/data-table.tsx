@@ -26,9 +26,7 @@ import {
   setExpanded,
   setPagination,
   toggleColumnSort,
-  updateCell,
 } from "@/lib/features/tableSlice";
-import { selectCurrentIndex } from "@/lib/features/historySlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,12 +53,16 @@ import {
   type SimpleColumnDef,
 } from "@/lib/utils/column-transformer";
 import { naturalSortForTable } from "@/lib/utils/sort-utils";
+import { 
+  generateColumnsFromTargetShape, 
+  generateDefaultTargetShape 
+} from "@/lib/utils/column-generator";
 
-// Import the Person type from the slice
-import type { Person } from "@/lib/features/tableSlice";
+// Import the TableRow type from the slice
+import type { TableRow } from "@/lib/features/tableSlice";
 
 interface DataTableProps {
-  data: Person[];
+  data: TableRow[];
   currentVersion: number;
   onOpenTemplates?: () => void;
 }
@@ -72,10 +74,12 @@ export function DataTable({
 }: DataTableProps) {
   const dispatch = useAppDispatch();
   const tableState = useAppSelector(state => state.table);
-  const currentIndex = useAppSelector(selectCurrentIndex);
+  const targetShapesState = useAppSelector(state => state.targetShapes);
   const { isHydrated } = useHydration();
 
   const {
+    columnOrder,
+    appliedTargetShapeId,
     sorting,
     columnFilters,
     columnVisibility,
@@ -90,136 +94,30 @@ export function DataTable({
   // Safe access to editingCell
   const currentEditingCell = tableState?.editingCell || null;
 
-  // Define simplified column definitions
-  const simpleColumns: SimpleColumnDef<Person>[] = [
-    {
-      accessorKey: "id",
-      header: "ID",
-      size: 80,
-      meta: {
-        sortType: "natural",
-        editable: {
-          type: "text",
-          placeholder: "Enter ID",
-          maxLength: 20,
-        },
-      },
-    },
-    {
-      accessorKey: "firstName",
-      header: "First Name",
-      meta: {
-        sortType: "natural",
-        editable: {
-          type: "text",
-          placeholder: "Enter first name",
-          maxLength: 50,
-        },
-      },
-    },
-    {
-      accessorKey: "lastName",
-      header: "Last Name",
-      meta: {
-        sortType: "natural",
-        editable: {
-          type: "text",
-          placeholder: "Enter last name",
-          maxLength: 50,
-        },
-      },
-    },
-    {
-      accessorKey: "age",
-      header: "Age",
-      size: 80,
-      meta: {
-        editable: {
-          type: "number",
-          min: 18,
-          max: 100,
-          precision: "integer",
-        },
-      },
-    },
-    {
-      accessorKey: "visits",
-      header: "Visits",
-      size: 80,
-      meta: {
-        editable: {
-          type: "number",
-          min: 0,
-          max: 1000,
-          precision: "integer",
-        },
-      },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      size: 100,
-      meta: {
-        sortType: "natural",
-        editable: {
-          type: "select",
-          options: [
-            { value: "Active", label: "Active" },
-            { value: "Inactive", label: "Inactive" },
-          ],
-        },
-      },
-    },
-    {
-      accessorKey: "progress",
-      header: "Progress",
-      size: 120,
-      cell: info => (
-        <div className="w-full bg-secondary rounded-full h-2">
-          <div
-            className="bg-primary h-2 rounded-full"
-            style={{ width: `${info.getValue()}%` }}
-          />
-        </div>
-      ),
-      meta: {
-        editable: false,
-      },
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-      meta: {
-        sortType: "natural",
-        editable: {
-          type: "text",
-          placeholder: "Enter email address",
-          maxLength: 100,
-        },
-      },
-    },
-    {
-      accessorKey: "department",
-      header: "Department",
-      meta: {
-        sortType: "natural",
-        editable: {
-          type: "select",
-          options: [
-            { value: "Engineering", label: "Engineering" },
-            { value: "Marketing", label: "Marketing" },
-            { value: "Sales", label: "Sales" },
-            { value: "HR", label: "HR" },
-            { value: "Finance", label: "Finance" },
-            { value: "Operations", label: "Operations" },
-          ],
-        },
-      },
-    },
-  ];
+  // Generate column definitions dynamically based on target shape and column order
+  const simpleColumns: SimpleColumnDef<TableRow>[] = useMemo(() => {
+    if (data.length === 0 || columnOrder.length === 0) {
+      return [];
+    }
+
+    // Get the current target shape (either applied or default)
+    let currentTargetShape;
+    if (appliedTargetShapeId) {
+      currentTargetShape = targetShapesState.shapes.find(
+        shape => shape.id === appliedTargetShapeId
+      );
+    }
+
+    // If no target shape is applied or found, generate a default one
+    if (!currentTargetShape) {
+      currentTargetShape = generateDefaultTargetShape(data);
+    }
+
+    return generateColumnsFromTargetShape(currentTargetShape, columnOrder, data);
+  }, [data, columnOrder, appliedTargetShapeId, targetShapesState.shapes]);
 
   // Transform simple columns to TanStack Table columns
-  const columns = useMemo<ColumnDef<Person>[]>(
+  const columns = useMemo<ColumnDef<TableRow>[]>(
     () =>
       transformColumns(
         simpleColumns,
@@ -431,7 +329,7 @@ export function DataTable({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map(header => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} data-field={header.column.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -457,7 +355,7 @@ export function DataTable({
                     }
                   >
                     {row.getVisibleCells().map(cell => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} data-field={cell.column.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

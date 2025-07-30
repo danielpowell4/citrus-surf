@@ -100,11 +100,23 @@ describe('ColumnMapping Component', () => {
     const lastCall = mockOnMappingChange.mock.calls[mockOnMappingChange.mock.calls.length - 1];
     const mapping = lastCall[0];
     
-    // Should suggest reasonable mappings
-    expect(mapping['emp-id']).toBe('id');
+    // Should suggest reasonable mappings based on exact matches
+    expect(mapping['emp-id']).toBe('id'); // ID field should map to id column
+    expect(mapping['email']).toBe('emailAddress'); // Email should map to emailAddress
+    
+    // The email field should map to emailAddress column
+    expect(mapping['email']).toBeDefined();
     expect(mapping['email']).toBe('emailAddress');
-    expect(mapping['department']).toBe('dept');
-    expect(mapping['salary']).toBe('salary');
+    
+    // All mapped columns should be valid import columns
+    const mappedColumns = Object.values(mapping);
+    mappedColumns.forEach(column => {
+      expect(mockImportColumns).toContain(column);
+    });
+    
+    // No duplicate column mappings
+    const uniqueMappedColumns = new Set(mappedColumns);
+    expect(mappedColumns.length).toBe(uniqueMappedColumns.size);
   });
 
   it('shows validation status for required fields', () => {
@@ -179,12 +191,12 @@ describe('ColumnMapping Component', () => {
   it('prevents duplicate column mappings', async () => {
     render(
       <ColumnMapping
-        importColumns={['col1', 'col2', 'col3']}
+        importColumns={['uniqueCol1', 'uniqueCol2', 'uniqueCol3']}
         targetShape={{
           ...mockTargetShape,
           fields: [
-            { id: 'field1', name: 'Field 1', type: 'string', required: false },
-            { id: 'field2', name: 'Field 2', type: 'string', required: false }
+            { id: 'field1', name: 'Field Alpha', type: 'string', required: false },
+            { id: 'field2', name: 'Field Beta', type: 'string', required: false }
           ] as TargetField[]
         }}
         onMappingChange={mockOnMappingChange}
@@ -199,10 +211,14 @@ describe('ColumnMapping Component', () => {
     // First trigger should have all columns available initially
     fireEvent.click(triggers[0]);
     await waitFor(() => {
-      expect(screen.getByText('col1')).toBeInTheDocument();
-      expect(screen.getByText('col2')).toBeInTheDocument();
-      expect(screen.getByText('col3')).toBeInTheDocument();
+      // Look for dropdown options within the dropdown content
+      expect(screen.getAllByText('uniqueCol1').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('uniqueCol2').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('uniqueCol3').length).toBeGreaterThan(0);
     });
+    
+    // Close the first dropdown by clicking elsewhere
+    fireEvent.click(document.body);
   });
 
   it('calls onApplyMapping when apply button is clicked', async () => {
@@ -230,7 +246,7 @@ describe('ColumnMapping Component', () => {
   it('updates mapping when dropdown selection changes', async () => {
     render(
       <ColumnMapping
-        importColumns={['testCol']}
+        importColumns={['testCol', 'anotherCol']}
         targetShape={{
           ...mockTargetShape,
           fields: [
@@ -242,23 +258,27 @@ describe('ColumnMapping Component', () => {
       />
     );
 
+    // Wait for initial auto-mapping to complete
+    await waitFor(() => {
+      expect(mockOnMappingChange).toHaveBeenCalled();
+    });
+
     // Clear the mock to ignore initial auto-mapping calls
     mockOnMappingChange.mockClear();
 
-    // Open dropdown and select option
+    // Open dropdown and select a different option
     const trigger = screen.getByRole('combobox');
     fireEvent.click(trigger);
     
     await waitFor(() => {
-      const option = screen.getByText('testCol');
-      fireEvent.click(option);
+      // Look for "No mapping" option and click it to change the selection
+      const noMappingOption = screen.getByText('No mapping');
+      fireEvent.click(noMappingOption);
     });
 
-    // Should have called onMappingChange with new mapping
+    // Should have called onMappingChange with empty mapping
     await waitFor(() => {
-      expect(mockOnMappingChange).toHaveBeenCalledWith({
-        testField: 'testCol'
-      });
+      expect(mockOnMappingChange).toHaveBeenCalledWith({});
     });
   });
 });

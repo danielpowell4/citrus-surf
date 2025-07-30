@@ -69,8 +69,10 @@ describe('Target Shapes Storage', () => {
     
     // Verify it was assigned an ID and timestamps
     expect(savedShape.id).toBeDefined();
-    expect(savedShape.createdAt).toBeInstanceOf(Date);
-    expect(savedShape.updatedAt).toBeInstanceOf(Date);
+    expect(typeof savedShape.createdAt).toBe('string');
+    expect(typeof savedShape.updatedAt).toBe('string');
+    expect(new Date(savedShape.createdAt)).toBeInstanceOf(Date);
+    expect(new Date(savedShape.updatedAt)).toBeInstanceOf(Date);
     expect(savedShape.name).toBe(mockTargetShape.name);
     
     // Retrieve all shapes
@@ -97,14 +99,14 @@ describe('Target Shapes Storage', () => {
     const savedShape = targetShapesStorage.save(mockTargetShape);
     
     // Wait a millisecond to ensure timestamp difference
-    const originalTime = savedShape.updatedAt.getTime();
+    const originalTime = new Date(savedShape.updatedAt).getTime();
     
     const updates = { name: 'Updated Shape Name' };
     const updatedShape = targetShapesStorage.update(savedShape.id, updates);
     
     expect(updatedShape).not.toBeNull();
     expect(updatedShape?.name).toBe('Updated Shape Name');
-    expect(updatedShape?.updatedAt.getTime()).toBeGreaterThanOrEqual(originalTime);
+    expect(new Date(updatedShape?.updatedAt!).getTime()).toBeGreaterThanOrEqual(originalTime);
     
     // Verify persistence
     const retrieved = targetShapesStorage.getById(savedShape.id);
