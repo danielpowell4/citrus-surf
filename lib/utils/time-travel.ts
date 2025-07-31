@@ -15,6 +15,8 @@ import {
   clearImportData,
   setLoading,
   setError,
+  setColumnOrder,
+  setAppliedTargetShapeId,
 } from "@/lib/features/tableSlice";
 
 export interface TimeTravelOptions {
@@ -99,6 +101,16 @@ export const restoreStateToAction = (
     } else {
       dispatch(clearImportData());
     }
+  }
+
+  // Restore column order (critical for template applications)
+  if (snapshot.columnOrder) {
+    dispatch(setColumnOrder(snapshot.columnOrder));
+  }
+
+  // Restore applied target shape ID (critical for template applications)
+  if (snapshot.appliedTargetShapeId !== undefined) {
+    dispatch(setAppliedTargetShapeId(snapshot.appliedTargetShapeId));
   }
 
   // Restore loading and error states

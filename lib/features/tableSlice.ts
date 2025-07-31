@@ -406,6 +406,14 @@ export const tableSlice = createSlice({
       state.editingCell = null;
     },
 
+    // Set applied target shape ID
+    setAppliedTargetShapeId: (
+      state,
+      action: PayloadAction<string | null>
+    ) => {
+      state.appliedTargetShapeId = action.payload;
+    },
+
     // History restoration action
     restoreFromHistory: (
       state,
@@ -444,6 +452,7 @@ export const {
   updateCell,
   startEditing,
   stopEditing,
+  setAppliedTargetShapeId,
   restoreFromHistory,
 } = tableSlice.actions;
 

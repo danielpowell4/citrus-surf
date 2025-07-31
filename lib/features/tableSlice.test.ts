@@ -351,5 +351,47 @@ describe("Table Slice", () => {
       expect(state.data[0]).not.toHaveProperty("Missing Field");
       expect(state.data[0]).not.toHaveProperty("name");
     });
+
+    it("should properly set appliedTargetShapeId and columnOrder for history restoration", () => {
+      const store = createTestStore();
+
+      // Start with initial data
+      const initialData: TableRow[] = [
+        { id: "1", name: "John", age: 30 },
+        { id: "2", name: "Jane", age: 25 },
+      ];
+      store.dispatch(setData(initialData));
+
+      // Apply a template
+      store.dispatch(
+        applyTemplate({
+          targetShapeId: "person-template",
+          targetShapeName: "Person Template",
+          columnMapping: {
+            field_id: "id",
+            field_name: "name",
+          },
+          fieldMappings: {
+            field_id: "Person ID",
+            field_name: "Full Name",
+          },
+          targetFields: [
+            { id: "field_id", name: "Person ID" },
+            { id: "field_name", name: "Full Name" },
+          ],
+        })
+      );
+
+      const afterTemplateState = store.getState().table;
+      
+      // Verify template was applied correctly with all properties needed for history restoration
+      expect(afterTemplateState.appliedTargetShapeId).toBe("person-template");
+      expect(afterTemplateState.columnOrder).toEqual(["Person ID", "Full Name"]);
+      expect(afterTemplateState.data[0]).toEqual({
+        "Person ID": "1",
+        "Full Name": "John",
+        _rowId: undefined,
+      });
+    });
   });
 });

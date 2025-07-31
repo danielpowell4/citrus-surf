@@ -87,6 +87,7 @@ The application uses Redux Toolkit with a sophisticated state management system:
 
 - **Auto-persistence**: State automatically saves to localStorage with debouncing
 - **History tracking**: All meaningful user actions are tracked for undo/redo
+- **Complete state restoration**: Template applications and all UI state can be reverted in 1 click
 - **Hydration system**: Handles SSR/client state synchronization safely
 - **Per-request stores**: Each request gets its own store instance
 
@@ -155,8 +156,9 @@ The core data transformation system based on schema definitions:
 - `lib/utils/redux-persistence.ts` - Core persistence logic
 - `lib/hooks/useHydration.ts` - SSR-safe state restoration
 - `lib/hooks/usePersistence.ts` - Persistence status tracking
+- `lib/utils/time-travel.ts` - Complete state restoration including template applications
 
-**Critical Pattern**: Always handle hydration mismatches between server and client state.
+**Critical Pattern**: Always handle hydration mismatches between server and client state. When adding new actions that modify table state, ensure they restore all necessary properties in `time-travel.ts`.
 
 ## Development Guidelines
 

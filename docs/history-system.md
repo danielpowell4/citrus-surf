@@ -179,6 +179,15 @@ When restoring a state, the system:
 3. **Updates the current index** to reflect the new position
 4. **Creates a restoration record** for tracking
 
+The restoration process includes all critical table state properties:
+
+- **Data**: Row data and structure
+- **Sorting**: Column sort states
+- **Filtering**: Column and global filters
+- **Visibility**: Column visibility and row selection
+- **Layout**: Column order and applied target shapes
+- **UI State**: Pagination, grouping, and expansion
+
 ```typescript
 // Example restoration
 const handleReapplyState = (actionIndex: number) => {
@@ -188,6 +197,20 @@ const handleReapplyState = (actionIndex: number) => {
     dispatch(setCurrentIndex(actionIndex));
   }
 };
+```
+
+### Template Application Restoration
+
+Template applications (`applyTemplate` action) require special handling to ensure complete restoration:
+
+```typescript
+// Critical properties restored for template applications:
+// - data: Transformed row data
+// - columnOrder: Column display order from target shape
+// - appliedTargetShapeId: Which target shape is currently applied
+// - sorting: Updated sort state for new columns
+
+// This ensures template applications can be properly reverted in 1 click
 ```
 
 ## Keyboard Shortcuts
