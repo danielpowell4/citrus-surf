@@ -10,6 +10,7 @@ This directory contains comprehensive documentation for the Citrus Surf Importer
 
 - **[Target Shapes](./target-shapes.md)** - Complete documentation for the target shapes concept
 - **[Target Shapes Quick Reference](./target-shapes-quick-reference.md)** - Concise guide and examples
+- **[Template Creation Workflow](./template-creation-workflow.md)** - Template builder integration and smart navigation
 
 **What are Target Shapes?** Target Shapes define the desired clean output format for data imports. They act as "molds" that transform messy data into consistent, validated formats.
 

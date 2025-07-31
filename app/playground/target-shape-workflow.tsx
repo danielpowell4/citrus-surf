@@ -21,8 +21,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAppDispatch } from "@/lib/hooks";
 import {
   saveTargetShape,
+  saveTargetShapeAsync,
   updateTargetShape,
 } from "@/lib/features/targetShapesSlice";
+import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
 import { generateShapeId, generateFieldId } from "@/lib/utils/id-generator";
 import { analyzeDataForTargetShape } from "@/lib/utils/data-analysis";
 import type {
@@ -357,7 +359,7 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
   const dispatch = useAppDispatch();
   const { toast } = useToast();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
       if (isEditMode) {
         // Update existing shape
@@ -374,18 +376,30 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
           title: "Target Shape Updated",
           description: `"${data.name}" has been updated successfully.`,
         });
+        
+        // Call the callback if provided  
+        if (onShapeCreated) {
+          onShapeCreated(data);
+        }
       } else {
-        // Create new shape
-        dispatch(saveTargetShape(data));
-        toast({
-          title: "Target Shape Saved",
-          description: `"${data.name}" has been saved successfully.`,
-        });
-      }
-
-      // Call the callback if provided
-      if (onShapeCreated) {
-        onShapeCreated(data);
+        // Create new shape using async thunk to get the saved shape with correct ID
+        const result = await dispatch(saveTargetShapeAsync(data));
+        
+        if (saveTargetShapeAsync.fulfilled.match(result)) {
+          const savedShape = result.payload;
+          
+          toast({
+            title: "Target Shape Saved",  
+            description: `"${savedShape.name}" has been saved successfully.`,
+          });
+          
+          // Call the callback with the saved shape (which has the correct ID)
+          if (onShapeCreated) {
+            onShapeCreated(savedShape);
+          }
+        } else {
+          throw new Error("Failed to save shape");
+        }
       }
     } catch (error) {
       toast({
@@ -670,8 +684,8 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
         name: `Shape from ${importedData.length} records`,
         description: `Auto-generated shape from imported data with ${analysis.suggestedFields.length} fields`,
         version: "1.0.0",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         fields: analysis.suggestedFields,
         metadata: {
           category: "custom",
@@ -687,8 +701,8 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
       name: "",
       description: "",
       version: "1.0.0",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       fields: [],
       metadata: {
         category: "custom",
@@ -723,7 +737,7 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
     setShapeData(prev => ({
       ...prev,
       ...updates,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     }));
   };
 

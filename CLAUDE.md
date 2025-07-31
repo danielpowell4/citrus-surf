@@ -42,6 +42,7 @@ The project follows a documentation-first approach with extensive guides in the 
 **System Documentation**:
 
 - `docs/target-shapes.md` - Core data transformation system
+- `docs/template-creation-workflow.md` - Template builder integration and navigation
 - `docs/import-system.md` - Data import workflow
 - `docs/export-system.md` - Data export functionality
 - `docs/history-system.md` - Time-travel and undo/redo
@@ -140,6 +141,7 @@ The core data transformation system based on schema definitions:
 2. All data transformations must go through the target shapes system
 3. Validation rules and type checking must be preserved
 4. Support for large file processing with efficient memory usage
+
 
 ### Testing Patterns
 

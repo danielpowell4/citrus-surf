@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { TargetShapeWorkflow } from "../target-shape-workflow";
 import { TargetShape } from "@/lib/types/target-shapes";
-import { selectTargetShape } from "@/lib/features/targetShapesSlice";
+import { selectTargetShape, loadShapes } from "@/lib/features/targetShapesSlice";
 
 function TemplateBuilderContent() {
   const router = useRouter();
@@ -25,8 +25,19 @@ function TemplateBuilderContent() {
   const handleShapeCreated = (shape: TargetShape) => {
     // Select the newly created shape
     dispatch(selectTargetShape(shape.id));
-    // Navigate to data table with shape applied
-    router.push("/playground/data-table");
+    
+    // Reload shapes to ensure the newly created shape is available in the store
+    // This ensures the shape will be found when the data table page loads
+    dispatch(loadShapes());
+    
+    // If there's data available, go to mapping mode; otherwise just go to data table
+    if (data.length > 0) {
+      // Navigate to data table in mapping mode with the newly created shape
+      router.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
+    } else {
+      // Navigate to data table without mapping mode (no data to map)
+      router.push("/playground/data-table");
+    }
   };
 
   const handleCancel = () => {

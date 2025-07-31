@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
 import type { TargetShape } from "@/lib/types/target-shapes";
 
@@ -8,6 +8,15 @@ interface TargetShapesState {
   isLoading: boolean;
   error: string | null;
 }
+
+// Async thunk for saving target shape
+export const saveTargetShapeAsync = createAsyncThunk(
+  'targetShapes/saveAsync',
+  async (shape: TargetShape) => {
+    const savedShape = targetShapesStorage.save(shape);
+    return savedShape;
+  }
+);
 
 const initialState: TargetShapesState = {
   shapes: typeof window === "undefined" ? [] : targetShapesStorage.getAll(),
@@ -26,7 +35,7 @@ export const targetShapesSlice = createSlice({
       state.error = null;
     },
 
-    // Save a new shape
+    // Save a new shape (synchronous version - kept for compatibility)
     saveTargetShape: (state, action: PayloadAction<TargetShape>) => {
       try {
         const savedShape = targetShapesStorage.save(action.payload);
@@ -92,6 +101,21 @@ export const targetShapesSlice = createSlice({
     clearError: state => {
       state.error = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(saveTargetShapeAsync.fulfilled, (state, action) => {
+        state.shapes.push(action.payload);
+        state.error = null;
+        state.isLoading = false;
+      })
+      .addCase(saveTargetShapeAsync.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(saveTargetShapeAsync.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to save target shape";
+        state.isLoading = false;
+      });
   },
 });
 
