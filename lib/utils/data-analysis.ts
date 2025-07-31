@@ -304,12 +304,24 @@ function generateFieldDescription(
 ): string {
   const keyLower = key.toLowerCase();
 
+  // Check for specific name patterns first (order matters - most specific first)
+  if (keyLower.includes("first") || keyLower.includes("fname") || keyLower.includes("given")) {
+    return "First name";
+  }
+  if (keyLower.includes("last") || keyLower.includes("lname") || keyLower.includes("surname") || keyLower.includes("family")) {
+    return "Last name";
+  }
+  if (keyLower.includes("middle") || keyLower.includes("mname")) {
+    return "Middle name";
+  }
+  if (keyLower.includes("full") && keyLower.includes("name")) {
+    return "Full name";
+  }
+
   // Common field descriptions based on key names
   const commonDescriptions: Record<string, string> = {
     id: "Unique identifier",
-    name: "Full name",
-    firstname: "First name",
-    lastname: "Last name",
+    name: "Name",
     email: "Email address",
     phone: "Phone number",
     address: "Street address",

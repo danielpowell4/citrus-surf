@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Eye } from "lucide-react";
+import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAppDispatch } from "@/lib/hooks";
 import {
@@ -292,7 +292,7 @@ const FieldsStep: React.FC<WorkflowStepProps> = ({
                     name: "name",
                     type: "string",
                     required: true,
-                    description: "Full name",
+                    description: "Name",
                   });
                 }}
               >
@@ -643,7 +643,7 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" onClick={onEdit}>
-              <Eye className="h-4 w-4" />
+              <Pencil className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={onRemove}>
               <Trash2 className="h-4 w-4" />
@@ -712,6 +712,18 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
     };
   });
 
+  // Always warn user before leaving the form
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ''; // Required for Chrome
+      return ''; // Required for other browsers
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   const steps: WorkflowStep[] = [
     {
       id: "basic-info",
@@ -739,6 +751,13 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
       ...updates,
       updatedAt: new Date().toISOString(),
     }));
+  };
+
+  const handleShapeSaved = (shape: TargetShape) => {
+    // Call the original callback
+    if (onShapeCreated) {
+      onShapeCreated(shape);
+    }
   };
 
   const handleNext = () => {
@@ -805,7 +824,7 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
         onBack={handleBack}
         isFirst={currentStep === 0}
         isLast={currentStep === steps.length - 1}
-        onShapeCreated={onShapeCreated}
+        onShapeCreated={handleShapeSaved}
         isEditMode={!!initialShape}
       />
     </div>
