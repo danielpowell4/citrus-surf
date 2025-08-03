@@ -225,9 +225,118 @@ Dropdown selection with predefined options.
 }
 ```
 
+### 6. Lookup Input
+
+**Type**: `'lookup'`
+
+Cross-reference lookup with automatic derived column updates. The lookup field itself is editable, but derived columns are read-only.
+
+#### Configuration Options
+
+| Option              | Type                | Description                           | Default |
+| ------------------- | ------------------- | ------------------------------------- | ------- |
+| `referenceFile`     | `string`            | Reference data source file            | Required |
+| `match.on`          | `string`            | Column to match against               | Required |
+| `match.get`         | `string`            | Column to return as value             | Required |
+| `match.show`        | `string`            | Column to display (optional)          | `match.on` |
+| `alsoGet`           | `string[]`          | Additional columns to derive          | `[]` |
+| `smartMatching.enabled` | `boolean`       | Enable fuzzy matching                 | `true` |
+| `smartMatching.confidence` | `number`     | Match confidence threshold (0-1)      | `0.85` |
+
+#### Editability Rules
+
+- **Source column** (`match.on`): **Editable** with dropdown + fuzzy search
+- **Derived columns** (`alsoGet`): **Read-only**, auto-update when source changes
+- **Visual indicators**: Derived columns shown grayed/disabled
+
+#### Example
+
+```typescript
+{
+  accessorKey: "department",
+  header: "Department", 
+  meta: {
+    editable: {
+      type: 'lookup',
+      referenceFile: 'departments.csv',
+      match: {
+        on: 'dept_name',
+        get: 'dept_id',
+        show: 'dept_name'
+      },
+      alsoGet: ['budget_code', 'manager'],
+      smartMatching: {
+        enabled: true,
+        confidence: 0.85
+      }
+    }
+  }
+}
+
+// Derived columns (auto-generated, read-only):
+{
+  accessorKey: "budget_code",
+  header: "Budget Code",
+  meta: { 
+    editable: false,
+    derivedFrom: "department" // Indicates this is auto-derived
+  }
+}
+```
+
+#### Interaction Behavior
+
+```typescript
+// User edits department:
+"Engineering" → Auto-updates:
+- dept_id: "ENG001"
+- budget_code: "TECH-001" 
+- manager: "Sarah Johnson"
+
+// Invalid entry with suggestion:
+"Enginering" → Shows: "Did you mean 'Engineering'?"
+```
+
+#### Reference Data Transparency
+
+**UI Enhancement Features**:
+- **Info icon** (ℹ️) next to lookup fields shows available options
+- **Source indicator** displays reference file name and row count
+- **View/Edit links** allow inspection and modification of reference data
+
+**Example Enhanced UI**:
+```
+| Department                    | Dept ID | Budget Code |
+|-------------------------------|---------|-------------|  
+| [Engineering ▼] ℹ️           | ENG001  | TECH-001    |
+    ↳ Popup shows:
+      📋 Available Options:
+      • Engineering
+      • Marketing  
+      • HR
+      • Finance
+      
+      📁 Source: departments.csv (23 rows)
+      [👁 View Reference Data] [✏️ Edit Values]
+```
+
+**Configuration for Enhanced UI**:
+```typescript
+{
+  type: 'lookup',
+  referenceFile: 'departments.csv',
+  match: { on: 'dept_name', get: 'dept_id' },
+  showReferenceInfo: true,     // Enable info icon
+  allowReferenceEdit: true,    // Enable edit reference data
+  showSourceIndicator: true    // Show "From: file.csv"
+}
+```
+
 ## Non-Editable Columns
 
 To make a column non-editable, set `editable: false`:
+
+### Static Read-Only Columns
 
 ```typescript
 {
@@ -235,6 +344,22 @@ To make a column non-editable, set `editable: false`:
   header: "ID",
   meta: {
     editable: false
+  }
+}
+```
+
+### Derived Read-Only Columns (from Lookup Fields)
+
+Columns automatically derived from lookup fields are read-only but show their source:
+
+```typescript
+{
+  accessorKey: "budget_code",
+  header: "Budget Code",
+  meta: { 
+    editable: false,
+    derivedFrom: "department",        // Source lookup field
+    referenceFile: "departments.csv" // Source data file
   }
 }
 ```

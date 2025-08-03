@@ -110,6 +110,48 @@ meta: {
 }
 ```
 
+## Lookup Input
+
+```typescript
+meta: {
+  editable: {
+    type: 'lookup',
+    referenceFile: string,              // Reference data source
+    match: {
+      on: string,                       // Column to match against
+      get: string,                      // Column to return as value
+      show?: string                     // Column to display (optional)
+    },
+    alsoGet?: string[],                 // Additional columns to derive
+    smartMatching?: {
+      enabled: boolean,                 // Enable fuzzy matching
+      confidence: number                // Match confidence threshold (0-1)
+    }
+  }
+}
+```
+
+**Use cases**: Department lookups, category references, any cross-sheet data enrichment
+
+**Examples**:
+
+```typescript
+{
+  type: 'lookup',
+  referenceFile: 'departments.csv',
+  match: {
+    on: 'dept_name',
+    get: 'dept_id',
+    show: 'dept_name'
+  },
+  alsoGet: ['budget_code', 'manager'],
+  smartMatching: {
+    enabled: true,
+    confidence: 0.85
+  }
+}
+```
+
 ## Non-Editable
 
 ```typescript
@@ -187,6 +229,26 @@ const columns = [
       },
     },
   },
+  {
+    accessorKey: "department",
+    header: "Department",
+    meta: {
+      editable: {
+        type: "lookup",
+        referenceFile: "departments.csv",
+        match: {
+          on: "dept_name",
+          get: "dept_id",
+          show: "dept_name"
+        },
+        alsoGet: ["budget_code"],
+        smartMatching: {
+          enabled: true,
+          confidence: 0.85
+        }
+      },
+    },
+  },
 ];
 ```
 
@@ -195,7 +257,7 @@ const columns = [
 ```typescript
 // Base interface
 interface BaseColumnConfig {
-  type: "text" | "number" | "currency" | "date" | "select";
+  type: "text" | "number" | "currency" | "date" | "select" | "lookup";
 }
 
 // Specific interfaces
@@ -236,13 +298,29 @@ interface SelectColumnConfig extends BaseColumnConfig {
   options: Array<{ value: string; label: string }>;
 }
 
+interface LookupColumnConfig extends BaseColumnConfig {
+  type: "lookup";
+  referenceFile: string;
+  match: {
+    on: string;
+    get: string;
+    show?: string;
+  };
+  alsoGet?: string[];
+  smartMatching?: {
+    enabled: boolean;
+    confidence: number;
+  };
+}
+
 // Union type
 type ColumnConfig =
   | TextColumnConfig
   | NumberColumnConfig
   | CurrencyColumnConfig
   | DateColumnConfig
-  | SelectColumnConfig;
+  | SelectColumnConfig
+  | LookupColumnConfig;
 ```
 
 ## Best Practices
@@ -284,5 +362,20 @@ type ColumnConfig =
     { value: 'inactive', label: 'Inactive' },
     { value: 'pending', label: 'Pending Review' }
   ]
+}
+```
+
+### Department Lookup Fields
+
+```typescript
+{
+  type: 'lookup',
+  referenceFile: 'departments.csv',
+  match: {
+    on: 'dept_name',
+    get: 'dept_id'
+  },
+  alsoGet: ['budget_code', 'manager'],
+  smartMatching: { enabled: true, confidence: 0.85 }
 }
 ```
