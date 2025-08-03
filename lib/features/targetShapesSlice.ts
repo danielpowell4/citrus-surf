@@ -1,6 +1,42 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
-import type { TargetShape } from "@/lib/types/target-shapes";
+import type { TargetShape, TargetField, LookupField, ValidationRule } from "@/lib/types/target-shapes";
+import { referenceDataManager } from "@/lib/utils/reference-data-manager";
+
+/**
+ * Generate validation rules for a lookup field based on reference data
+ */
+function generateLookupValidation(field: LookupField): ValidationRule[] {
+  try {
+    const referenceData = referenceDataManager.getReferenceDataRows(field.referenceFile);
+    if (!referenceData || referenceData.length === 0) {
+      return [];
+    }
+
+    // Get unique values from the column that will be matched against
+    const matchColumn = field.match.on;
+    const uniqueValues = [...new Set(
+      referenceData
+        .map(row => row[matchColumn])
+        .filter(val => val != null && val !== '')
+        .map(val => String(val))
+    )];
+
+    if (uniqueValues.length === 0) {
+      return [];
+    }
+
+    return [{
+      type: 'enum' as const,
+      value: uniqueValues,
+      message: `Value must be one of: ${uniqueValues.slice(0, 5).join(', ')}${uniqueValues.length > 5 ? '...' : ''}`,
+      severity: 'error' as const,
+    }];
+  } catch (error) {
+    console.warn(`Failed to generate validation for lookup field ${field.id}:`, error);
+    return [];
+  }
+}
 
 interface TargetShapesState {
   shapes: TargetShape[];
@@ -101,6 +137,315 @@ export const targetShapesSlice = createSlice({
     clearError: state => {
       state.error = null;
     },
+
+    // Lookup Field Management Actions
+    
+    // Add a lookup field to a target shape
+    addLookupField: (
+      state,
+      action: PayloadAction<{ shapeId: string; field: LookupField }>
+    ) => {
+      const { shapeId, field } = action.payload;
+      try {
+        const shape = state.shapes.find(s => s.id === shapeId);
+        if (!shape) {
+          state.error = `Target shape with ID '${shapeId}' not found`;
+          return;
+        }
+
+        // Generate enum validation from reference data
+        const validationRules = generateLookupValidation(field);
+        const fieldWithValidation: LookupField = {
+          ...field,
+          validation: [...(field.validation || []), ...validationRules],
+        };
+
+        // Add field to shape
+        const updatedShape = {
+          ...shape,
+          fields: [...shape.fields, fieldWithValidation],
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Save to storage
+        const savedShape = targetShapesStorage.update(shapeId, updatedShape);
+        if (savedShape) {
+          const index = state.shapes.findIndex(s => s.id === shapeId);
+          if (index !== -1) {
+            state.shapes[index] = savedShape;
+          }
+          state.error = null;
+        } else {
+          state.error = "Failed to add lookup field";
+        }
+      } catch (error) {
+        state.error = `Failed to add lookup field: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    },
+
+    // Update a lookup field
+    updateLookupField: (
+      state,
+      action: PayloadAction<{ 
+        shapeId: string; 
+        fieldId: string; 
+        updates: Partial<LookupField> 
+      }>
+    ) => {
+      const { shapeId, fieldId, updates } = action.payload;
+      try {
+        const shape = state.shapes.find(s => s.id === shapeId);
+        if (!shape) {
+          state.error = `Target shape with ID '${shapeId}' not found`;
+          return;
+        }
+
+        const fieldIndex = shape.fields.findIndex(f => f.id === fieldId);
+        if (fieldIndex === -1) {
+          state.error = `Field with ID '${fieldId}' not found`;
+          return;
+        }
+
+        const existingField = shape.fields[fieldIndex];
+        if (existingField.type !== 'lookup') {
+          state.error = `Field '${fieldId}' is not a lookup field`;
+          return;
+        }
+
+        // Update the field
+        const updatedField: LookupField = {
+          ...existingField as LookupField,
+          ...updates,
+        };
+
+        // Regenerate validation if reference data related properties changed
+        if (updates.referenceFile || updates.match) {
+          const validationRules = generateLookupValidation(updatedField);
+          updatedField.validation = [
+            ...(updatedField.validation?.filter(rule => rule.type !== 'enum') || []),
+            ...validationRules,
+          ];
+        }
+
+        // Update shape
+        const updatedFields = [...shape.fields];
+        updatedFields[fieldIndex] = updatedField;
+
+        const updatedShape = {
+          ...shape,
+          fields: updatedFields,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Save to storage
+        const savedShape = targetShapesStorage.update(shapeId, updatedShape);
+        if (savedShape) {
+          const index = state.shapes.findIndex(s => s.id === shapeId);
+          if (index !== -1) {
+            state.shapes[index] = savedShape;
+          }
+          state.error = null;
+        } else {
+          state.error = "Failed to update lookup field";
+        }
+      } catch (error) {
+        state.error = `Failed to update lookup field: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    },
+
+    // Remove a lookup field
+    removeLookupField: (
+      state,
+      action: PayloadAction<{ shapeId: string; fieldId: string }>
+    ) => {
+      const { shapeId, fieldId } = action.payload;
+      try {
+        const shape = state.shapes.find(s => s.id === shapeId);
+        if (!shape) {
+          state.error = `Target shape with ID '${shapeId}' not found`;
+          return;
+        }
+
+        const fieldToRemove = shape.fields.find(f => f.id === fieldId);
+        if (!fieldToRemove) {
+          state.error = `Field with ID '${fieldId}' not found`;
+          return;
+        }
+
+        // Remove field and any derived fields if it's a lookup field
+        let updatedFields = shape.fields.filter(f => f.id !== fieldId);
+
+        if (fieldToRemove.type === 'lookup') {
+          const lookupField = fieldToRemove as LookupField;
+          // Remove derived fields created by this lookup
+          if (lookupField.alsoGet) {
+            const derivedFieldNames = lookupField.alsoGet.map(d => d.name);
+            updatedFields = updatedFields.filter(f => !derivedFieldNames.includes(f.name));
+          }
+        }
+
+        const updatedShape = {
+          ...shape,
+          fields: updatedFields,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Save to storage
+        const savedShape = targetShapesStorage.update(shapeId, updatedShape);
+        if (savedShape) {
+          const index = state.shapes.findIndex(s => s.id === shapeId);
+          if (index !== -1) {
+            state.shapes[index] = savedShape;
+          }
+          state.error = null;
+        } else {
+          state.error = "Failed to remove lookup field";
+        }
+      } catch (error) {
+        state.error = `Failed to remove lookup field: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    },
+
+    // Refresh validation for lookup fields when reference data changes
+    refreshLookupValidation: (
+      state,
+      action: PayloadAction<{ shapeId: string; fieldId?: string }>
+    ) => {
+      const { shapeId, fieldId } = action.payload;
+      try {
+        const shape = state.shapes.find(s => s.id === shapeId);
+        if (!shape) {
+          state.error = `Target shape with ID '${shapeId}' not found`;
+          return;
+        }
+
+        let fieldsToUpdate = shape.fields.filter(f => f.type === 'lookup') as LookupField[];
+        
+        // If fieldId specified, only update that field
+        if (fieldId) {
+          fieldsToUpdate = fieldsToUpdate.filter(f => f.id === fieldId);
+        }
+
+        if (fieldsToUpdate.length === 0) {
+          return; // No lookup fields to update
+        }
+
+        let hasUpdates = false;
+        const updatedFields = shape.fields.map(field => {
+          if (field.type === 'lookup' && fieldsToUpdate.some(f => f.id === field.id)) {
+            const lookupField = field as LookupField;
+            const newValidation = generateLookupValidation(lookupField);
+            
+            // Replace enum validation rules
+            const updatedValidation = [
+              ...(lookupField.validation?.filter(rule => rule.type !== 'enum') || []),
+              ...newValidation,
+            ];
+
+            hasUpdates = true;
+            return {
+              ...lookupField,
+              validation: updatedValidation,
+            };
+          }
+          return field;
+        });
+
+        if (hasUpdates) {
+          const updatedShape = {
+            ...shape,
+            fields: updatedFields,
+            updatedAt: new Date().toISOString(),
+          };
+
+          // Save to storage
+          const savedShape = targetShapesStorage.update(shapeId, updatedShape);
+          if (savedShape) {
+            const index = state.shapes.findIndex(s => s.id === shapeId);
+            if (index !== -1) {
+              state.shapes[index] = savedShape;
+            }
+            state.error = null;
+          } else {
+            state.error = "Failed to refresh lookup validation";
+          }
+        }
+      } catch (error) {
+        state.error = `Failed to refresh lookup validation: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    },
+
+    // Update derived fields when lookup source data changes
+    updateDerivedFields: (
+      state,
+      action: PayloadAction<{ shapeId: string; lookupFieldId: string }>
+    ) => {
+      const { shapeId, lookupFieldId } = action.payload;
+      try {
+        const shape = state.shapes.find(s => s.id === shapeId);
+        if (!shape) {
+          state.error = `Target shape with ID '${shapeId}' not found`;
+          return;
+        }
+
+        const lookupField = shape.fields.find(f => f.id === lookupFieldId && f.type === 'lookup') as LookupField;
+        if (!lookupField) {
+          state.error = `Lookup field with ID '${lookupFieldId}' not found`;
+          return;
+        }
+
+        // Generate/update derived fields
+        if (lookupField.alsoGet && lookupField.alsoGet.length > 0) {
+          const referenceData = referenceDataManager.getReferenceDataRows(lookupField.referenceFile);
+          if (referenceData && referenceData.length > 0) {
+            const sampleRow = referenceData[0];
+            
+            // Remove existing derived fields
+            let updatedFields = shape.fields.filter(f => 
+              !lookupField.alsoGet?.some(d => d.name === f.name)
+            );
+
+            // Add new derived fields
+            lookupField.alsoGet.forEach(derivedField => {
+              if (sampleRow.hasOwnProperty(derivedField.source)) {
+                const newField: TargetField = {
+                  id: `${lookupFieldId}_${derivedField.name}`,
+                  name: derivedField.name,
+                  type: derivedField.type || 'string',
+                  required: false,
+                  description: `Derived from ${lookupField.name} lookup`,
+                  metadata: {
+                    source: `lookup:${lookupFieldId}`,
+                    dataRule: `derived from ${lookupField.referenceFile}`,
+                  },
+                };
+                updatedFields.push(newField);
+              }
+            });
+
+            const updatedShape = {
+              ...shape,
+              fields: updatedFields,
+              updatedAt: new Date().toISOString(),
+            };
+
+            // Save to storage
+            const savedShape = targetShapesStorage.update(shapeId, updatedShape);
+            if (savedShape) {
+              const index = state.shapes.findIndex(s => s.id === shapeId);
+              if (index !== -1) {
+                state.shapes[index] = savedShape;
+              }
+              state.error = null;
+            } else {
+              state.error = "Failed to update derived fields";
+            }
+          }
+        }
+      } catch (error) {
+        state.error = `Failed to update derived fields: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -128,6 +473,11 @@ export const {
   setLoading,
   setError,
   clearError,
+  addLookupField,
+  updateLookupField,
+  removeLookupField,
+  refreshLookupValidation,
+  updateDerivedFields,
 } = targetShapesSlice.actions;
 
 export default targetShapesSlice.reducer;

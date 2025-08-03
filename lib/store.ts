@@ -3,6 +3,7 @@ import tableReducer from "./features/tableSlice";
 import historyReducer from "./features/historySlice";
 import targetShapesReducer from "./features/targetShapesSlice";
 import persistenceReducer from "./features/persistenceSlice";
+import referenceDataReducer from "./features/referenceDataSlice";
 import {
   reduxPersistence,
   createPersistenceMiddleware,
@@ -41,6 +42,11 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
     "table/setColumnVisibility", // Column visibility
     "table/setGlobalFilter", // Global search
     "table/restoreFromHistory", // History restoration
+    "targetShapes/addLookupField", // Lookup field creation
+    "targetShapes/updateLookupField", // Lookup field updates
+    "targetShapes/removeLookupField", // Lookup field removal
+    "targetShapes/refreshLookupValidation", // Lookup validation refresh
+    "targetShapes/updateDerivedFields", // Derived field updates
   ];
 
   // Skip actions that are not meaningful user interactions
@@ -174,6 +180,15 @@ export const makeStore = () => {
       "targetShapes/saveTargetShape",
       "targetShapes/updateTargetShape",
       "targetShapes/deleteTargetShape",
+      "targetShapes/addLookupField",
+      "targetShapes/updateLookupField",
+      "targetShapes/removeLookupField",
+      "targetShapes/refreshLookupValidation",
+      "targetShapes/updateDerivedFields",
+      "referenceData/uploadFileSuccess",
+      "referenceData/updateFileData",
+      "referenceData/deleteFile",
+      "referenceData/clearAllFiles",
     ],
     debug: process.env.NODE_ENV === "development",
   });
@@ -184,6 +199,7 @@ export const makeStore = () => {
       history: historyReducer,
       targetShapes: targetShapesReducer,
       persistence: persistenceReducer,
+      referenceData: referenceDataReducer,
     },
     preloadedState: persistedState,
     middleware: getDefaultMiddleware =>

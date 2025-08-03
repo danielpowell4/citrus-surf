@@ -418,6 +418,65 @@ Department [Engineering ▼] ℹ️
     [View Reference Data] [Edit Values]
 ```
 
+### Redux Integration
+
+Lookup fields are fully integrated with the target shapes Redux slice, providing complete state management:
+
+**Slice Actions**:
+```typescript
+import { 
+  addLookupField, 
+  updateLookupField, 
+  removeLookupField,
+  refreshLookupValidation,
+  updateDerivedFields 
+} from '@/lib/features/targetShapesSlice';
+
+// Add a lookup field to a target shape
+dispatch(addLookupField({
+  shapeId: 'shape_123',
+  field: {
+    id: 'field_department',
+    name: 'Department',
+    type: 'lookup',
+    required: true,
+    referenceFile: 'ref_departments',
+    match: { on: 'dept_name', get: 'dept_id' },
+    smartMatching: { enabled: true, confidence: 0.85 },
+    onMismatch: 'error'
+  }
+}));
+
+// Update lookup field configuration
+dispatch(updateLookupField({
+  shapeId: 'shape_123',
+  fieldId: 'field_department',
+  updates: { onMismatch: 'warning' }
+}));
+
+// Refresh validation when reference data changes
+dispatch(refreshLookupValidation({
+  shapeId: 'shape_123',
+  fieldId: 'field_department' // Optional: refresh specific field
+}));
+```
+
+**Automatic Features**:
+- **Validation Generation**: Enum validation rules automatically generated from reference data
+- **Derived Fields**: Additional columns created from `alsoGet` configuration  
+- **History Tracking**: All lookup field operations tracked for undo/redo
+- **State Persistence**: Lookup configurations persisted with target shapes
+- **Error Handling**: Comprehensive error handling with descriptive messages
+
+**Storage Integration**:
+Lookup fields are seamlessly stored with target shapes using the existing storage system:
+
+```typescript
+// Lookup fields are automatically serialized/deserialized
+const shape = targetShapesStorage.getById('shape_123');
+const lookupFields = shape.fields.filter(f => f.type === 'lookup');
+```
+
 ## User Workflow
 
 ### 1. Import Raw Data
