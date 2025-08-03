@@ -47,7 +47,8 @@ export type FieldType =
   | "percentage"
   | "enum"
   | "array"
-  | "object";
+  | "object"
+  | "lookup";
 
 // Validation Rules
 export interface ValidationRule {
@@ -78,6 +79,35 @@ export interface ShapeTemplate {
   description: string;
   category: string;
   shape: Omit<TargetShape, "id" | "createdAt" | "updatedAt">;
+}
+
+// Lookup Field Types
+export interface LookupMatch {
+  on: string;      // Column to match against
+  get: string;     // Column to return as value
+  show?: string;   // Column to display (optional)
+}
+
+export interface SmartMatching {
+  enabled: boolean;
+  confidence: number; // 0-1 threshold for fuzzy matching
+}
+
+export interface DerivedField {
+  name: string;    // Name of the derived column
+  source: string;  // Source column from reference data
+  type?: FieldType; // Optional type specification
+}
+
+export interface LookupField extends TargetField {
+  type: "lookup";
+  referenceFile: string;           // Path or identifier for reference data
+  match: LookupMatch;              // Matching configuration
+  alsoGet?: DerivedField[];        // Additional columns to derive
+  smartMatching: SmartMatching;    // Fuzzy matching settings
+  onMismatch: "error" | "warning" | "null"; // Behavior for unmatched values
+  showReferenceInfo?: boolean;     // Show reference data info in UI
+  allowReferenceEdit?: boolean;    // Allow editing reference data inline
 }
 
 // Shape Selection/Creation Options

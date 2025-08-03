@@ -273,12 +273,20 @@ interface LookupField extends TargetField {
     get: string;                      // Column to return as value
     show?: string;                    // Column to display (optional)
   };
-  alsoGet?: string[];                 // Additional columns to derive
+  alsoGet?: DerivedField[];           // Additional columns to derive
   smartMatching: {
     enabled: boolean;                 // Enable fuzzy matching
     confidence: number;               // Match confidence threshold (0-1)
   };
   onMismatch: "error" | "warning" | "null"; // Behavior when no match found
+  showReferenceInfo?: boolean;        // Show reference data info in UI
+  allowReferenceEdit?: boolean;       // Allow editing reference data inline
+}
+
+interface DerivedField {
+  name: string;                       // Name of the derived column
+  source: string;                     // Source column from reference data
+  type?: FieldType;                   // Optional type specification
 }
 ```
 
@@ -312,7 +320,10 @@ HR,HR001,ADMIN-001,Lisa Wong
     get: "dept_id",                   // Return "ENG001"
     show: "dept_name"                 // Display "Engineering" in UI
   },
-  alsoGet: ["budget_code", "manager"], // Also derive these columns
+  alsoGet: [                            // Also derive these columns
+    { name: "budget_code", source: "budget_code", type: "string" },
+    { name: "manager", source: "manager", type: "string" }
+  ],
   smartMatching: {
     enabled: true,                    // Handle "Enginering" → "Engineering"
     confidence: 0.85                  // 85% similarity threshold

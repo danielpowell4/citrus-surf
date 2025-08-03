@@ -361,6 +361,7 @@ function generateFieldDescription(
     enum: "Selection from predefined options",
     array: "List of values",
     object: "Complex data structure",
+    lookup: "Cross-reference data enrichment",
   };
 
   return typeDescriptions[fieldType] || "Data field";
