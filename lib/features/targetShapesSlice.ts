@@ -2,41 +2,9 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
 import type { TargetShape, TargetField, LookupField, ValidationRule } from "@/lib/types/target-shapes";
 import { referenceDataManager } from "@/lib/utils/reference-data-manager";
+import { generateLookupValidation } from "@/lib/utils/lookup-validation";
 
-/**
- * Generate validation rules for a lookup field based on reference data
- */
-function generateLookupValidation(field: LookupField): ValidationRule[] {
-  try {
-    const referenceData = referenceDataManager.getReferenceDataRows(field.referenceFile);
-    if (!referenceData || referenceData.length === 0) {
-      return [];
-    }
-
-    // Get unique values from the column that will be matched against
-    const matchColumn = field.match.on;
-    const uniqueValues = [...new Set(
-      referenceData
-        .map(row => row[matchColumn])
-        .filter(val => val != null && val !== '')
-        .map(val => String(val))
-    )];
-
-    if (uniqueValues.length === 0) {
-      return [];
-    }
-
-    return [{
-      type: 'enum' as const,
-      value: uniqueValues,
-      message: `Value must be one of: ${uniqueValues.slice(0, 5).join(', ')}${uniqueValues.length > 5 ? '...' : ''}`,
-      severity: 'error' as const,
-    }];
-  } catch (error) {
-    console.warn(`Failed to generate validation for lookup field ${field.id}:`, error);
-    return [];
-  }
-}
+// Note: generateLookupValidation function moved to lookup-validation.ts for better organization
 
 interface TargetShapesState {
   shapes: TargetShape[];

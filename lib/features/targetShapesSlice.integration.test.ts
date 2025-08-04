@@ -134,7 +134,7 @@ describe('Target Shapes Lookup Integration', () => {
       const shape = state.shapes.find(s => s.id === 'test_shape_id');
       const lookupField = shape!.fields.find(f => f.type === 'lookup') as LookupField;
       
-      const enumValidation = lookupField.validation?.find(v => v.type === 'enum');
+      const enumValidation = lookupField.validation?.find(v => v.type === 'enum' || v.type === 'lookup_enum');
       expect(enumValidation).toBeTruthy();
       expect(enumValidation!.value).toEqual(['Engineering', 'Marketing', 'HR']);
     });
@@ -284,7 +284,7 @@ describe('Target Shapes Lookup Integration', () => {
       const shape = state.shapes.find(s => s.id === 'test_shape_id');
       const lookupField = shape!.fields.find(f => f.id === 'field_department') as LookupField;
       
-      const enumValidation = lookupField.validation?.find(v => v.type === 'enum');
+      const enumValidation = lookupField.validation?.find(v => v.type === 'enum' || v.type === 'lookup_enum');
       expect(enumValidation).toBeTruthy();
       expect(enumValidation!.value).toEqual(['Engineering', 'Marketing', 'HR']);
     });
@@ -314,7 +314,7 @@ describe('Target Shapes Lookup Integration', () => {
       
       expect(lookupFields).toHaveLength(2);
       lookupFields.forEach(field => {
-        const enumValidation = field.validation?.find(v => v.type === 'enum');
+        const enumValidation = field.validation?.find(v => v.type === 'enum' || v.type === 'lookup_enum');
         expect(enumValidation).toBeTruthy();
       });
     });
@@ -419,7 +419,7 @@ describe('Target Shapes Lookup Integration', () => {
       const lookupField = shape!.fields.find(f => f.type === 'lookup') as LookupField;
       
       // Should not have enum validation since reference data is unavailable
-      const enumValidation = lookupField.validation?.find(v => v.type === 'enum');
+      const enumValidation = lookupField.validation?.find(v => v.type === 'enum' || v.type === 'lookup_enum');
       expect(enumValidation).toBeUndefined();
     });
 

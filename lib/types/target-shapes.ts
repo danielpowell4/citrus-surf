@@ -52,10 +52,16 @@ export type FieldType =
 
 // Validation Rules
 export interface ValidationRule {
-  type: "required" | "min" | "max" | "pattern" | "format" | "enum" | "custom";
+  type: "required" | "min" | "max" | "pattern" | "format" | "enum" | "custom" | "lookup_enum" | "lookup_confidence" | "lookup_reference";
   value: any;
   message: string;
   severity: "error" | "warning" | "info";
+  // Lookup-specific validation properties
+  referenceFile?: string;
+  confidenceThreshold?: number;
+  suggestions?: string[];
+  availableOptions?: string[];
+  referenceSource?: string;
 }
 
 // Transformation Rules
