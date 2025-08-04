@@ -108,17 +108,23 @@ The core data transformation system based on schema definitions:
 
 **Critical Rule**: Never modify target shape core logic without understanding full impact on data integrity. Reference `docs/target-shapes.md` for implementation guidance.
 
-### Lookup Matching Engine
+### Lookup System Architecture
 
-High-performance matching algorithms for lookup field operations:
+Complete lookup field system with matching engine and data processing integration:
 
-**Location**: `lib/utils/lookup-matching-engine.ts`, `lib/utils/string-similarity.ts`
+**Core Components:**
+- **Matching Engine**: `lib/utils/lookup-matching-engine.ts`, `lib/utils/string-similarity.ts`
+- **Data Processor**: `lib/utils/lookup-processor.ts` - Full Redux integration with async processing
+- **Redux Integration**: Enhanced `lib/features/tableSlice.ts` with lookup async thunks
 
 **Key Features:**
-
 - **Multi-tier Matching**: Exact → Normalized → Fuzzy matching with configurable thresholds
 - **Advanced Algorithms**: Levenshtein, Jaro, and Jaro-Winkler similarity with weighted scoring
+- **Data Processing**: Automatic lookup processing during import with derived column generation
+- **Real-time Updates**: Live lookup updates when users edit lookup field values
 - **Batch Processing**: Async operations with progress tracking for large datasets (10k+ rows)
+- **Error Handling**: Comprehensive error collection, statistics, and fuzzy match review
+- **History Integration**: Lookup operations tracked in meaningful actions for undo/redo
 - **Derived Fields**: Automatic extraction of additional columns during lookups
 - **Performance Optimized**: <1ms exact matches, <10ms fuzzy matches, >100 ops/second throughput
 

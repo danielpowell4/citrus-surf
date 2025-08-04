@@ -185,6 +185,10 @@ export const getActionSummary = (action: HistoryAction) => {
         return `Restored from version ${restoredFrom + 1}`;
       }
       return "Restored from history";
+    case "processDataWithLookups/fulfilled":
+      return `Processed ${action.stateSnapshot?.data?.length || 0} rows with lookups`;
+    case "updateLookupValue/fulfilled":
+      return `Updated lookup value for ${action.payload?.fieldName || 'field'}`;
     default:
       return actionType;
   }
@@ -197,7 +201,9 @@ export const getActionCategory = (actionType: string) => {
   if (
     actionType.includes("setData") ||
     actionType.includes("importJsonData") ||
-    actionType.includes("updateCell")
+    actionType.includes("updateCell") ||
+    actionType.includes("processDataWithLookups") ||
+    actionType.includes("updateLookupValue")
   ) {
     return "data";
   }
