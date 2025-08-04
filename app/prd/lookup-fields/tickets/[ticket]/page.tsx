@@ -35,11 +35,12 @@ const ticketTitles: Record<string, string> = {
 };
 
 type Props = {
-  params: { ticket: string };
+  params: Promise<{ ticket: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const title = ticketTitles[params.ticket] || "Ticket Not Found";
+  const { ticket } = await params;
+  const title = ticketTitles[ticket] || "Ticket Not Found";
   
   return {
     title: `${title} - Citrus Surf`,
@@ -91,8 +92,9 @@ function formatMarkdown(content: string): string {
     .replace(/^(?!<[h1-6]|<ul|<pre|<table)(.+)$/gm, '<p class="mb-4 text-gray-700 dark:text-gray-300">$1</p>');
 }
 
-export default function TicketPage({ params }: Props) {
-  const filename = ticketFiles[params.ticket];
+export default async function TicketPage({ params }: Props) {
+  const { ticket } = await params;
+  const filename = ticketFiles[ticket];
   
   if (!filename) {
     notFound();
