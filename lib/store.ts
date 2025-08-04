@@ -47,6 +47,8 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
     "targetShapes/removeLookupField", // Lookup field removal
     "targetShapes/refreshLookupValidation", // Lookup validation refresh
     "targetShapes/updateDerivedFields", // Derived field updates
+    "table/processDataWithLookups/fulfilled", // Lookup data processing
+    "table/updateLookupValue/fulfilled", // Real-time lookup updates
   ];
 
   // Skip actions that are not meaningful user interactions
@@ -189,6 +191,8 @@ export const makeStore = () => {
       "referenceData/updateFileData",
       "referenceData/deleteFile",
       "referenceData/clearAllFiles",
+      "table/processDataWithLookups/fulfilled",
+      "table/updateLookupValue/fulfilled",
     ],
     debug: process.env.NODE_ENV === "development",
   });
