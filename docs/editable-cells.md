@@ -41,6 +41,91 @@ const columns = [
 
 Basic text input with optional constraints.
 
+### 2. Lookup Field
+
+**Type**: `'lookup'`
+
+Advanced lookup field with dropdown selection, fuzzy search, and reference data integration. Uses the `LookupEditableCell` component for Excel VLOOKUP-style functionality with intelligent matching and automatic data enrichment.
+
+#### Key Features
+
+- **Smart Matching**: Exact, normalized, and fuzzy matching algorithms
+- **Confidence Scoring**: Visual indicators showing match confidence (95%+ = exact, 70%+ = good, <70% = fuzzy)
+- **Reference Data Transparency**: Info popup showing data source, statistics, and sample values
+- **Derived Fields**: Automatic extraction of additional columns during lookup operations
+- **Real-time Suggestions**: Live fuzzy search with "Did you mean?" functionality
+- **Keyboard Navigation**: Full keyboard support (Enter, Escape, Tab, Arrow keys)
+
+#### Configuration
+
+Lookup fields are configured through the target shapes system rather than column meta. When a field has `type: "lookup"`, the column generator automatically uses `LookupEditableCell`.
+
+```typescript
+// Example lookup field configuration in target shape
+{
+  id: 'department',
+  name: 'department',
+  type: 'lookup',
+  referenceFile: 'ref_departments_123',
+  match: {
+    sourceColumn: 'department_name',  // Column to match against
+    targetColumn: 'department_id',    // Column to return as value
+  },
+  alsoGet: [  // Additional columns to derive
+    {
+      sourceColumn: 'manager_name',
+      targetFieldName: 'manager',
+    },
+    {
+      sourceColumn: 'budget',
+      targetFieldName: 'department_budget',
+    }
+  ],
+  smartMatching: {
+    enabled: true,
+    threshold: 0.8,  // Minimum confidence for fuzzy matches
+  },
+  onMismatch: 'warning',           // 'error' | 'warning' | 'null'
+  showReferenceInfo: true,         // Show info button
+  allowReferenceEdit: false,       // Allow editing reference data
+}
+```
+
+#### UI Components
+
+The lookup cell system consists of:
+
+1. **LookupEditableCell**: Main editable cell component with dropdown and search
+2. **ReferenceInfoPopup**: Information popup showing reference data details
+3. **Command/Combobox**: Search and selection interface with suggestions
+
+#### Matching Behavior
+
+1. **Exact Match** (100% confidence): Exact string match
+2. **Normalized Match** (95% confidence): Case-insensitive, whitespace-trimmed, accent-normalized
+3. **Fuzzy Match** (varies): Levenshtein distance, Jaro-Winkler similarity with configurable threshold
+
+#### Visual Indicators
+
+- **Green checkmark**: High confidence match (90%+)
+- **Yellow warning triangle**: Medium confidence match (70-89%)
+- **Red alert circle**: Low confidence match (<70%)
+- **Confidence badges**: Percentage scores in dropdown suggestions
+- **Match type icons**: Different icons for exact, normalized, and fuzzy matches
+
+#### Integration with History System
+
+All lookup operations are tracked in the Redux history system:
+- Cell value changes (`table/updateCell`)
+- Derived field updates (automatic)
+- Lookup processing results (`table/processDataWithLookups/fulfilled`)
+
+### 3. Text Input (continued)
+
+**Type**: `'text'` (continued from above)
+
+Basic text input with optional constraints.
+
 #### Configuration Options
 
 | Option        | Type     | Description             | Default     |
