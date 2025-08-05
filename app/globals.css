@@ -106,4 +106,9 @@
   .theme-transition {
     transition: all 0.2s ease-in-out;
   }
+
+  /* Prose dark theme overrides */
+  .dark .prose {
+    --tw-prose-bold: #d1d5db;
+  }
 }
