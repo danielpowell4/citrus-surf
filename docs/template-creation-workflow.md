@@ -19,6 +19,37 @@ The template creation workflow provides seamless integration between template bu
 3. **Upon creation completion** → **Redirected to data table**
 4. **Ready for data import** when user uploads data later
 
+## Field Types
+
+### Standard Field Types
+- **Text** - Basic string fields
+- **Number** - Numeric values (integer, decimal)
+- **Boolean** - True/false values
+- **Date/DateTime** - Date and time fields
+- **Email** - Email address validation
+- **Phone** - Phone number formatting
+- **URL** - URL validation
+- **Currency** - Monetary values with formatting
+- **Percentage** - Percentage values
+- **Enum** - Predefined value lists
+
+### Lookup Fields
+**New in LOOKUP-009**: Create fields that reference external data sources for data enrichment and validation.
+
+#### Lookup Field Configuration
+1. **Reference Data Selection** - Choose from uploaded reference files or upload new CSV/JSON files
+2. **Match Configuration** - Define which columns to match against and return
+3. **Smart Matching** - Enable fuzzy matching with configurable confidence thresholds
+4. **Derived Fields** - Automatically include additional columns from reference data
+5. **Error Handling** - Configure behavior for unmatched values (error, warning, or null)
+
+#### Lookup Field Preview
+The template preview shows comprehensive lookup field information:
+- Reference data source filename
+- Match configuration (input → output columns)
+- Fuzzy matching settings and confidence thresholds
+- Derived fields that will be automatically generated
+
 ## Technical Implementation
 
 ### Key Files
@@ -26,8 +57,9 @@ The template creation workflow provides seamless integration between template bu
 | File | Purpose |
 |------|---------|
 | `app/playground/template-builder/page.tsx` | Template creation navigation logic |
-| `app/playground/target-shape-workflow.tsx` | Template creation UI and save logic |
+| `app/playground/target-shape-workflow.tsx` | Template creation UI and save logic with lookup field support |
 | `lib/features/targetShapesSlice.ts` | Redux actions including async thunk |
+| `lib/features/referenceDataSlice.ts` | Reference data management for lookup fields |
 
 ### Architecture Details
 

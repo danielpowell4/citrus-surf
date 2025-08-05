@@ -42,11 +42,18 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
     "table/setColumnVisibility", // Column visibility
     "table/setGlobalFilter", // Global search
     "table/restoreFromHistory", // History restoration
+    "targetShapes/saveTargetShape", // Template builder: Save target shape
+    "targetShapes/saveTargetShapeAsync/fulfilled", // Template builder: Save target shape (async)
+    "targetShapes/updateTargetShape", // Template builder: Update target shape
+    "targetShapes/deleteTargetShape", // Template builder: Delete target shape
     "targetShapes/addLookupField", // Lookup field creation
     "targetShapes/updateLookupField", // Lookup field updates
     "targetShapes/removeLookupField", // Lookup field removal
     "targetShapes/refreshLookupValidation", // Lookup validation refresh
     "targetShapes/updateDerivedFields", // Derived field updates
+    "referenceData/uploadFileSuccess", // Reference data upload
+    "referenceData/updateFileData", // Reference data editing
+    "referenceData/deleteFile", // Reference data deletion
     "table/processDataWithLookups/fulfilled", // Lookup data processing
     "table/updateLookupValue/fulfilled", // Real-time lookup updates
   ];

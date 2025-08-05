@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,24 +12,37 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from "@tanstack/react-table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Download, 
-  Upload, 
-  Search, 
-  FileText, 
-  Edit, 
-  Trash2, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Download,
+  Upload,
+  Search,
+  FileText,
+  Edit,
+  Trash2,
   AlertTriangle,
   Database,
   ArrowUpDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { referenceDataManager } from "@/lib/utils/reference-data-manager";
 import type { ReferenceDataInfo } from "@/lib/types/reference-data-types";
@@ -58,8 +71,12 @@ export function ReferenceDataViewer({
   onReferenceDelete,
   onReferenceReplace,
 }: ReferenceDataViewerProps) {
-  const [referenceData, setReferenceData] = useState<Record<string, unknown>[]>([]);
-  const [referenceInfo, setReferenceInfo] = useState<ReferenceDataInfo | null>(null);
+  const [referenceData, setReferenceData] = useState<Record<string, unknown>[]>(
+    []
+  );
+  const [referenceInfo, setReferenceInfo] = useState<ReferenceDataInfo | null>(
+    null
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -69,29 +86,32 @@ export function ReferenceDataViewer({
   const [error, setError] = useState<string | null>(null);
 
   // Function to find which lookup fields use this reference data
-  const findAffectedLookupFields = useCallback((referenceId: string): string[] => {
-    try {
-      const allShapes = targetShapesStorage.getAll();
-      const affectedFields: string[] = [];
+  const findAffectedLookupFields = useCallback(
+    (referenceId: string): string[] => {
+      try {
+        const allShapes = targetShapesStorage.getAll();
+        const affectedFields: string[] = [];
 
-      allShapes.forEach((shape: TargetShape) => {
-        shape.fields.forEach((field) => {
-          if (field.type === "lookup") {
-            const lookupField = field as LookupField;
-            // Check if this lookup field references our reference data
-            if (lookupField.referenceFile === referenceId) {
-              affectedFields.push(`${shape.name}.${field.name}`);
+        allShapes.forEach((shape: TargetShape) => {
+          shape.fields.forEach(field => {
+            if (field.type === "lookup") {
+              const lookupField = field as LookupField;
+              // Check if this lookup field references our reference data
+              if (lookupField.referenceFile === referenceId) {
+                affectedFields.push(`${shape.name}.${field.name}`);
+              }
             }
-          }
+          });
         });
-      });
 
-      return affectedFields;
-    } catch (err) {
-      console.error("Error finding affected lookup fields:", err);
-      return [];
-    }
-  }, []);
+        return affectedFields;
+      } catch (err) {
+        console.error("Error finding affected lookup fields:", err);
+        return [];
+      }
+    },
+    []
+  );
 
   // Load reference data when modal opens
   useEffect(() => {
@@ -101,11 +121,11 @@ export function ReferenceDataViewer({
       try {
         const data = referenceDataManager.getReferenceDataRows(referenceId);
         const info = referenceDataManager.getReferenceData(referenceId);
-        
+
         if (data && info) {
           setReferenceData(data);
           setReferenceInfo(info.info);
-          
+
           // Find which lookup fields use this reference data
           const affected = findAffectedLookupFields(referenceId);
           setAffectedFields(affected);
@@ -113,7 +133,9 @@ export function ReferenceDataViewer({
           setError("Reference data not found");
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load reference data");
+        setError(
+          err instanceof Error ? err.message : "Failed to load reference data"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -125,8 +147,8 @@ export function ReferenceDataViewer({
     if (!referenceInfo || referenceData.length === 0) return [];
 
     const columnHelper = createColumnHelper<Record<string, unknown>>();
-    
-    return referenceInfo.columns.map((columnName) => 
+
+    return referenceInfo.columns.map(columnName =>
       columnHelper.accessor(columnName, {
         header: ({ column }) => (
           <Button
@@ -142,7 +164,9 @@ export function ReferenceDataViewer({
           const value = getValue();
           return (
             <div className="min-w-0">
-              {value != null ? String(value) : (
+              {value != null ? (
+                String(value)
+              ) : (
                 <span className="text-muted-foreground italic">null</span>
               )}
             </div>
@@ -178,39 +202,43 @@ export function ReferenceDataViewer({
 
   const handleDownload = () => {
     if (!referenceInfo || !referenceData) return;
-    
+
     try {
       // Convert data to CSV
-      const headers = referenceInfo.columns.join(',');
-      const rows = referenceData.map(row => 
-        referenceInfo.columns.map(col => {
-          const value = row[col];
-          // Escape CSV values that contain commas or quotes
-          if (value != null && String(value).includes(',')) {
-            return `"${String(value).replace(/"/g, '""')}"`;
-          }
-          return value != null ? String(value) : '';
-        }).join(',')
+      const headers = referenceInfo.columns.join(",");
+      const rows = referenceData.map(row =>
+        referenceInfo.columns
+          .map(col => {
+            const value = row[col];
+            // Escape CSV values that contain commas or quotes
+            if (value != null && String(value).includes(",")) {
+              return `"${String(value).replace(/"/g, '""')}"`;
+            }
+            return value != null ? String(value) : "";
+          })
+          .join(",")
       );
-      
-      const csvContent = [headers, ...rows].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      
+
+      const csvContent = [headers, ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', referenceInfo.filename);
-        link.style.visibility = 'hidden';
+        link.setAttribute("href", url);
+        link.setAttribute("download", referenceInfo.filename);
+        link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }
-      
+
       onReferenceDownload?.(referenceId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to download reference data");
+      setError(
+        err instanceof Error ? err.message : "Failed to download reference data"
+      );
     }
   };
 
@@ -219,7 +247,7 @@ export function ReferenceDataViewer({
       // Update the reference data in storage
       referenceDataManager.updateReferenceData(referenceId, newData);
       setReferenceData(newData);
-      
+
       // Update reference info with new row count
       if (referenceInfo) {
         const updatedInfo = {
@@ -230,26 +258,30 @@ export function ReferenceDataViewer({
         setReferenceInfo(updatedInfo);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save reference data changes");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save reference data changes"
+      );
     }
   };
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const formatDate = (dateString: string): string => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateString;
@@ -283,9 +315,13 @@ export function ReferenceDataViewer({
               <div className="flex items-center gap-4 text-sm">
                 <span>{referenceInfo.filename}</span>
                 <Badge variant="outline">{referenceInfo.rowCount} rows</Badge>
-                <Badge variant="outline">{referenceInfo.columns.length} columns</Badge>
+                <Badge variant="outline">
+                  {referenceInfo.columns.length} columns
+                </Badge>
                 {referenceInfo.fileSize && (
-                  <Badge variant="outline">{formatFileSize(referenceInfo.fileSize)}</Badge>
+                  <Badge variant="outline">
+                    {formatFileSize(referenceInfo.fileSize)}
+                  </Badge>
                 )}
               </div>
             ) : (
@@ -314,11 +350,11 @@ export function ReferenceDataViewer({
                 <Input
                   placeholder="Search all columns..."
                   value={globalFilter}
-                  onChange={(e) => setGlobalFilter(e.target.value)}
+                  onChange={e => setGlobalFilter(e.target.value)}
                   className="max-w-sm"
                 />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 {allowEdit && (
                   <Button
@@ -330,16 +366,12 @@ export function ReferenceDataViewer({
                     Edit Data
                   </Button>
                 )}
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                >
+
+                <Button variant="outline" size="sm" onClick={handleDownload}>
                   <Download className="h-4 w-4 mr-2" />
                   Download
                 </Button>
-                
+
                 {onReferenceReplace && (
                   <Button
                     variant="outline"
@@ -350,7 +382,7 @@ export function ReferenceDataViewer({
                     Replace
                   </Button>
                 )}
-                
+
                 {onReferenceDelete && (
                   <Button
                     variant="outline"
@@ -371,7 +403,8 @@ export function ReferenceDataViewer({
               <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <AlertTriangle className="h-4 w-4 text-blue-600" />
                 <span className="text-sm text-blue-800">
-                  This reference data is used by {affectedFields.length} lookup field(s): {affectedFields.join(', ')}
+                  This reference data is used by {affectedFields.length} lookup
+                  field(s): {affectedFields.join(", ")}
                 </span>
               </div>
             )}
@@ -380,17 +413,23 @@ export function ReferenceDataViewer({
             <div className="flex-1 overflow-auto border rounded-md">
               <Table>
                 <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
+                  {table.getHeaderGroups().map(headerGroup => (
                     <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id} className="whitespace-nowrap">
+                      {headerGroup.headers.map(header => (
+                        <TableHead
+                          key={header.id}
+                          className="whitespace-nowrap"
+                        >
                           {header.isPlaceholder
                             ? null
                             : header.column.columnDef.header
-                            ? typeof header.column.columnDef.header === 'function'
-                              ? header.column.columnDef.header(header.getContext())
-                              : header.column.columnDef.header
-                            : header.id}
+                              ? typeof header.column.columnDef.header ===
+                                "function"
+                                ? header.column.columnDef.header(
+                                    header.getContext()
+                                  )
+                                : header.column.columnDef.header
+                              : header.id}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -398,16 +437,16 @@ export function ReferenceDataViewer({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
+                    table.getRowModel().rows.map(row => (
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
                       >
-                        {row.getVisibleCells().map((cell) => (
+                        {row.getVisibleCells().map(cell => (
                           <TableCell key={cell.id} className="py-2">
-                            {typeof cell.column.columnDef.cell === 'function'
+                            {typeof cell.column.columnDef.cell === "function"
                               ? cell.column.columnDef.cell(cell.getContext())
-                              : String(cell.getValue() ?? '')}
+                              : String(cell.getValue() ?? "")}
                           </TableCell>
                         ))}
                       </TableRow>
@@ -431,9 +470,10 @@ export function ReferenceDataViewer({
               <div className="text-sm text-muted-foreground">
                 Showing {table.getRowModel().rows.length} of{" "}
                 {table.getFilteredRowModel().rows.length} row(s)
-                {globalFilter && ` (filtered from ${referenceData.length} total)`}
+                {globalFilter &&
+                  ` (filtered from ${referenceData.length} total)`}
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -444,12 +484,12 @@ export function ReferenceDataViewer({
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
-                
+
                 <div className="text-sm">
                   Page {table.getState().pagination.pageIndex + 1} of{" "}
                   {table.getPageCount()}
                 </div>
-                
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -471,23 +511,31 @@ export function ReferenceDataViewer({
                   <div>Format: {referenceInfo.format.toUpperCase()}</div>
                   <div>Uploaded: {formatDate(referenceInfo.uploadedAt)}</div>
                   {referenceInfo.lastModified !== referenceInfo.uploadedAt && (
-                    <div>Modified: {formatDate(referenceInfo.lastModified)}</div>
+                    <div>
+                      Modified: {formatDate(referenceInfo.lastModified)}
+                    </div>
                   )}
                 </div>
               </div>
-              
+
               <div>
                 <div className="font-medium">Data Statistics</div>
                 <div className="mt-1 space-y-1 text-muted-foreground">
                   <div>Total Rows: {referenceInfo.rowCount}</div>
                   <div>Columns: {referenceInfo.columns.length}</div>
                   {referenceInfo.fileSize && (
-                    <div>File Size: {formatFileSize(referenceInfo.fileSize)}</div>
+                    <div>
+                      File Size: {formatFileSize(referenceInfo.fileSize)}
+                    </div>
                   )}
                 </div>
               </div>
             </div>
           </>
+        ) : (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
         )}
 
         <div className="flex justify-end pt-2">

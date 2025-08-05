@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { TargetShapeWorkflow } from "../target-shape-workflow";
 import { TargetShape } from "@/lib/types/target-shapes";
 import { selectTargetShape, loadShapes } from "@/lib/features/targetShapesSlice";
+import { createLookupNavigator, parseLookupConfigParams, generateLookupBreadcrumbs } from "@/lib/utils/lookup-navigation";
 
 function TemplateBuilderContent() {
   const router = useRouter();
@@ -13,14 +14,23 @@ function TemplateBuilderContent() {
   const searchParams = useSearchParams();
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
+  
+  const navigator = createLookupNavigator(router, "/playground/template-builder", searchParams);
 
   const source = searchParams.get("source");
   const editId = searchParams.get("edit");
+  
+  // Parse lookup configuration parameters
+  const lookupParams = parseLookupConfigParams(searchParams);
+  const isLookupConfiguration = lookupParams.action === 'configure-lookup';
 
   // Find the shape to edit if in edit mode
   const shapeToEdit = editId
     ? shapes.find(shape => shape.id === editId)
     : undefined;
+    
+  // Generate breadcrumbs
+  const breadcrumbs = generateLookupBreadcrumbs("/playground/template-builder", searchParams);
 
   const handleShapeCreated = (shape: TargetShape) => {
     // Select the newly created shape
@@ -52,16 +62,43 @@ function TemplateBuilderContent() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto py-6">
+        {/* Breadcrumbs */}
+        {isLookupConfiguration && (
+          <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
+            {breadcrumbs.map((breadcrumb, index) => (
+              <div key={index} className="flex items-center">
+                {index > 0 && <span className="mx-2">/</span>}
+                {breadcrumb.current ? (
+                  <span className="font-medium text-foreground">{breadcrumb.label}</span>
+                ) : (
+                  <button
+                    onClick={() => router.push(breadcrumb.href)}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {breadcrumb.label}
+                  </button>
+                )}
+              </div>
+            ))}
+          </nav>
+        )}
+        
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">
-            {editId ? "Edit Target Shape" : "Create Target Shape"}
+            {isLookupConfiguration
+              ? "Configure Lookup Field"
+              : editId
+                ? "Edit Target Shape"
+                : "Create Target Shape"}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            {editId
-              ? `Edit the structure and fields of "${shapeToEdit?.name || "target shape"}"`
-              : source === "data"
-                ? "Define the structure for your clean data output based on imported data"
-                : "Define the structure for your clean data output"}
+            {isLookupConfiguration
+              ? `Configure lookup field settings and reference data connections for field "${lookupParams.field}"`
+              : editId
+                ? `Edit the structure and fields of "${shapeToEdit?.name || "target shape"}"`
+                : source === "data"
+                  ? "Define the structure for your clean data output based on imported data"
+                  : "Define the structure for your clean data output"}
           </p>
         </div>
 
@@ -70,6 +107,8 @@ function TemplateBuilderContent() {
           initialShape={shapeToEdit}
           onShapeCreated={handleShapeCreated}
           onCancel={handleCancel}
+          isLookupConfiguration={isLookupConfiguration}
+          lookupFieldId={lookupParams.field}
         />
       </div>
     </div>
