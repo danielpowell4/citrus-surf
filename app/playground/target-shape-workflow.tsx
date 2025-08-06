@@ -335,7 +335,7 @@ const FieldsStep: React.FC<WorkflowStepProps> = ({
       )}
 
       <div className="space-y-4">
-        {data.fields.map((field, index) => (
+        {data.fields.map((field) => (
           <FieldEditor
             key={field.id}
             field={field}

@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import {
   Upload,
   Download,
-  RotateCcw,
   FileText,
   Database,
   FileUp,
@@ -186,7 +185,7 @@ export function DataImport({
         const startIndex = hasHeaders ? 1 : 0;
         const headers = hasHeaders ? parseCsvLine(lines[0], delimChar) : [];
 
-        parsedData = lines.slice(startIndex).map((line, index) => {
+        parsedData = lines.slice(startIndex).map((line) => {
           const values = parseCsvLine(line, delimChar);
           if (hasHeaders) {
             const row: any = {};
@@ -569,7 +568,7 @@ export function DataImport({
                       ? parseCsvLine(lines[0], delimChar)
                       : [];
 
-                    parsedData = lines.slice(startIndex).map((line, index) => {
+                    parsedData = lines.slice(startIndex).map((line) => {
                       const values = parseCsvLine(line, delimChar);
                       if (hasHeaders) {
                         const row: any = {};

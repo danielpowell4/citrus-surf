@@ -35,7 +35,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow as TableRowComponent,
 } from "@/components/ui/table";
 import {
   DropdownMenu,
@@ -330,7 +330,7 @@ export function DataTable({
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map(headerGroup => (
-                <TableRow key={headerGroup.id}>
+                <TableRowComponent key={headerGroup.id}>
                   {headerGroup.headers.map(header => {
                     return (
                       <TableHead key={header.id} data-field={header.column.id}>
@@ -343,13 +343,13 @@ export function DataTable({
                       </TableHead>
                     );
                   })}
-                </TableRow>
+                </TableRowComponent>
               ))}
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map(row => (
-                  <TableRow
+                  <TableRowComponent
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     className={
@@ -366,10 +366,10 @@ export function DataTable({
                         )}
                       </TableCell>
                     ))}
-                  </TableRow>
+                  </TableRowComponent>
                 ))
               ) : (
-                <TableRow>
+                <TableRowComponent>
                   <TableCell
                     colSpan={columns.length}
                     className="h-32 text-center"
@@ -399,7 +399,7 @@ export function DataTable({
                       </div>
                     )}
                   </TableCell>
-                </TableRow>
+                </TableRowComponent>
               )}
             </TableBody>
           </Table>

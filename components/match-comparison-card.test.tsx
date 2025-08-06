@@ -183,7 +183,7 @@ describe('MatchComparisonCard', () => {
     const acceptedMatch = { ...mockMatch, status: 'accepted' as const };
     render(<MatchComparisonCard {...mockProps} match={acceptedMatch} />);
     
-    expect(screen.getByText('accepted')).toHaveBeenCalled;
+    expect(screen.getByText('accepted')).toBeInTheDocument();
     expect(screen.getByText('Accepted: Engineering')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /accept/i })).not.toBeInTheDocument();
   });

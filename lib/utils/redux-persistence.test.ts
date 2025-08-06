@@ -148,7 +148,7 @@ describe("Redux Persistence", () => {
   it("should handle server-side rendering", () => {
     // Mock window as undefined (SSR)
     const originalWindow = global.window;
-    // @ts-ignore
+    // @ts-expect-error - Simulating SSR environment by removing window
     delete global.window;
 
     const mockState = { table: { data: [] } };

@@ -106,7 +106,7 @@ describe("Target Shapes Storage", () => {
 
     expect(updatedShape).not.toBeNull();
     expect(updatedShape?.name).toBe("Updated Shape Name");
-    expect(new Date(updatedShape?.updatedAt!).getTime()).toBeGreaterThanOrEqual(
+    expect(updatedShape?.updatedAt && new Date(updatedShape.updatedAt).getTime()).toBeGreaterThanOrEqual(
       originalTime
     );
 

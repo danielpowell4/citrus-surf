@@ -54,15 +54,20 @@ const mockTableData: TableRow[] = [
 
 const mockLookupField: LookupField = {
   id: 'dept_lookup',
+  type: 'lookup',
   referenceFile: 'departments.csv',
-  on: 'department_name',
-  get: 'department_code',
-  show: 'department_name',
-  alsoGet: ['budget'],
+  match: {
+    on: 'department_name',
+    get: 'department_code',
+    show: 'department_name'
+  },
+  alsoGet: [{ name: 'budget', source: 'budget' }],
   smartMatching: {
     enabled: true,
     confidence: 0.7
-  }
+  },
+  onMismatch: 'error' as const,
+  required: false
 };
 
 describe.skip('Fuzzy Match Review Integration', () => {
