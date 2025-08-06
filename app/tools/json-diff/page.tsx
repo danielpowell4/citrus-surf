@@ -219,7 +219,7 @@ function JsonDiffTool() {
         title: "JSON formatted",
         description: "Your JSON has been formatted with proper indentation",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Invalid JSON",
         description: "Please check your JSON format and try again",

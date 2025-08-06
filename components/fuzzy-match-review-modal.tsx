@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,17 +19,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
-  Check, 
-  X, 
   Search, 
   Filter, 
   CheckCircle, 
   XCircle,
   BarChart3,
-  RefreshCw,
-  Download
+  RefreshCw
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { MatchComparisonCard } from './match-comparison-card';
 import { useFuzzyMatchReview } from '@/hooks/useFuzzyMatchReview';
 import type { 

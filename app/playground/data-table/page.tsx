@@ -41,13 +41,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
-import { createLookupNavigator, parseFuzzyMatchReviewParams, generateLookupBreadcrumbs } from "@/lib/utils/lookup-navigation";
+import { createLookupNavigator, parseFuzzyMatchReviewParams } from "@/lib/utils/lookup-navigation";
 
 export default function DataTablePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
-  const navigator = createLookupNavigator(router, "/playground/data-table", searchParams);
+  const _navigator = createLookupNavigator(router, "/playground/data-table", searchParams);
   
   const [showDrawer, setShowDrawer] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
@@ -60,8 +60,8 @@ export default function DataTablePage() {
   
   // Parse fuzzy match review parameters
   const fuzzyMatchParams = parseFuzzyMatchReviewParams(searchParams);
-  const isFuzzyMatchReview = fuzzyMatchParams.review === 'fuzzy-matches';
-  const fuzzyMatchBatchId = fuzzyMatchParams.batch;
+  const _isFuzzyMatchReview = fuzzyMatchParams.review === 'fuzzy-matches';
+  const _fuzzyMatchBatchId = fuzzyMatchParams.batch;
 
   // Template management state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);

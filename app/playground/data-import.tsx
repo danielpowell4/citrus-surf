@@ -290,7 +290,7 @@ export function DataImport({
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "File read error",
           description: "Could not read the selected file",
@@ -582,7 +582,7 @@ export function DataImport({
                     });
                   }
                   onCreateShapeFromData(parsedData);
-                } catch (error) {
+                } catch {
                   toast({
                     title: "Invalid data",
                     description:

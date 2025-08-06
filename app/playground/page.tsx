@@ -7,20 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Plus,
-  Sparkles,
   Wand2,
-  FileText,
   Database,
   Table,
   ArrowRight,
-  Upload,
 } from "lucide-react";
 import { setData } from "@/lib/features/tableSlice";
 import { loadShapes } from "@/lib/features/targetShapesSlice";
 import { DataImport } from "./data-import";
 import { PersistenceStatus } from "@/components/persistence-status";
-import type { TargetShape } from "@/lib/types/target-shapes";
 import { useEffect } from "react";
 
 export default function PlaygroundPage() {
