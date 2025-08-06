@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
-import type { TargetShape, TargetField, LookupField, ValidationRule } from "@/lib/types/target-shapes";
+import type { TargetShape, TargetField, LookupField } from "@/lib/types/target-shapes";
 import { referenceDataManager } from "@/lib/utils/reference-data-manager";
 import { generateLookupValidation } from "@/lib/utils/lookup-validation";
 
@@ -45,7 +45,7 @@ export const targetShapesSlice = createSlice({
         const savedShape = targetShapesStorage.save(action.payload);
         state.shapes.push(savedShape);
         state.error = null;
-      } catch (error) {
+      } catch {
         state.error = "Failed to save target shape";
       }
     },

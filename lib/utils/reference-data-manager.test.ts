@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ReferenceDataManager } from './reference-data-manager';
 import type { UploadReferenceOptions } from '../types/reference-data-types';
-import { generateReferenceId, isValidReferenceId, ReferenceDataError } from '../types/reference-data-types';
+import { generateReferenceId, isValidReferenceId } from '../types/reference-data-types';
 
 // Mock localStorage
 const mockStorage: Record<string, string> = {};

@@ -241,7 +241,7 @@ function JsonToSqlTool() {
       let jsonData;
       try {
         jsonData = JSON.parse(jsonInput);
-      } catch (error) {
+      } catch {
         toast({
           title: "Invalid JSON",
           description: "Please check your JSON format and try again",
@@ -452,7 +452,7 @@ END $$;`;
         title: "JSON formatted",
         description: "Your JSON has been formatted with proper indentation",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Invalid JSON",
         description: "Please check your JSON format and try again",
@@ -471,7 +471,7 @@ END $$;`;
         title: "Copied to clipboard",
         description: "The SQL has been copied to your clipboard",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Failed to copy",
         description: "Please try again or copy manually",

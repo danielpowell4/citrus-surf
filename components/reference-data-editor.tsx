@@ -11,22 +11,34 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from "@tanstack/react-table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Save, 
-  X, 
-  Plus, 
-  Trash2, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Save,
+  X,
+  Plus,
+  Trash2,
   AlertTriangle,
   Edit3,
   ArrowUpDown,
   Undo2,
-  CheckCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ReferenceDataInfo } from "@/lib/types/reference-data-types";
@@ -55,7 +67,7 @@ interface ValidationError {
 }
 
 export function ReferenceDataEditor({
-  referenceId,
+  referenceId: _referenceId,
   data: initialData,
   referenceInfo,
   isOpen,
@@ -66,7 +78,9 @@ export function ReferenceDataEditor({
 }: ReferenceDataEditorProps) {
   const [data, setData] = useState<Record<string, unknown>[]>(initialData);
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [deletedRows, setDeletedRows] = useState<Set<number>>(new Set());
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -82,56 +96,65 @@ export function ReferenceDataEditor({
   }, [initialData]);
 
   // Validate data for uniqueness and required fields
-  const validateData = useCallback((dataToValidate: Record<string, unknown>[]) => {
-    const errors: ValidationError[] = [];
-    const seenKeys = new Set<string>();
+  const validateData = useCallback(
+    (dataToValidate: Record<string, unknown>[]) => {
+      const errors: ValidationError[] = [];
+      const seenKeys = new Set<string>();
 
-    dataToValidate.forEach((row, rowIndex) => {
-      // Skip deleted rows
-      if (deletedRows.has(rowIndex)) return;
+      dataToValidate.forEach((row, rowIndex) => {
+        // Skip deleted rows
+        if (deletedRows.has(rowIndex)) return;
 
-      // Check key column uniqueness if specified
-      if (keyColumn && row[keyColumn] != null) {
-        const keyValue = String(row[keyColumn]);
-        if (keyValue.trim() === '') {
-          errors.push({
-            rowIndex,
-            columnId: keyColumn,
-            message: 'Key column cannot be empty'
-          });
-        } else if (seenKeys.has(keyValue)) {
-          errors.push({
-            rowIndex,
-            columnId: keyColumn,
-            message: 'Duplicate key value'
-          });
-        } else {
-          seenKeys.add(keyValue);
-        }
-      }
-
-      // Check for required columns (all columns should have some value)
-      referenceInfo.columns.forEach(columnId => {
-        const value = row[columnId];
-        if (value == null || String(value).trim() === '') {
-          // Only flag as error if it's the key column or if all other columns in row are also empty
-          const hasOtherValues = referenceInfo.columns.some(col => 
-            col !== columnId && row[col] != null && String(row[col]).trim() !== ''
-          );
-          
-          if (columnId === keyColumn || hasOtherValues) {
+        // Check key column uniqueness if specified
+        if (keyColumn && row[keyColumn] != null) {
+          const keyValue = String(row[keyColumn]);
+          if (keyValue.trim() === "") {
             errors.push({
               rowIndex,
-              columnId,
-              message: columnId === keyColumn ? 'Key column is required' : 'Value is required when other fields are populated'
+              columnId: keyColumn,
+              message: "Key column cannot be empty",
             });
+          } else if (seenKeys.has(keyValue)) {
+            errors.push({
+              rowIndex,
+              columnId: keyColumn,
+              message: "Duplicate key value",
+            });
+          } else {
+            seenKeys.add(keyValue);
           }
         }
-      });
-    });
 
-    return errors;
-  }, [keyColumn, referenceInfo.columns, deletedRows]);
+        // Check for required columns (all columns should have some value)
+        referenceInfo.columns.forEach(columnId => {
+          const value = row[columnId];
+          if (value == null || String(value).trim() === "") {
+            // Only flag as error if it's the key column or if all other columns in row are also empty
+            const hasOtherValues = referenceInfo.columns.some(
+              col =>
+                col !== columnId &&
+                row[col] != null &&
+                String(row[col]).trim() !== ""
+            );
+
+            if (columnId === keyColumn || hasOtherValues) {
+              errors.push({
+                rowIndex,
+                columnId,
+                message:
+                  columnId === keyColumn
+                    ? "Key column is required"
+                    : "Value is required when other fields are populated",
+              });
+            }
+          }
+        });
+      });
+
+      return errors;
+    },
+    [keyColumn, referenceInfo.columns, deletedRows]
+  );
 
   // Update validation when data changes
   useEffect(() => {
@@ -139,29 +162,32 @@ export function ReferenceDataEditor({
     setValidationErrors(errors);
   }, [data, validateData]);
 
-  const handleCellEdit = (rowIndex: number, columnId: string, value: string) => {
-    const newData = [...data];
-    newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
-    setData(newData);
-    setHasUnsavedChanges(true);
-    setEditingCell(null);
-  };
+  const handleCellEdit = useCallback(
+    (rowIndex: number, columnId: string, value: string) => {
+      const newData = [...data];
+      newData[rowIndex] = { ...newData[rowIndex], [columnId]: value };
+      setData(newData);
+      setHasUnsavedChanges(true);
+      setEditingCell(null);
+    },
+    [data]
+  );
 
   const handleAddRow = () => {
     const newRow: Record<string, unknown> = {};
     referenceInfo.columns.forEach(col => {
-      newRow[col] = '';
+      newRow[col] = "";
     });
-    
+
     setData([...data, newRow]);
     setHasUnsavedChanges(true);
-    
+
     // Start editing the first column of the new row
     setTimeout(() => {
       setEditingCell({
         rowIndex: data.length,
         columnId: referenceInfo.columns[0],
-        value: ''
+        value: "",
       });
     }, 100);
   };
@@ -195,7 +221,9 @@ export function ReferenceDataEditor({
 
   const handleCancel = () => {
     if (hasUnsavedChanges) {
-      if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
+      if (
+        confirm("You have unsaved changes. Are you sure you want to cancel?")
+      ) {
         onCancel();
       }
     } else {
@@ -203,26 +231,35 @@ export function ReferenceDataEditor({
     }
   };
 
-  const getValidationError = (rowIndex: number, columnId: string): string | null => {
-    const error = validationErrors.find(e => e.rowIndex === rowIndex && e.columnId === columnId);
-    return error?.message || null;
-  };
+  const getValidationError = useCallback(
+    (rowIndex: number, columnId: string): string | null => {
+      const error = validationErrors.find(
+        e => e.rowIndex === rowIndex && e.columnId === columnId
+      );
+      return error?.message || null;
+    },
+    [validationErrors]
+  );
 
   // Create editable columns
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(() => {
     const columnHelper = createColumnHelper<Record<string, unknown>>();
-    
-    const dataColumns = referenceInfo.columns.map((columnId) => 
+
+    const dataColumns = referenceInfo.columns.map(columnId =>
       columnHelper.accessor(columnId, {
         header: ({ column }) => (
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
               className="p-0 h-auto font-medium hover:bg-transparent"
             >
               {columnId}
-              {columnId === keyColumn && <span className="text-xs text-blue-600 ml-1">(key)</span>}
+              {columnId === keyColumn && (
+                <span className="text-xs text-blue-600 ml-1">(key)</span>
+              )}
               <ArrowUpDown className="ml-2 h-3 w-3" />
             </Button>
           </div>
@@ -232,12 +269,14 @@ export function ReferenceDataEditor({
           const isDeleted = deletedRows.has(rowIndex);
           const currentValue = getValue();
           const validationError = getValidationError(rowIndex, columnId);
-          const isEditing = editingCell?.rowIndex === rowIndex && editingCell?.columnId === columnId;
+          const isEditing =
+            editingCell?.rowIndex === rowIndex &&
+            editingCell?.columnId === columnId;
 
           if (isDeleted) {
             return (
               <div className="text-muted-foreground line-through">
-                {currentValue != null ? String(currentValue) : ''}
+                {currentValue != null ? String(currentValue) : ""}
               </div>
             );
           }
@@ -246,12 +285,16 @@ export function ReferenceDataEditor({
             return (
               <Input
                 value={editingCell.value}
-                onChange={(e) => setEditingCell({ ...editingCell, value: e.target.value })}
-                onBlur={() => handleCellEdit(rowIndex, columnId, editingCell.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                onChange={e =>
+                  setEditingCell({ ...editingCell, value: e.target.value })
+                }
+                onBlur={() =>
+                  handleCellEdit(rowIndex, columnId, editingCell.value)
+                }
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
                     handleCellEdit(rowIndex, columnId, editingCell.value);
-                  } else if (e.key === 'Escape') {
+                  } else if (e.key === "Escape") {
                     setEditingCell(null);
                   }
                 }}
@@ -270,21 +313,27 @@ export function ReferenceDataEditor({
                 "min-h-[32px] flex items-center px-2 py-1 rounded cursor-pointer hover:bg-muted/50",
                 validationError && "border border-red-200 bg-red-50"
               )}
-              onClick={() => setEditingCell({
-                rowIndex,
-                columnId,
-                value: currentValue != null ? String(currentValue) : ''
-              })}
+              onClick={() =>
+                setEditingCell({
+                  rowIndex,
+                  columnId,
+                  value: currentValue != null ? String(currentValue) : "",
+                })
+              }
               title={validationError || "Click to edit"}
             >
               {validationError && (
                 <AlertTriangle className="h-3 w-3 text-red-500 mr-1 flex-shrink-0" />
               )}
-              <span className={cn(
-                "flex-1 min-w-0",
-                validationError && "text-red-700"
-              )}>
-                {currentValue != null ? String(currentValue) : (
+              <span
+                className={cn(
+                  "flex-1 min-w-0",
+                  validationError && "text-red-700"
+                )}
+              >
+                {currentValue != null ? (
+                  String(currentValue)
+                ) : (
                   <span className="text-muted-foreground italic">empty</span>
                 )}
               </span>
@@ -299,8 +348,8 @@ export function ReferenceDataEditor({
 
     // Add actions column
     const actionsColumn = columnHelper.display({
-      id: 'actions',
-      header: 'Actions',
+      id: "actions",
+      header: "Actions",
       cell: ({ row }) => {
         const rowIndex = row.index;
         const isDeleted = deletedRows.has(rowIndex);
@@ -333,7 +382,14 @@ export function ReferenceDataEditor({
     });
 
     return [...dataColumns, actionsColumn];
-  }, [referenceInfo.columns, keyColumn, editingCell, deletedRows, validationErrors]);
+  }, [
+    deletedRows,
+    editingCell,
+    getValidationError,
+    handleCellEdit,
+    keyColumn,
+    referenceInfo.columns,
+  ]);
 
   const filteredData = useMemo(() => {
     return data.map((row, index) => ({ ...row, _originalIndex: index }));
@@ -365,17 +421,25 @@ export function ReferenceDataEditor({
           <DialogTitle className="flex items-center gap-2">
             <Edit3 className="h-5 w-5" />
             Edit Reference Data
-            {hasUnsavedChanges && <Badge variant="outline" className="text-orange-600">Unsaved Changes</Badge>}
+            {hasUnsavedChanges && (
+              <Badge variant="outline" className="text-orange-600">
+                Unsaved Changes
+              </Badge>
+            )}
           </DialogTitle>
           <DialogDescription asChild>
             <div className="flex items-center gap-4 text-sm">
               <span>{referenceInfo.filename}</span>
               <Badge variant="outline">{activeRowCount} active rows</Badge>
               {deletedRows.size > 0 && (
-                <Badge variant="destructive">{deletedRows.size} deleted rows</Badge>
+                <Badge variant="destructive">
+                  {deletedRows.size} deleted rows
+                </Badge>
               )}
               {hasErrors && (
-                <Badge variant="destructive">{validationErrors.length} validation errors</Badge>
+                <Badge variant="destructive">
+                  {validationErrors.length} validation errors
+                </Badge>
               )}
             </div>
           </DialogDescription>
@@ -390,11 +454,14 @@ export function ReferenceDataEditor({
               <ul className="space-y-1 text-xs">
                 {validationErrors.slice(0, 5).map((error, index) => (
                   <li key={index}>
-                    Row {error.rowIndex + 1}, Column "{error.columnId}": {error.message}
+                    Row {error.rowIndex + 1}, Column "{error.columnId}":{" "}
+                    {error.message}
                   </li>
                 ))}
                 {validationErrors.length > 5 && (
-                  <li className="text-red-600">... and {validationErrors.length - 5} more errors</li>
+                  <li className="text-red-600">
+                    ... and {validationErrors.length - 5} more errors
+                  </li>
                 )}
               </ul>
             </div>
@@ -404,23 +471,19 @@ export function ReferenceDataEditor({
         {/* Toolbar */}
         <div className="flex items-center justify-between gap-4 py-2">
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddRow}
-            >
+            <Button variant="outline" size="sm" onClick={handleAddRow}>
               <Plus className="h-4 w-4 mr-2" />
               Add Row
             </Button>
-            
+
             <Input
               placeholder="Search all columns..."
               value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              onChange={e => setGlobalFilter(e.target.value)}
               className="max-w-sm"
             />
           </div>
-          
+
           <div className="text-sm text-muted-foreground">
             {activeRowCount} rows • Click any cell to edit
           </div>
@@ -432,15 +495,15 @@ export function ReferenceDataEditor({
         <div className="flex-1 overflow-auto border rounded-md">
           <Table>
             <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+                  {headerGroup.headers.map(header => (
                     <TableHead key={header.id} className="whitespace-nowrap">
                       {header.isPlaceholder
                         ? null
-                        : typeof header.column.columnDef.header === 'function'
-                        ? header.column.columnDef.header(header.getContext())
-                        : header.column.columnDef.header}
+                        : typeof header.column.columnDef.header === "function"
+                          ? header.column.columnDef.header(header.getContext())
+                          : header.column.columnDef.header}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -448,10 +511,10 @@ export function ReferenceDataEditor({
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => {
+                table.getRowModel().rows.map(row => {
                   const originalIndex = (row.original as any)._originalIndex;
                   const isDeleted = deletedRows.has(originalIndex);
-                  
+
                   return (
                     <TableRow
                       key={row.id}
@@ -460,11 +523,11 @@ export function ReferenceDataEditor({
                         isDeleted && "bg-red-50 opacity-60"
                       )}
                     >
-                      {row.getVisibleCells().map((cell) => (
+                      {row.getVisibleCells().map(cell => (
                         <TableCell key={cell.id} className="py-1">
-                          {typeof cell.column.columnDef.cell === 'function'
+                          {typeof cell.column.columnDef.cell === "function"
                             ? cell.column.columnDef.cell(cell.getContext())
-                            : String(cell.getValue() ?? '')}
+                            : String(cell.getValue() ?? "")}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -489,14 +552,14 @@ export function ReferenceDataEditor({
           <div className="text-sm text-muted-foreground">
             {hasUnsavedChanges ? "You have unsaved changes" : "No changes made"}
           </div>
-          
+
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleCancel}>
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={handleSave}
               disabled={hasErrors}
               className={cn(hasErrors && "opacity-50 cursor-not-allowed")}

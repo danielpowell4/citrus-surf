@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/lib/store";
-import type { ReferenceDataInfo, ReferenceData } from "../types/reference-data-types";
+import type { ReferenceDataInfo } from "../types/reference-data-types";
 import { referenceDataManager } from "../utils/reference-data-manager";
 
 export interface ReferenceDataHistoryAction {
@@ -61,7 +61,7 @@ export const referenceDataSlice = createSlice({
   initialState,
   reducers: {
     // File Management Actions
-    uploadFileStart: (state, action: PayloadAction<{ filename: string }>) => {
+    uploadFileStart: (state, _action: PayloadAction<{ filename: string }>) => {
       state.isUploading = true;
       state.uploadProgress = 0;
       state.error = null;

@@ -189,7 +189,7 @@ export default function CustomDiffViewer({
         title: "Copied to clipboard",
         description: "The diff has been copied to your clipboard",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Failed to copy",
         description: "Please try again or copy manually",
@@ -218,7 +218,7 @@ export default function CustomDiffViewer({
         title: "Download started",
         description: "The diff has been downloaded as a JSON file",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Failed to download",
         description: "Please try again or copy manually",

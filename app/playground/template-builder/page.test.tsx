@@ -90,7 +90,7 @@ describe("Template Builder Navigation Logic", () => {
     it("should use the correct shape ID from saved shape (not original)", () => {
       // This test verifies that the redirect uses the saved shape's ID
       // which may be different from the original shape ID due to storage ID generation
-      const originalShape: TargetShape = {
+      const _originalShape: TargetShape = {
         id: "original-temp-id",
         name: "Test Shape",
         fields: [],

@@ -8,7 +8,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   LookupMatchingEngine,
-  LookupResult,
   LookupConfig,
   BatchLookupConfig,
   createLookupConfig,

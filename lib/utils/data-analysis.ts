@@ -32,7 +32,7 @@ export function analyzeDataForTargetShape(data: any[]): {
   const dataTypes: Record<string, string> = {};
 
   // Collect all keys and sample values (excluding vendor-prefixed fields)
-  data.forEach((row, index) => {
+  data.forEach((row) => {
     Object.keys(row)
       .filter(key => !key.startsWith("_")) // Exclude vendor-prefixed fields like _rowId
       .forEach(key => {
@@ -59,7 +59,6 @@ export function analyzeDataForTargetShape(data: any[]): {
   // Analyze data types and generate field suggestions
   const suggestedFields: TargetField[] = Array.from(allKeys).map(key => {
     const values = Array.from(uniqueValues[key]);
-    const uniqueCount = values.length;
     const sampleData = sampleValues[key];
 
     // Determine field type based on content analysis
@@ -114,7 +113,7 @@ export function analyzeDataForTargetShape(data: any[]): {
 function determineFieldType(
   key: string,
   values: any[],
-  sampleData: any[]
+  _sampleData: any[]
 ): FieldType {
   // Skip empty or null values for analysis
   const nonEmptyValues = values.filter(
@@ -300,7 +299,7 @@ function generateFieldName(key: string): string {
 function generateFieldDescription(
   key: string,
   fieldType: FieldType,
-  sampleData: any[]
+  _sampleData: any[]
 ): string {
   const keyLower = key.toLowerCase();
 

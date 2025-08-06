@@ -204,7 +204,7 @@ function SlugifyTool() {
         title: "Copied to clipboard",
         description: "The text has been copied to your clipboard",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Failed to copy",
         description: "Please try again or copy manually",

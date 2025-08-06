@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   Clock,
   History,
@@ -14,7 +11,6 @@ import {
   FileText,
   User,
   Settings,
-  Trash2,
   X,
   Undo2,
   Redo2,
@@ -24,12 +20,10 @@ import {
   selectHistory,
   selectCurrentIndex,
   setCurrentIndex,
-  clearHistory,
 } from "@/lib/features/historySlice";
 import {
   restoreStateToAction,
   getActionSummary,
-  getActionCategory,
 } from "@/lib/utils/time-travel";
 
 interface CompactHistoryProps {
@@ -57,13 +51,13 @@ export function CompactHistory({ className }: CompactHistoryProps) {
   const currentIndex = useAppSelector(selectCurrentIndex);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const lastAction = history[history.length - 1];
+  const _lastAction = history[history.length - 1];
 
   // Undo/Redo functionality
   const canUndo = currentIndex > 0;
   const canRedo = currentIndex < history.length - 1;
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (canUndo) {
       const targetIndex = currentIndex - 1;
       const targetAction = history[targetIndex];
@@ -72,9 +66,9 @@ export function CompactHistory({ className }: CompactHistoryProps) {
         dispatch(setCurrentIndex(targetIndex));
       }
     }
-  };
+  }, [canUndo, currentIndex, dispatch, history]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (canRedo) {
       const targetIndex = currentIndex + 1;
       const targetAction = history[targetIndex];
@@ -83,7 +77,7 @@ export function CompactHistory({ className }: CompactHistoryProps) {
         dispatch(setCurrentIndex(targetIndex));
       }
     }
-  };
+  }, [canRedo, currentIndex, dispatch, history]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -123,7 +117,7 @@ export function CompactHistory({ className }: CompactHistoryProps) {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "unset";
     };
-  }, [isExpanded, canUndo, canRedo]);
+  }, [isExpanded, canUndo, canRedo, handleUndo, handleRedo]);
 
   const handleReapplyState = (actionIndex: number) => {
     const targetAction = history[actionIndex];
@@ -185,10 +179,9 @@ export function CompactHistory({ className }: CompactHistoryProps) {
     return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
   };
 
-  const formatActionDescription = (action: any, index: number) => {
+  const formatActionDescription = (action: any, _index: number) => {
     if (action.type === "table/restoreFromHistory") {
       const restoredFrom = action.payload?.restoredFrom;
-      const restoredAction = action.payload?.restoredFromAction;
       if (restoredFrom !== undefined) {
         return `Created by re-applying version ${restoredFrom + 1}`;
       }
@@ -276,7 +269,7 @@ export function CompactHistory({ className }: CompactHistoryProps) {
                         No actions recorded yet
                       </div>
                     ) : (
-                      [...history].reverse().map((action, index) => {
+                      [...history].reverse().map((action, _index) => {
                         const originalIndex = history.length - 1 - index;
                         return (
                           <div

@@ -6,7 +6,6 @@ import { generateReferenceId } from "../types/reference-data-types";
 import {
   uploadFileStart,
   uploadFileProgress,
-  uploadFileSuccess,
   uploadFileError,
   updateFileData,
   deleteFile,
@@ -68,7 +67,7 @@ export const updateReferenceData = createAsyncThunk<
   { state: RootState }
 >(
   'referenceData/updateData',
-  async ({ id, data }, { dispatch, getState, rejectWithValue }) => {
+  async ({ id, data }, { dispatch, rejectWithValue }) => {
     try {
       // Get previous data for history
       const previousData = referenceDataManager.getReferenceDataRows(id) || [];
@@ -98,7 +97,7 @@ export const deleteReferenceFile = createAsyncThunk<
   { state: RootState }
 >(
   'referenceData/deleteFile',
-  async ({ id }, { dispatch, getState, rejectWithValue }) => {
+  async ({ id }, { dispatch, rejectWithValue }) => {
     try {
       // Get file info before deletion for history
       const referenceData = referenceDataManager.getReferenceData(id);

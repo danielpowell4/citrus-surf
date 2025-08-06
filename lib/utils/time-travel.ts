@@ -180,7 +180,7 @@ export const getActionSummary = (action: HistoryAction) => {
       return "Cleared import data";
     case "restoreFromHistory":
       const restoredFrom = action.payload?.restoredFrom;
-      const restoredAction = action.payload?.restoredFromAction;
+      const _restoredAction = action.payload?.restoredFromAction;
       if (restoredFrom !== undefined) {
         return `Restored from version ${restoredFrom + 1}`;
       }

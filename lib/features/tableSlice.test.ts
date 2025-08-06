@@ -282,7 +282,7 @@ describe("Table Slice", () => {
       store.dispatch(setData(sourceData));
 
       // Manually set an error to test clearing
-      const stateWithError = {
+      const _stateWithError = {
         ...store.getState().table,
         error: "Previous error message",
       };

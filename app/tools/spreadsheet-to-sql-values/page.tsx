@@ -168,7 +168,7 @@ function SqlConverterTool() {
   const [headers, setHeaders] = useState<string[]>([]);
   const [columnMappings, setColumnMappings] = useState<string[]>([]);
   const [columnCastings, setColumnCastings] = useState<string[]>([]);
-  const [customCastings, setCustomCastings] = useState<Record<number, string>>(
+  const [_customCastings, _setCustomCastings] = useState<Record<number, string>>(
     {}
   );
 
@@ -465,7 +465,7 @@ a1b2c3d4-e5f6-7890-abcd-ef1234567890	Sarah	Johnson	sarah.johnson@example.com`);
         title: "Copied to clipboard",
         description: "The SQL has been copied to your clipboard",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Failed to copy",
         description: "Please try again or copy manually",

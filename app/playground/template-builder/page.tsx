@@ -15,7 +15,7 @@ function TemplateBuilderContent() {
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
   
-  const navigator = createLookupNavigator(router, "/playground/template-builder", searchParams);
+  const _navigator = createLookupNavigator(router, "/playground/template-builder", searchParams);
 
   const source = searchParams.get("source");
   const editId = searchParams.get("edit");

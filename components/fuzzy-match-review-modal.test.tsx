@@ -200,7 +200,7 @@ describe('FuzzyMatchReviewModal', () => {
   });
 
   it('handles select all functionality', () => {
-    const pendingMatches = mockMatches.filter(m => m.status === 'pending');
+    const _pendingMatches = mockMatches.filter(m => m.status === 'pending');
     
     render(<FuzzyMatchReviewModal {...defaultProps} />);
     

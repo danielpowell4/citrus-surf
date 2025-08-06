@@ -5,7 +5,7 @@
  * with the data processing pipeline for automatic lookups during import and real-time updates.
  */
 
-import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LookupProcessor, lookupProcessor, hasLookupFields, getLookupFields } from './lookup-processor';
 import type { TargetShape, LookupField } from '../types/target-shapes';
 import type { TableRow } from '../features/tableSlice';
@@ -339,7 +339,7 @@ describe('LookupProcessor', () => {
       ];
 
       const progressUpdates: number[] = [];
-      const onProgress = (processed: number, total: number) => {
+      const onProgress = (processed: number, _total: number) => {
         progressUpdates.push(processed);
       };
 

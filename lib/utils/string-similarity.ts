@@ -322,20 +322,20 @@ export function benchmarkSimilarity(
 ): SimilarityMetrics {
   const startTime = performance.now();
   
-  let result: number;
+  let _result: number;
   switch (algorithm) {
     case 'levenshtein':
-      result = levenshteinSimilarity(str1, str2);
+      _result = levenshteinSimilarity(str1, str2);
       break;
     case 'jaro':
-      result = jaroSimilarity(str1, str2);
+      _result = jaroSimilarity(str1, str2);
       break;
     case 'jaroWinkler':
-      result = jaroWinklerSimilarity(str1, str2);
+      _result = jaroWinklerSimilarity(str1, str2);
       break;
     case 'combined':
     default:
-      result = combinedSimilarity(str1, str2);
+      _result = combinedSimilarity(str1, str2);
       break;
   }
   

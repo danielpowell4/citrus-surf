@@ -62,7 +62,7 @@ interface SelectColumnConfig extends BaseColumnConfig {
   options: Array<{ value: string; label: string }>;
 }
 
-type ColumnConfig =
+type _ColumnConfig =
   | TextColumnConfig
   | NumberColumnConfig
   | CurrencyColumnConfig
@@ -73,7 +73,7 @@ export function EditableCell({
   value: initialValue,
   row,
   column,
-  getValue,
+  _getValue,
   table,
 }: EditableCellProps) {
   const dispatch = useAppDispatch();

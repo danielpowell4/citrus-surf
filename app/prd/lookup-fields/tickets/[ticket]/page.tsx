@@ -53,7 +53,7 @@ function readMarkdownFile(filePath: string): string {
   try {
     const fullPath = path.join(process.cwd(), "prd", filePath);
     return fs.readFileSync(fullPath, "utf8");
-  } catch (error) {
+  } catch {
     return "";
   }
 }

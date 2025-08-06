@@ -88,7 +88,7 @@ export function DataTable({
     grouping,
     expanded,
     pagination,
-    editingCell = null,
+    editingCell: _editingCell = null,
   } = tableState;
 
   // Safe access to editingCell

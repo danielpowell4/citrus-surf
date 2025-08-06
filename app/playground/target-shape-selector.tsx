@@ -7,17 +7,9 @@ import {
   selectTargetShape,
 } from "@/lib/features/targetShapesSlice";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Plus, FolderOpen, FileText } from "lucide-react";
+import { Plus, FolderOpen, FileText } from "lucide-react";
 
 interface TargetShapeSelectorProps {
   onCreateNew?: () => void; // Callback to open shape creation workflow

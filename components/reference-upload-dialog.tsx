@@ -13,7 +13,6 @@ import {
   AlertTriangle, 
   CheckCircle, 
   X,
-  Download,
   RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";

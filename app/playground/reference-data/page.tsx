@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   Database,
   Upload,
@@ -14,7 +13,6 @@ import {
   Trash2,
   Download,
   Plus,
-  ArrowLeft,
   Eye,
 } from "lucide-react";
 import { referenceDataManager } from "@/lib/utils/reference-data-manager";

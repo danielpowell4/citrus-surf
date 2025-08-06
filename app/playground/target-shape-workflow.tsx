@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,19 +18,15 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  saveTargetShape,
   saveTargetShapeAsync,
   updateTargetShape,
 } from "@/lib/features/targetShapesSlice";
-import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
 import { generateShapeId, generateFieldId } from "@/lib/utils/id-generator";
 import { analyzeDataForTargetShape } from "@/lib/utils/data-analysis";
 import type {
   TargetShape,
   TargetField,
   FieldType,
-  ValidationRule,
-  TransformationRule,
   LookupField,
   LookupMatch,
   SmartMatching,
@@ -65,7 +60,7 @@ const BasicInfoStep: React.FC<WorkflowStepProps> = ({
   data,
   onUpdate,
   onNext,
-  isFirst,
+  _isFirst,
 }) => {
   return (
     <div className="space-y-6">
@@ -380,7 +375,7 @@ const FieldsStep: React.FC<WorkflowStepProps> = ({
 const ReviewStep: React.FC<WorkflowStepProps> = ({
   data,
   onBack,
-  isLast,
+  _isLast,
   onShapeCreated,
   isEditMode,
 }) => {
@@ -430,7 +425,7 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
           throw new Error("Failed to save shape");
         }
       }
-    } catch (error) {
+    } catch {
       toast({
         title: isEditMode ? "Update Failed" : "Save Failed",
         description: `Failed to ${isEditMode ? "update" : "save"} target shape. Please try again.`,

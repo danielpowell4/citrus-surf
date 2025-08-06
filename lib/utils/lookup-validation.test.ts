@@ -5,7 +5,7 @@
  * fuzzy match confidence, reference data integrity, and enhanced error messages.
  */
 
-import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { 
   LookupValidationSystem, 
   lookupValidationSystem, 
@@ -96,8 +96,8 @@ vi.mock('./lookup-processor', () => ({
 describe('LookupValidationSystem', () => {
   let validator: LookupValidationSystem;
   let departmentLookupField: LookupField;
-  let productLookupField: LookupField;
-  let invalidDataLookupField: LookupField;
+  let _productLookupField: LookupField;
+  let _invalidDataLookupField: LookupField;
 
   beforeEach(() => {
     validator = new LookupValidationSystem();
@@ -410,7 +410,7 @@ describe('LookupValidationSystem', () => {
       }));
 
       const progressUpdates: number[] = [];
-      const onProgress = (processed: number, total: number) => {
+      const onProgress = (processed: number, _total: number) => {
         progressUpdates.push(processed);
       };
 

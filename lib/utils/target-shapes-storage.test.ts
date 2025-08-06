@@ -139,8 +139,8 @@ describe("Target Shapes Storage", () => {
   });
 
   it("should handle multiple shapes", () => {
-    const shape1 = targetShapesStorage.save(mockTargetShape);
-    const shape2 = targetShapesStorage.save({
+    const _shape1 = targetShapesStorage.save(mockTargetShape);
+    const _shape2 = targetShapesStorage.save({
       ...mockTargetShape,
       name: "Second Shape",
     });

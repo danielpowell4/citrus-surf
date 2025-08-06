@@ -6,13 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Bot,
-  Copy,
   X,
   Trash2,
-  Eye,
   ChevronUp,
   ChevronDown,
-  AlertCircle,
   MousePointer2,
   Target,
   StopCircle,
@@ -147,7 +144,7 @@ export function DevClaudeHelper() {
           state: fiber?.memoizedState,
         };
       }
-    } catch (e) {
+    } catch {
       // React info extraction failed, continue without it
     }
 
@@ -285,7 +282,7 @@ export function DevClaudeHelper() {
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
           })
-          .catch(error => {
+          .catch(_error => {
             console.log("📋 Copy this element context for Claude:");
             console.log(formatted);
             // Show error notification
@@ -432,7 +429,7 @@ export function DevClaudeHelper() {
     }
   };
 
-  const copyElementForClaude = () => {
+  const _copyElementForClaude = () => {
     const globalLogger = (window as any).errorLogger;
     if (globalLogger && globalLogger.copyElementForClaude && selectedElement) {
       globalLogger.copyElementForClaude();

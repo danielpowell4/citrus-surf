@@ -7,7 +7,7 @@
 
 import { LookupMatchingEngine, createLookupConfig } from './lookup-matching-engine';
 import { referenceDataManager } from './reference-data-manager';
-import type { TargetShape, LookupField, DerivedField } from '../types/target-shapes';
+import type { TargetShape, LookupField } from '../types/target-shapes';
 import type { TableRow } from '../features/tableSlice';
 
 /**
@@ -299,7 +299,7 @@ export class LookupProcessor {
   async processSingleLookup(
     value: any,
     field: LookupField,
-    rowId: string
+    _rowId: string
   ): Promise<import('./lookup-matching-engine').LookupResult> {
     // Get reference data for this lookup field
     const referenceData = referenceDataManager.getReferenceDataRows(field.referenceFile);

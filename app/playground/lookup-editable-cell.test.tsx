@@ -214,7 +214,7 @@ describe('LookupEditableCell', () => {
       fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
       
       // Should dispatch updateCell action
-      const actions = store.getState();
+      const _actions = store.getState();
       // Note: In real implementation, we'd check if the updateCell action was dispatched
     });
 
@@ -354,7 +354,7 @@ describe('LookupEditableCell', () => {
   describe('Error Handling', () => {
     it('handles lookup errors gracefully', () => {
       // Mock lookup engine to throw error
-      const mockEngine = {
+      const _mockEngine = {
         performLookup: vi.fn().mockImplementation(() => {
           throw new Error('Lookup failed');
         }),

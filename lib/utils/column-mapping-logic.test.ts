@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { TargetShape, TargetField } from "@/lib/types/target-shapes";
+import type { TargetField } from "@/lib/types/target-shapes";
 
 // Extract the mapping logic for testing
 function suggestColumnMapping(

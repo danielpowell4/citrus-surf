@@ -214,7 +214,7 @@ describe("Mapping Suggestion Engine", () => {
 
       it("should handle dissimilar strings appropriately", () => {
         const importColumns = ["xyz", "abc", "def"];
-        const mapping = generateMappingSuggestions(
+        const _mapping = generateMappingSuggestions(
           importColumns,
           mockTargetFields
         );

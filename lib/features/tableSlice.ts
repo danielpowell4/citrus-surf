@@ -269,9 +269,7 @@ export const tableSlice = createSlice({
     ) => {
       const {
         targetShapeId,
-        targetShapeName,
         columnMapping,
-        fieldMappings,
         targetFields,
       } = action.payload;
 
@@ -433,7 +431,7 @@ export const tableSlice = createSlice({
         } else {
           state.error = "Data must be an array";
         }
-      } catch (error) {
+      } catch {
         state.error = "Invalid JSON format";
       } finally {
         state.isLoading = false;
@@ -483,8 +481,8 @@ export const tableSlice = createSlice({
 
     // History restoration action
     restoreFromHistory: (
-      state,
-      action: PayloadAction<{
+      _state,
+      _action: PayloadAction<{
         restoredFrom: number;
         restoredFromAction: string;
         [key: string]: any;
@@ -493,6 +491,7 @@ export const tableSlice = createSlice({
       // This action is used to mark when a state is restored from history
       // The actual state restoration is handled by the time travel utility
       // This just ensures the action is tracked in the history
+      // No state changes needed - this is just for history tracking
     },
 
     // Lookup processing reducers
