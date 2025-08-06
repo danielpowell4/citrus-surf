@@ -18,7 +18,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useAppDispatch } from "@/lib/hooks";
 import {
   saveTargetShape,
   saveTargetShapeAsync,

@@ -369,7 +369,7 @@ export const targetShapesSlice = createSlice({
             const sampleRow = referenceData[0];
             
             // Remove existing derived fields
-            let updatedFields = shape.fields.filter(f => 
+            const updatedFields = shape.fields.filter(f => 
               !lookupField.alsoGet?.some(d => d.name === f.name)
             );
 

@@ -56,6 +56,11 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
     "referenceData/deleteFile", // Reference data deletion
     "table/processDataWithLookups/fulfilled", // Lookup data processing
     "table/updateLookupValue/fulfilled", // Real-time lookup updates
+    "lookup/acceptFuzzyMatch", // Fuzzy match review: Accept match
+    "lookup/rejectFuzzyMatch", // Fuzzy match review: Reject match
+    "lookup/batchAcceptMatches", // Fuzzy match review: Batch accept
+    "lookup/batchRejectMatches", // Fuzzy match review: Batch reject
+    "lookup/manualEntryForMatch", // Fuzzy match review: Manual entry
   ];
 
   // Skip actions that are not meaningful user interactions
@@ -200,6 +205,11 @@ export const makeStore = () => {
       "referenceData/clearAllFiles",
       "table/processDataWithLookups/fulfilled",
       "table/updateLookupValue/fulfilled",
+      "lookup/acceptFuzzyMatch",
+      "lookup/rejectFuzzyMatch",
+      "lookup/batchAcceptMatches",
+      "lookup/batchRejectMatches",
+      "lookup/manualEntryForMatch",
     ],
     debug: process.env.NODE_ENV === "development",
   });

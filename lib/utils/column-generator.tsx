@@ -219,7 +219,7 @@ function generateDefaultColumn(
 
   // Determine column type from sample data
   const sampleValue = data.length > 0 ? data[0][columnKey] : null;
-  let meta: ColumnMeta = {
+  const meta: ColumnMeta = {
     sortType: "natural",
     editable: {
       type: "text",

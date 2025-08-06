@@ -269,7 +269,8 @@ export function isValidBatchId(id: string): boolean {
 }
 
 export function isValidFuzzyMatchId(id: string): boolean {
-  return /^match_[0-9A-Z]{26}$/.test(id);
+  // Support both ULID format and our composite format: match_${rowId}_${fieldName}_${index}
+  return /^match_([0-9A-Z]{25}|.+_.+_\d+|\d{3})$/.test(id);
 }
 
 /**
