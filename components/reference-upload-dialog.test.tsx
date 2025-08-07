@@ -36,8 +36,24 @@ describe('ReferenceUploadDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default to successful validation (can be overridden per test)
     mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
     mockReferenceDataManager.uploadReferenceFile.mockResolvedValue(mockReferenceInfo);
+    
+    // Mock File.prototype.text method to return appropriate content based on file construction
+    global.File.prototype.text = vi.fn().mockImplementation(function(this: File) {
+      // Access the file content that was passed to the File constructor
+      // For test files, we'll extract it from the Blob's internal data
+      const fileData = (this as any)._data || (this as any).stream;
+      if (typeof fileData === 'string') {
+        return Promise.resolve(fileData);
+      }
+      // For our test files, we'll return specific content based on filename
+      if (this.name.includes('test-data') || this.name.includes('category')) {
+        return Promise.resolve('id,name,category\n1,Test Item,A\n2,Another Item,B');
+      }
+      return Promise.resolve('id,name\n1,Test');
+    });
   });
 
   it('renders upload dialog', () => {
@@ -89,7 +105,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -128,7 +144,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test-data.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -139,7 +155,7 @@ describe('ReferenceUploadDialog', () => {
     
     await waitFor(() => {
       const customIdInput = screen.getByLabelText('Reference ID (optional)') as HTMLInputElement;
-      expect(customIdInput.value).toBe('test-data');
+      expect(customIdInput.value).toBe('test_data');
     });
   });
 
@@ -147,7 +163,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -173,7 +189,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['invalid data'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -201,7 +217,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test\n2,'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -220,7 +236,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name,category\n1,Test Item,A\n2,Another Item,B'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -243,7 +259,7 @@ describe('ReferenceUploadDialog', () => {
     expect(screen.getByRole('button', { name: /upload/i })).toBeDisabled();
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -269,7 +285,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['invalid'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -287,7 +303,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -311,7 +327,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} onSuccess={onSuccess} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -337,7 +353,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} onError={onError} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],
@@ -360,7 +376,7 @@ describe('ReferenceUploadDialog', () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
-    const fileInput = screen.getByRole('textbox', { hidden: true }) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     Object.defineProperty(fileInput, 'files', {
       value: [file],

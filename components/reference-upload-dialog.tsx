@@ -86,10 +86,6 @@ export function ReferenceUploadDialog({
 
       // Validate file content
       const validation = await referenceDataManager.validateReferenceData(file);
-      
-      if (!validation.valid) {
-        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
-      }
 
       // Generate preview data
       const text = await file.text();

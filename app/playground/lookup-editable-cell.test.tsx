@@ -179,9 +179,9 @@ describe('LookupEditableCell', () => {
       const store = createMockStore();
       renderComponent({ store });
       
-      // Double click on the outer div that has the onDoubleClick handler
-      const outerDiv = screen.getByText('Engineering').closest('div')!.parentElement!;
-      fireEvent.doubleClick(outerDiv);
+      // Find the outer div that has the onDoubleClick handler
+      const outerDiv = document.querySelector('.cursor-pointer');
+      fireEvent.doubleClick(outerDiv!);
       
       await waitFor(() => {
         // Check if editingCell state is set in Redux
