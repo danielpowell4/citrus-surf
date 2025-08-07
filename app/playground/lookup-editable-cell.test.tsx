@@ -142,9 +142,12 @@ describe('LookupEditableCell', () => {
   });
 
   const renderComponent = (props = {}) => {
+    const { store: customStore, ...otherProps } = props;
+    const storeToUse = customStore || store;
+    
     return render(
-      <Provider store={store}>
-        <LookupEditableCell {...defaultProps} {...props} />
+      <Provider store={storeToUse}>
+        <LookupEditableCell {...defaultProps} {...otherProps} />
       </Provider>
     );
   };
@@ -173,13 +176,31 @@ describe('LookupEditableCell', () => {
 
   describe('Edit Mode', () => {
     it('enters edit mode on double click', async () => {
-      renderComponent();
+      const store = createMockStore();
+      renderComponent({ store });
       
-      const cellDiv = screen.getByText('Engineering').closest('div')!;
-      fireEvent.doubleClick(cellDiv);
+      // Double click on the outer div that has the onDoubleClick handler
+      const outerDiv = screen.getByText('Engineering').closest('div')!.parentElement!;
+      fireEvent.doubleClick(outerDiv);
       
       await waitFor(() => {
-        expect(screen.getByRole('combobox')).toBeInTheDocument();
+        // Check if editingCell state is set in Redux
+        const state = store.getState();
+        expect(state.table.editingCell).toEqual({
+          rowId: 'row1',
+          columnId: 'department'
+        });
+      });
+      
+      await waitFor(() => {
+        // Should render the combobox button when in edit mode
+        const combobox = screen.getByRole('combobox');
+        expect(combobox).toBeInTheDocument();
+        expect(combobox).toHaveAttribute('aria-expanded', 'true');
+      });
+      
+      // Now that the popover is open, we should find the input
+      await waitFor(() => {
         expect(screen.getByPlaceholderText('Search or type new value...')).toBeInTheDocument();
       });
     });

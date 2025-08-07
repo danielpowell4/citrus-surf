@@ -33,10 +33,10 @@ describe("Mapping Suggestion Engine", () => {
 
     describe("generateFieldVariations", () => {
       it("should generate all variations for a field", () => {
-        const variations = generateFieldVariations(
+        const variations = Array.from(generateFieldVariations(
           "First Name",
           "field_firstName"
-        );
+        ));
         expect(variations).toContain("first name");
         expect(variations).toContain("field_firstname");
         expect(variations).toContain("first_name");
@@ -44,7 +44,7 @@ describe("Mapping Suggestion Engine", () => {
       });
 
       it("should clean prefixes and suffixes", () => {
-        const variations = generateFieldVariations("User ID", "field_user_id");
+        const variations = Array.from(generateFieldVariations("User ID", "field_user_id"));
         expect(variations).toContain("user_id");
         expect(variations).toContain("userId");
       });
@@ -52,7 +52,7 @@ describe("Mapping Suggestion Engine", () => {
 
     describe("generateColumnVariations", () => {
       it("should generate all variations for a column", () => {
-        const variations = generateColumnVariations("First_Name");
+        const variations = Array.from(generateColumnVariations("First_Name"));
         expect(variations).toContain("first_name");
         expect(variations).toContain("firstName");
       });

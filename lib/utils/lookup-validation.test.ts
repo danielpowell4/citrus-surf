@@ -96,8 +96,8 @@ vi.mock('./lookup-processor', () => ({
 describe('LookupValidationSystem', () => {
   let validator: LookupValidationSystem;
   let departmentLookupField: LookupField;
-  let _productLookupField: LookupField;
-  let _invalidDataLookupField: LookupField;
+  let productLookupField: LookupField;
+  let invalidDataLookupField: LookupField;
 
   beforeEach(() => {
     validator = new LookupValidationSystem();

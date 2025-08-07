@@ -24,7 +24,7 @@ export class EmailTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
 
     // Primary email tokens
@@ -75,7 +75,7 @@ export class PhoneTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
 
     // Primary phone tokens
@@ -122,7 +122,7 @@ export class NameTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
     const primaryTokens: string[] = [];
     const abbreviations: string[] = [];
@@ -224,7 +224,7 @@ export class IdTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
 
     // Primary ID tokens
@@ -311,7 +311,7 @@ export class DateTimeTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
     const primaryTokens: string[] = [];
 
@@ -438,7 +438,7 @@ export class NumericTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
     const primaryTokens: string[] = [];
 
@@ -551,7 +551,7 @@ export class AddressTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
     const primaryTokens: string[] = [];
 
@@ -701,7 +701,7 @@ export class UrlTokenBuilder extends BaseTokenBuilder {
     );
   }
 
-  generateTokens(_context: TokenContext): TokenResult {
+  generateTokens(context: TokenContext): TokenResult {
     const tokens = new Set<string>();
 
     // URL tokens
