@@ -107,7 +107,7 @@ export function ReferenceInfoPopup({
                   {referenceInfo?.columns.length || Object.keys(referenceData[0] || {}).length}
                 </Badge>
               </div>
-              {referenceInfo?.fileSize && (
+              {typeof referenceInfo?.fileSize === 'number' && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">File size:</span>
                   <Badge variant="outline" className="text-xs">
