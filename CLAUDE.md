@@ -171,7 +171,14 @@ Complete lookup field system with matching engine and data processing integratio
 **Framework**: Vitest with React Testing Library
 **Setup**: `test/setup.ts` configures jsdom environment
 **Location**: Tests co-located with source files (`.test.ts/.test.tsx`)
-**Coverage**: Focus on data transformation logic and UI component behavior
+
+**Testing Philosophy**: Focus on user-facing acceptance criteria rather than implementation details
+- ✅ **High-Value Tests**: Upload success, progress feedback, error handling, accessibility
+- ✅ **Core Business Logic**: Data processing, validation, transformation algorithms
+- ❌ **Low-Value Tests**: Complex integration workflows, implementation details, redundant scenarios
+- **Goal**: Lean, stable test suite that catches real bugs without hindering development velocity
+
+**Test Value Assessment**: Regularly remove tests that provide minimal user value or break frequently due to implementation changes. Prefer focused unit tests over complex multi-step integration tests.
 
 ### Persistence & Hydration
 

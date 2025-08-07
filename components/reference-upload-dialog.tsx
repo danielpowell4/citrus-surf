@@ -322,19 +322,19 @@ export function ReferenceUploadDialog({
                 {fileValidation.validation.valid ? (
                   <>
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-800">File validation passed</span>
+                    <span className="text-sm font-medium text-green-800" data-testid="validation-success">File validation passed</span>
                   </>
                 ) : (
                   <>
                     <AlertTriangle className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-800">File validation failed</span>
+                    <span className="text-sm font-medium text-red-800" data-testid="validation-error">File validation failed</span>
                   </>
                 )}
               </div>
 
               {/* Validation Errors */}
               {fileValidation.validation.errors.length > 0 && (
-                <div className="text-sm text-red-800 space-y-1">
+                <div className="text-sm text-red-800 space-y-1" data-testid="validation-errors">
                   {fileValidation.validation.errors.map((error, index) => (
                     <div key={index} className="flex items-start gap-2">
                       <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
@@ -396,10 +396,10 @@ export function ReferenceUploadDialog({
 
           {/* Upload Progress */}
           {isUploading && (
-            <div className="space-y-2">
+            <div className="space-y-2" data-testid="upload-progress">
               <div className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Uploading...</span>
+                <span className="text-sm" data-testid="upload-status">Uploading...</span>
                 <Badge variant="outline">{uploadProgress.toFixed(0)}%</Badge>
               </div>
               <div className="w-full bg-secondary rounded-full h-2">
@@ -421,6 +421,7 @@ export function ReferenceUploadDialog({
           <Button 
             onClick={handleUpload}
             disabled={!canUpload}
+            data-testid="upload-button"
           >
             {isUploading ? (
               <>

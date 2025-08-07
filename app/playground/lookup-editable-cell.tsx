@@ -249,6 +249,7 @@ export function LookupEditableCell({
       className={`cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors ${
         isEditing ? "ring-2 ring-primary bg-primary/10" : ""
       }`}
+      data-testid="lookup-cell"
     >
       {isEditing ? (
         <Popover open={open} onOpenChange={setOpen}>
@@ -258,6 +259,7 @@ export function LookupEditableCell({
               role="combobox"
               aria-expanded={open}
               className="w-full justify-between h-8 text-sm"
+              data-testid="lookup-combobox"
             >
               {inputValue || "Select value..."}
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

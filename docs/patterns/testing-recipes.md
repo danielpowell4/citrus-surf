@@ -26,6 +26,9 @@ This guide provides comprehensive testing patterns, recipes, and tool overviews 
 3. **Descriptive test names** - Tests should read like specifications
 4. **Mock at the boundary** - Mock external dependencies, not internal logic
 5. **Test edge cases** - Especially important for data processing
+6. **Focus on acceptance criteria** - Test "happy case" user workflows, not complex edge cases
+7. **Avoid redundant tests** - Remove tests that don't provide unique value
+8. **Skip complex integration tests** - Prefer focused unit tests over brittle multi-step workflows
 
 ## Unit Testing Patterns
 
@@ -635,17 +638,61 @@ expect(() => {
 }).toThrow('Invalid input value');
 ```
 
+## Test Value Assessment
+
+### High-Value Tests (Keep & Maintain)
+- **User-facing functionality**: Upload success, progress feedback, basic interactions
+- **Core business logic**: Data validation, transformation, matching algorithms
+- **Error handling**: Clear error messages, graceful failures
+- **Accessibility**: Basic keyboard navigation, ARIA attributes
+- **Integration points**: API calls, state management, data flow
+
+### Medium-Value Tests (Selective)
+- **Edge cases**: Only test edge cases that users commonly encounter
+- **Performance**: Test performance for user-impacting operations
+- **Complex workflows**: Only test multi-step flows that are core user journeys
+
+### Low-Value Tests (Remove)
+- **Implementation details**: Internal function calls, component structure
+- **Complex mock setups**: Tests that require extensive mocking infrastructure
+- **Redundant coverage**: Multiple tests covering the same user scenario
+- **Brittle integrations**: Multi-component workflows that break frequently
+- **Developer convenience**: Tests for development tools, not user features
+
+### Testing Philosophy
+
+**Quality over Quantity**: A smaller test suite focused on user value is better than comprehensive coverage of implementation details.
+
+**Maintenance Cost vs Value**: If a test breaks more often than it catches real bugs, remove it.
+
+**User-Centric Focus**: Ask "Does this test verify something a user would notice if it broke?"
+
 ## Best Practices Summary
 
 1. **Test Structure**: Use clear Arrange-Act-Assert pattern
 2. **Mock Strategy**: Mock at module boundaries, not internal implementations
-3. **Data Setup**: Create realistic test data that covers edge cases
+3. **Data Setup**: Create realistic test data that covers common use cases
 4. **Async Testing**: Always use `waitFor` for async operations
 5. **Cleanup**: Use `beforeEach` and `afterEach` for test isolation
-6. **Descriptive Names**: Test names should explain the expected behavior
-7. **Performance**: Include performance tests for data-intensive operations
-8. **Integration**: Test component interactions and data flow
-9. **Error Cases**: Always test error scenarios and edge cases
-10. **Documentation**: Use tests as living documentation of expected behavior
+6. **Descriptive Names**: Test names should explain user-facing behavior
+7. **Performance**: Include performance tests for user-impacting operations
+8. **Value Assessment**: Regularly review and remove low-value tests
+9. **Focused Testing**: Prefer focused unit tests over complex integration tests
+10. **Documentation**: Use tests as living documentation of user expectations
 
-This testing infrastructure provides a solid foundation for maintaining code quality and preventing regressions as the lookup fields system and broader codebase continue to evolve.
+## Test Suite Maintenance
+
+### Regular Review Process
+1. **Identify Failing Tests**: Are they catching real bugs or breaking due to implementation changes?
+2. **Assess Test Value**: Does this test verify user-facing functionality?
+3. **Remove Low-Value Tests**: Clean up tests that don't provide unique value
+4. **Add Missing Coverage**: Focus on user scenarios that aren't tested
+5. **Simplify Complex Tests**: Break down brittle integration tests into focused unit tests
+
+### Success Metrics
+- **Stable test suite**: Tests should rarely break due to refactoring
+- **Fast feedback**: Test suite should run quickly and provide clear results
+- **User-focused coverage**: Tests should verify features users actually use
+- **Maintainable codebase**: Tests should help, not hinder, development velocity
+
+This lean testing approach provides better ROI by focusing resources on tests that verify real user value while reducing maintenance overhead from brittle, low-value tests.

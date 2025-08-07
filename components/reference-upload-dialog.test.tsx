@@ -36,23 +36,15 @@ describe('ReferenceUploadDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default to successful validation (can be overridden per test)
-    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
-    mockReferenceDataManager.uploadReferenceFile.mockResolvedValue(mockReferenceInfo);
     
-    // Mock File.prototype.text method to return appropriate content based on file construction
-    global.File.prototype.text = vi.fn().mockImplementation(function(this: File) {
-      // Access the file content that was passed to the File constructor
-      // For test files, we'll extract it from the Blob's internal data
-      const fileData = (this as any)._data || (this as any).stream;
-      if (typeof fileData === 'string') {
-        return Promise.resolve(fileData);
-      }
-      // For our test files, we'll return specific content based on filename
-      if (this.name.includes('test-data') || this.name.includes('category')) {
-        return Promise.resolve('id,name,category\n1,Test Item,A\n2,Another Item,B');
-      }
-      return Promise.resolve('id,name\n1,Test');
+    // Mock File.prototype.text method to return the file content
+    global.File.prototype.text = vi.fn().mockImplementation(async function(this: File) {
+      // Return content based on file construction for tests
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsText(this);
+      });
     });
   });
 
@@ -102,6 +94,9 @@ describe('ReferenceUploadDialog', () => {
   });
 
   it('handles file selection via input', async () => {
+    // Set up successful validation for this test
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
@@ -121,6 +116,9 @@ describe('ReferenceUploadDialog', () => {
   });
 
   it('handles file selection via drag and drop', async () => {
+    // Set up successful validation for this test
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
@@ -141,6 +139,9 @@ describe('ReferenceUploadDialog', () => {
   });
 
   it('auto-generates custom ID from filename', async () => {
+    // Set up successful validation for this test
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test-data.csv', { type: 'text/csv' });
@@ -160,6 +161,9 @@ describe('ReferenceUploadDialog', () => {
   });
 
   it('displays file validation success', async () => {
+    // Set up successful validation for this test
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
@@ -177,17 +181,10 @@ describe('ReferenceUploadDialog', () => {
     });
   });
 
-  it('displays file validation errors', async () => {
-    const errorValidation: ValidationResult = {
-      valid: false,
-      errors: ['Invalid CSV format', 'Missing required columns'],
-      warnings: [],
-    };
-    
-    mockReferenceDataManager.validateReferenceData.mockResolvedValue(errorValidation);
-    
+  it('shows helpful error messages when files are invalid', async () => {
     render(<ReferenceUploadDialog {...defaultProps} />);
     
+    // User selects a file with invalid CSV structure (component validates this internally)
     const file = new File(['invalid data'], 'test.csv', { type: 'text/csv' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
@@ -198,11 +195,15 @@ describe('ReferenceUploadDialog', () => {
     
     fireEvent.change(fileInput);
     
+    // User should see clear error feedback about the file structure
     await waitFor(() => {
-      expect(screen.getByText('File validation failed')).toBeInTheDocument();
-      expect(screen.getByText('Invalid CSV format')).toBeInTheDocument();
-      expect(screen.getByText('Missing required columns')).toBeInTheDocument();
+      expect(screen.getByTestId('validation-error')).toBeInTheDocument();
+      // The component's internal validation provides this specific error
+      expect(screen.getByTestId('validation-errors')).toHaveTextContent('CSV file must have at least a header row and one data row');
     });
+    
+    // Upload button should be disabled when validation fails
+    expect(screen.getByTestId('upload-button')).toBeDisabled();
   });
 
   it('displays file validation warnings', async () => {
@@ -233,6 +234,9 @@ describe('ReferenceUploadDialog', () => {
   });
 
   it('shows data preview for valid files', async () => {
+    // Set up successful validation for this test
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name,category\n1,Test Item,A\n2,Another Item,B'], 'test.csv', { type: 'text/csv' });
@@ -253,6 +257,9 @@ describe('ReferenceUploadDialog', () => {
   });
 
   it('enables upload button only when file is valid', async () => {
+    // Set up successful validation for this test
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     // Initially disabled
@@ -299,9 +306,18 @@ describe('ReferenceUploadDialog', () => {
     });
   });
 
-  it('shows upload progress during upload', async () => {
+  it('shows upload progress to user', async () => {
+    // Set up successful validation and slow upload
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    mockReferenceDataManager.uploadReferenceFile.mockImplementation(async () => {
+      // Simulate slow upload so we can see progress
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return mockReferenceInfo;
+    });
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
+    // User selects a file
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
@@ -312,20 +328,31 @@ describe('ReferenceUploadDialog', () => {
     
     fireEvent.change(fileInput);
     
+    // Wait for validation
     await waitFor(() => {
-      const uploadButton = screen.getByRole('button', { name: /upload/i });
-      fireEvent.click(uploadButton);
+      expect(screen.getByTestId('validation-success')).toBeInTheDocument();
     });
     
+    // User starts upload
+    const uploadButton = screen.getByTestId('upload-button');
+    fireEvent.click(uploadButton);
+    
+    // User should see upload progress
     await waitFor(() => {
-      expect(screen.getByText('Uploading...')).toBeInTheDocument();
+      expect(screen.getByTestId('upload-progress')).toBeInTheDocument();
+      expect(screen.getByTestId('upload-status')).toHaveTextContent('Uploading...');
     });
   });
 
-  it('calls onSuccess after successful upload', async () => {
+  it('completes file upload successfully', async () => {
+    // Set up successful validation and upload
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    mockReferenceDataManager.uploadReferenceFile.mockResolvedValue(mockReferenceInfo);
+    
     const onSuccess = vi.fn();
     render(<ReferenceUploadDialog {...defaultProps} onSuccess={onSuccess} />);
     
+    // User selects a file
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
@@ -336,22 +363,30 @@ describe('ReferenceUploadDialog', () => {
     
     fireEvent.change(fileInput);
     
+    // Wait for validation to complete
     await waitFor(() => {
-      const uploadButton = screen.getByRole('button', { name: /upload/i });
-      fireEvent.click(uploadButton);
+      expect(screen.getByTestId('validation-success')).toBeInTheDocument();
     });
     
+    // User clicks upload
+    const uploadButton = screen.getByTestId('upload-button');
+    fireEvent.click(uploadButton);
+    
+    // Verify success callback is called
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalledWith(mockReferenceInfo);
     }, { timeout: 2000 });
   });
 
-  it('calls onError when upload fails', async () => {
-    const onError = vi.fn();
-    mockReferenceDataManager.uploadReferenceFile.mockRejectedValue(new Error('Upload failed'));
+  it('provides error feedback when upload fails', async () => {
+    // Set up successful validation but failed upload
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    mockReferenceDataManager.uploadReferenceFile.mockRejectedValue(new Error('Network connection failed'));
     
+    const onError = vi.fn();
     render(<ReferenceUploadDialog {...defaultProps} onError={onError} />);
     
+    // User selects valid file
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
@@ -362,17 +397,25 @@ describe('ReferenceUploadDialog', () => {
     
     fireEvent.change(fileInput);
     
+    // Wait for validation success
     await waitFor(() => {
-      const uploadButton = screen.getByRole('button', { name: /upload/i });
-      fireEvent.click(uploadButton);
+      expect(screen.getByTestId('validation-success')).toBeInTheDocument();
     });
     
+    // User attempts upload
+    const uploadButton = screen.getByTestId('upload-button');
+    fireEvent.click(uploadButton);
+    
+    // User should receive error feedback
     await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith('Upload failed');
-    });
+      expect(onError).toHaveBeenCalledWith('Network connection failed');
+    }, { timeout: 2000 });
   });
 
   it('allows removing selected file', async () => {
+    // Set up successful validation for this test
+    mockReferenceDataManager.validateReferenceData.mockResolvedValue(mockValidationResult);
+    
     render(<ReferenceUploadDialog {...defaultProps} />);
     
     const file = new File(['id,name\n1,Test'], 'test.csv', { type: 'text/csv' });
