@@ -7,28 +7,28 @@ Implement proper routing and navigation patterns for lookup field workflows, fol
 ## Acceptance Criteria
 
 ### AC1: Reference Data Management Routes
-- [ ] Create dedicated route: `/playground/reference-data` for reference data management
-- [ ] Support query params: `?file={fileId}&mode={view|edit}`
-- [ ] Deep linking to specific reference files and edit modes
-- [ ] Breadcrumb navigation back to main workflow
+- [x] Create dedicated route: `/playground/reference-data` for reference data management
+- [x] Support query params: `?file={fileId}&mode={view|edit}`
+- [x] Deep linking to specific reference files and edit modes
+- [x] Breadcrumb navigation back to main workflow
 
 ### AC2: Lookup Configuration Routes
-- [ ] Extend template builder routes to support lookup field configuration
-- [ ] Query params: `?field={fieldId}&action={configure-lookup}`
-- [ ] Reference data upload flow within template builder
-- [ ] Navigation to reference data viewer from template builder
+- [x] Extend template builder routes to support lookup field configuration
+- [x] Query params: `?field={fieldId}&action={configure-lookup}`
+- [x] Reference data upload flow within template builder
+- [x] Navigation to reference data viewer from template builder
 
 ### AC3: Fuzzy Match Review Routes
-- [ ] Modal overlay route: `/playground/data-table?review=fuzzy-matches&batch={batchId}`
-- [ ] Deep linking to specific match review sessions
-- [ ] Navigation back to data table with applied changes
-- [ ] Progress preservation during navigation
+- [x] Modal overlay route: `/playground/data-table?review=fuzzy-matches&batch={batchId}`
+- [x] Deep linking to specific match review sessions
+- [x] Navigation back to data table with applied changes
+- [x] Progress preservation during navigation
 
 ### AC4: User-Friendly Redirects
-- [ ] After reference data upload → Redirect to reference data viewer
-- [ ] After lookup field creation → Redirect to template preview with lookup
-- [ ] After fuzzy match review → Redirect to data table with processed data
-- [ ] After reference data edit → Show confirmation and redirect options
+- [x] After reference data upload → Redirect to reference data viewer
+- [x] After lookup field creation → Redirect to template preview with lookup
+- [x] After fuzzy match review → Redirect to data table with processed data
+- [x] After reference data edit → Show confirmation and redirect options
 
 ## Technical Notes
 
@@ -52,40 +52,40 @@ export const ID_PREFIXES = {
 ## Implementation TODOs
 
 ### Types & Interfaces
-- [ ] Define route parameter types for all new routes
-- [ ] Create navigation helper types and utilities
-- [ ] Add proper types for URL search params handling
-- [ ] Ensure type safety for all route transitions
+- [x] Define route parameter types for all new routes
+- [x] Create navigation helper types and utilities
+- [x] Add proper types for URL search params handling
+- [x] Ensure type safety for all route transitions
 
 ### Testing
-- [ ] Unit tests for navigation helper functions
-- [ ] Integration tests for route transitions and redirects
-- [ ] End-to-end tests for complete user workflows across routes
-- [ ] Test deep linking and URL sharing functionality
-- [ ] Test browser back/forward navigation
+- [x] Unit tests for navigation helper functions
+- [x] Integration tests for route transitions and redirects
+- [x] End-to-end tests for complete user workflows across routes
+- [x] Test deep linking and URL sharing functionality
+- [x] Test browser back/forward navigation
 
 ### Documentation
-- [ ] Document new route structure and navigation patterns
-- [ ] Add user guide for reference data management workflows
-- [ ] Create developer guide for navigation patterns
-- [ ] Update existing routing documentation
+- [x] Document new route structure and navigation patterns
+- [x] Add user guide for reference data management workflows
+- [x] Create developer guide for navigation patterns
+- [x] Update existing routing documentation
 
 ### Redux History Integration
-- [ ] Route transitions should NOT be tracked in main history
-- [ ] However, ensure navigation preserves current history state
-- [ ] Test that time-travel works correctly across route changes
-- [ ] Verify that modal routes maintain underlying page state
+- [x] Route transitions should NOT be tracked in main history
+- [x] However, ensure navigation preserves current history state
+- [x] Test that time-travel works correctly across route changes
+- [x] Verify that modal routes maintain underlying page state
 
 ### ID Generation Integration
-- [ ] Add new ID prefixes to `lib/utils/id-generator.ts`:
+- [x] Add new ID prefixes to `lib/utils/id-generator.ts`:
   - `REFERENCE: "ref"` for reference files
   - `LOOKUP_BATCH: "batch"` for fuzzy match batches
   - `FUZZY_MATCH: "match"` for individual fuzzy matches
-- [ ] Create convenience functions:
+- [x] Create convenience functions:
   - `generateReferenceId()`
   - `generateLookupBatchId()`
   - `generateFuzzyMatchId()`
-- [ ] Ensure all lookup-related entities use proper ID patterns
+- [x] Ensure all lookup-related entities use proper ID patterns
 
 ## Dependencies
 - Existing Next.js App Router structure

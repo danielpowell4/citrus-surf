@@ -699,6 +699,51 @@ export const LookupNavigationProvider = ({ children }) => {
 };
 ```
 
+### 4. Routing Architecture Pattern
+
+The lookup system implements a comprehensive routing strategy with deep linking and user-friendly redirects:
+
+```typescript
+// Route Structure
+const LOOKUP_ROUTES = {
+  // Reference data management
+  REFERENCE_DATA: '/playground/reference-data',
+  // Template builder with lookup configuration
+  TEMPLATE_BUILDER: '/playground/template-builder',
+  // Data table with fuzzy match review
+  DATA_TABLE: '/playground/data-table',
+} as const;
+
+// Query Parameter Patterns
+interface RouteParams {
+  // Reference data management: ?file={fileId}&mode={view|edit}
+  ReferenceDataParams: {
+    file?: string;        // ref_01H9X2K3L4M5N6P7Q8R9S0T1U2
+    mode?: 'view' | 'edit';
+  };
+  
+  // Lookup configuration: ?field={fieldId}&action={configure-lookup}
+  LookupConfigParams: {
+    field?: string;       // field_01H9X2K3L4M5N6P7Q8R9S0T1U2
+    action?: 'configure-lookup';
+  };
+  
+  // Fuzzy match review: ?review=fuzzy-matches&batch={batchId}
+  FuzzyMatchReviewParams: {
+    review?: 'fuzzy-matches';
+    batch?: string;       // batch_01H9X2K3L4M5N6P7Q8R9S0T1U2
+  };
+}
+```
+
+**Routing Features:**
+
+1. **Deep Linking Support** - All states are URL-addressable and shareable
+2. **User-Friendly Redirects** - Automatic navigation after successful operations
+3. **Progress Preservation** - Navigation maintains current workflow state
+4. **Breadcrumb Generation** - Contextual navigation breadcrumbs
+5. **History Integration** - Works seamlessly with Redux time-travel
+
 ## Performance Optimization Strategies
 
 ### 1. Lazy Loading and Code Splitting
