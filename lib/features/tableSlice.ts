@@ -524,6 +524,16 @@ export const tableSlice = createSlice({
         
         // Update table data with processed results
         state.data = action.payload.data;
+        
+        // Update column order to match the actual data structure
+        if (action.payload.data.length > 0) {
+          const newColumns = Object.keys(action.payload.data[0]).filter(
+            key => !key.startsWith("_")
+          );
+          // Replace column order with actual columns from processed data
+          // This ensures removed/renamed columns are properly handled
+          state.columnOrder = newColumns;
+        }
       })
       .addCase(processDataWithLookups.rejected, (state, action) => {
         state.lookupProcessing.isProcessing = false;
