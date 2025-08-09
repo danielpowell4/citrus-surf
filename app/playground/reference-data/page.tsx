@@ -78,7 +78,7 @@ function ReferenceDataPageContent() {
   const handleDeleteFile = async (fileId: string) => {
     if (confirm("Are you sure you want to delete this reference file? This action cannot be undone.")) {
       try {
-        referenceDataManager.deleteReferenceData(fileId);
+        referenceDataManager.deleteReferenceFile(fileId);
         setReferenceFiles(prev => prev.filter(f => f.id !== fileId));
         
         // If we're currently viewing this file, close the viewer

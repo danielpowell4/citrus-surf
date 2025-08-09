@@ -42,18 +42,18 @@ const mockLookupField: LookupField = {
   required: false,
   referenceFile: 'ref_departments_123',
   match: {
-    sourceColumn: 'department_name',
-    targetColumn: 'department_id',
+    on: 'department_name',
+    get: 'department_id',
   },
   alsoGet: [
     {
-      sourceColumn: 'manager_name',
-      targetFieldName: 'manager',
+      source: 'manager_name',
+      name: 'manager',
     },
   ],
   smartMatching: {
     enabled: true,
-    threshold: 0.8,
+    confidence: 0.8,
   },
   onMismatch: 'warning',
   showReferenceInfo: true,

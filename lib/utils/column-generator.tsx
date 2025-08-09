@@ -152,7 +152,7 @@ function generateColumnFromTargetField(
   }
 
   // Check if this is a derived field from a lookup (read-only)
-  const isDerivedField = field.metadata?.source === "lookup_derived";
+  const isDerivedField = field.metadata?.source?.startsWith("lookup:");
   if (isDerivedField) {
     return {
       accessorKey: field.name as keyof TableRow,

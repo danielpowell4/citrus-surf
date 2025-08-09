@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { updateCell, startEditing, stopEditing } from "@/lib/features/tableSlice";
+import { updateCell, updateLookupValue, startEditing, stopEditing } from "@/lib/features/tableSlice";
 import { ChevronDown, Edit3, AlertCircle, CheckCircle } from "lucide-react";
 import type { LookupField } from "@/lib/types/target-shapes";
 import type { LookupResult } from "@/lib/utils/lookup-matching-engine";
@@ -40,11 +40,12 @@ export function LookupEditableCell({
   const dispatch = useAppDispatch();
   const editingCell = useAppSelector(state => state.table.editingCell);
   
-  const safeInitialValue = initialValue ?? "";
+  const safeInitialValue = String(initialValue ?? "");
   const [inputValue, setInputValue] = useState(safeInitialValue);
   const [open, setOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Array<{
     value: unknown;
+    displayValue: string;
     confidence: number;
     matchType: string;
     originalRow?: Record<string, unknown>;
@@ -53,6 +54,7 @@ export function LookupEditableCell({
 
   const columnId = column.id;
   const rowId = row.original.id;
+  const internalRowId = (row.original as any)._rowId || rowId;
 
   // Check if this cell is currently being edited
   const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === columnId;
@@ -66,7 +68,7 @@ export function LookupEditableCell({
 
   // Update local state when value changes
   useEffect(() => {
-    setInputValue(initialValue ?? "");
+    setInputValue(String(initialValue ?? ""));
   }, [initialValue]);
 
   // Perform lookup when input value changes
@@ -79,17 +81,19 @@ export function LookupEditableCell({
       // Generate suggestions from reference data for fuzzy search
       const fuzzyResults = referenceData
         .map(row => {
-          const lookupValue = row[lookupField.match.sourceColumn];
+          const lookupValue = row[lookupField.match.on];
           if (!lookupValue) return null;
           
+          const fuzzyConfig = { ...config };
+          fuzzyConfig.smartMatching = { ...config.smartMatching, confidence: 0.3 };
           const fuzzyResult = lookupEngine.performLookup(
             inputValue,
             [row],
-            { ...config, fuzzyThreshold: 0.3 }
+            fuzzyConfig
           );
           
           return {
-            value: row[lookupField.match.targetColumn],
+            value: row[lookupField.match.get],
             displayValue: lookupValue,
             confidence: fuzzyResult.confidence,
             matchType: fuzzyResult.matchType,
@@ -113,34 +117,25 @@ export function LookupEditableCell({
     }
   }, [inputValue, referenceData, lookupField]);
 
-  const handleValueSelect = (selectedValue: string, originalRow?: Record<string, unknown>) => {
+  const handleValueSelect = async (selectedValue: string, originalRow?: Record<string, unknown>) => {
     setInputValue(selectedValue);
     setOpen(false);
     
-    // Update the cell value and perform lookup to get derived values
-    if (originalRow && lookupField.alsoGet) {
-      const derivedValues: Record<string, unknown> = {};
-      lookupField.alsoGet.forEach(derived => {
-        derivedValues[derived.targetFieldName] = originalRow[derived.sourceColumn];
-      });
-      
-      // Update main cell
-      dispatch(updateCell({ 
-        rowId, 
-        columnId, 
-        value: originalRow[lookupField.match.targetColumn] 
+    // Use the updateLookupValue thunk to handle the lookup update properly
+    const targetValue = originalRow ? originalRow[lookupField.match.get] : selectedValue;
+    
+    try {
+      await dispatch(updateLookupValue({
+        rowId: internalRowId,
+        fieldName: columnId,
+        value: targetValue,
+        field: lookupField,
+        rowData: row.original,
       }));
-      
-      // Update derived columns
-      Object.entries(derivedValues).forEach(([key, val]) => {
-        dispatch(updateCell({ 
-          rowId, 
-          columnId: key, 
-          value: val 
-        }));
-      });
-    } else {
-      dispatch(updateCell({ rowId, columnId, value: selectedValue }));
+    } catch (error) {
+      console.error("Failed to update lookup value:", error);
+      // Fallback to simple cell update
+      dispatch(updateCell({ rowId, columnId, value: targetValue }));
     }
     
     dispatch(stopEditing());
@@ -151,13 +146,26 @@ export function LookupEditableCell({
     setOpen(true);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (suggestions.length > 0) {
-        handleValueSelect(suggestions[0].displayValue, suggestions[0].originalRow);
+        await handleValueSelect(suggestions[0].displayValue, suggestions[0].originalRow);
       } else {
-        dispatch(updateCell({ rowId, columnId, value: inputValue }));
+        // For manual entry without suggestions, try to use updateLookupValue if it's a lookup field
+        try {
+          await dispatch(updateLookupValue({
+            rowId: internalRowId,
+            fieldName: columnId,
+            value: inputValue,
+            field: lookupField,
+            rowData: row.original,
+          }));
+        } catch (error) {
+          console.error("Failed to update lookup value:", error);
+          // Fallback to simple cell update
+          dispatch(updateCell({ rowId, columnId, value: inputValue }));
+        }
         dispatch(stopEditing());
         setOpen(false);
       }
@@ -175,7 +183,7 @@ export function LookupEditableCell({
   if (!isEditable) {
     return (
       <div className="flex items-center justify-between">
-        <span>{initialValue}</span>
+        <span>{String(initialValue ?? "")}</span>
         {lookupField.showReferenceInfo && (
           <ReferenceInfoPopup 
             referenceInfo={referenceInfo} 
@@ -196,7 +204,9 @@ export function LookupEditableCell({
     const color = confidence >= 0.9 ? "text-green-500" : confidence >= 0.7 ? "text-yellow-500" : "text-red-500";
     
     return (
-      <Icon className={`h-3 w-3 ${color}`} title={`${Math.round(confidence * 100)}% confidence`} />
+      <div title={`${Math.round(confidence * 100)}% confidence`}>
+        <Icon className={`h-3 w-3 ${color}`} />
+      </div>
     );
   };
 
@@ -229,7 +239,7 @@ export function LookupEditableCell({
     return (
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <Badge variant="secondary">{initialValue}</Badge>
+          <Badge variant="secondary">{String(initialValue ?? "")}</Badge>
           {renderConfidenceIndicator()}
         </div>
         {lookupField.showReferenceInfo && (
@@ -317,7 +327,7 @@ export function LookupEditableCell({
                 {!inputValue && referenceData.length > 0 && (
                   <CommandGroup heading="All Values">
                     {referenceData.slice(0, 20).map((row, index) => {
-                      const displayValue = row[lookupField.match.sourceColumn];
+                      const displayValue = row[lookupField.match.on];
                       if (!displayValue) return null;
                       
                       return (

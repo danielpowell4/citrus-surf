@@ -105,7 +105,7 @@ export default async function DocPage({ params }: Props) {
                   </nav>
                 </div>
 
-                <MarkdownRenderer content={content} />
+                {await MarkdownRenderer({ content })}
               </div>
             </div>
           </div>

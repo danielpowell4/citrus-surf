@@ -25,13 +25,13 @@ export function ReferenceInfoPopup({
 }: ReferenceInfoPopupProps) {
   // Calculate unique values in the reference data
   const uniqueValues = referenceData.length > 0 
-    ? new Set(referenceData.map(row => row[lookupField.match.sourceColumn]).filter(Boolean)).size
+    ? new Set(referenceData.map(row => row[lookupField.match.on]).filter(Boolean)).size
     : 0;
 
   // Get sample values for preview
   const sampleValues = referenceData
     .slice(0, 5)
-    .map(row => row[lookupField.match.sourceColumn])
+    .map(row => row[lookupField.match.on])
     .filter(Boolean);
 
   const formatFileSize = (bytes: number): string => {

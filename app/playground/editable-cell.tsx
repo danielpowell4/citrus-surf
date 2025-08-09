@@ -73,7 +73,7 @@ export function EditableCell({
   value: initialValue,
   row,
   column,
-  _getValue,
+  getValue,
   table,
 }: EditableCellProps) {
   const dispatch = useAppDispatch();

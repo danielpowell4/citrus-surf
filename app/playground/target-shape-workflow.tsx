@@ -17,6 +17,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Pencil } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { LookupPreview } from "@/components/lookup-preview";
+import { DemoTemplateSelector } from "@/components/demo-template-selector";
 import {
   saveTargetShapeAsync,
   updateTargetShape,
@@ -60,7 +62,7 @@ const BasicInfoStep: React.FC<WorkflowStepProps> = ({
   data,
   onUpdate,
   onNext,
-  _isFirst,
+  isFirst,
 }) => {
   return (
     <div className="space-y-6">
@@ -375,7 +377,7 @@ const FieldsStep: React.FC<WorkflowStepProps> = ({
 const ReviewStep: React.FC<WorkflowStepProps> = ({
   data,
   onBack,
-  _isLast,
+  isLast,
   onShapeCreated,
   isEditMode,
 }) => {
@@ -692,15 +694,67 @@ const LookupConfiguration: React.FC<LookupConfigurationProps> = ({
       <div>
         <div className="flex items-center justify-between">
           <Label htmlFor="reference-file">Reference Data File</Label>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-          >
-            <Plus className="mr-2 h-3 w-3" />
-            {isUploading ? 'Uploading...' : 'Upload File'}
-          </Button>
+          <div className="flex gap-2">
+            <DemoTemplateSelector 
+              onTemplateSelect={async (template) => {
+                setIsUploading(true);
+                try {
+                  // Convert template data to CSV blob
+                  const csvContent = [
+                    Object.keys(template.data[0]).join(','),
+                    ...template.data.map(row => Object.values(row).join(','))
+                  ].join('\n');
+                  
+                  const blob = new Blob([csvContent], { type: 'text/csv' });
+                  const file = new File([blob], template.filename, { type: 'text/csv' });
+                  
+                  const referenceId = `demo_${template.id}`;
+                  
+                  dispatch(uploadFileStart({ filename: file.name }));
+                  const info = await referenceDataManager.uploadReferenceFile(file, referenceId, { overwrite: true });
+                  dispatch(uploadFileSuccess({ info }));
+                  
+                  // Auto-configure the lookup with suggested settings
+                  const suggestion = template.suggestedLookups[0];
+                  if (suggestion) {
+                    const alsoGetFields = suggestion.alsoGet.map(fieldName => ({
+                      name: fieldName, // Will be auto-renamed by smart naming
+                      source: fieldName,
+                    }));
+                    
+                    onUpdate({
+                      referenceFile: referenceId,
+                      match: { on: suggestion.matchOn, get: suggestion.returnField },
+                      alsoGet: alsoGetFields,
+                    });
+                  } else {
+                    handleReferenceSelect(referenceId);
+                  }
+                } catch (error) {
+                  dispatch(uploadFileError({ 
+                    error: error instanceof Error ? error.message : 'Failed to load demo template' 
+                  }));
+                } finally {
+                  setIsUploading(false);
+                }
+              }}
+              trigger={
+                <Button variant="outline" size="sm" disabled={isUploading}>
+                  <Plus className="mr-2 h-3 w-3" />
+                  Demo Data
+                </Button>
+              }
+            />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Plus className="mr-2 h-3 w-3" />
+              {isUploading ? 'Uploading...' : 'Upload File'}
+            </Button>
+          </div>
         </div>
         
         <input
@@ -891,6 +945,44 @@ const LookupConfiguration: React.FC<LookupConfigurationProps> = ({
               </div>
             )}
           </div>
+          
+          {/* Lookup Preview */}
+          {selectedReference && (field.alsoGet && field.alsoGet.length > 0) && (
+            <div className="mt-4">
+              <LookupPreview 
+                lookupField={field}
+                referenceData={(() => {
+                  // Try to get actual reference data first
+                  const actualData = referenceDataManager.getReferenceDataRows(field.referenceFile);
+                  if (actualData && actualData.length > 0) {
+                    return actualData;
+                  }
+                  
+                  // Fallback to better sample data with realistic types
+                  return selectedReference.columns.length > 0 ? [{
+                    ...selectedReference.columns.reduce((acc, col) => {
+                      // Generate type-appropriate sample values
+                      let sampleValue: any = col;
+                      if (col.toLowerCase().includes('budget') || col.toLowerCase().includes('price') || col.toLowerCase().includes('cost')) {
+                        sampleValue = 500000;
+                      } else if (col.toLowerCase().includes('count') || col.toLowerCase().includes('num')) {
+                        sampleValue = 25;
+                      } else if (col.toLowerCase().includes('date')) {
+                        sampleValue = '2024-01-15';
+                      } else if (col.toLowerCase().includes('email')) {
+                        sampleValue = 'example@company.com';
+                      } else {
+                        sampleValue = `Sample ${col.charAt(0).toUpperCase() + col.slice(1)}`;
+                      }
+                      
+                      return { ...acc, [col]: sampleValue };
+                    }, {})
+                  }] : [];
+                })()}
+                className="mt-2"
+              />
+            </div>
+          )}
         </>
       )}
     </div>

@@ -270,7 +270,7 @@ export function CompactHistory({ className }: CompactHistoryProps) {
                       </div>
                     ) : (
                       [...history].reverse().map((action, _index) => {
-                        const originalIndex = history.length - 1 - index;
+                        const originalIndex = history.length - 1 - _index;
                         return (
                           <div
                             key={action.id}

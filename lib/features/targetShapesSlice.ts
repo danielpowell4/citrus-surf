@@ -3,6 +3,7 @@ import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
 import type { TargetShape, TargetField, LookupField } from "@/lib/types/target-shapes";
 import { referenceDataManager } from "@/lib/utils/reference-data-manager";
 import { generateLookupValidation } from "@/lib/utils/lookup-validation";
+import { generateSmartColumnName, generateSmartDescription } from "@/lib/utils/smart-column-naming";
 
 // Note: generateLookupValidation function moved to lookup-validation.ts for better organization
 
@@ -373,18 +374,33 @@ export const targetShapesSlice = createSlice({
               !lookupField.alsoGet?.some(d => d.name === f.name)
             );
 
-            // Add new derived fields
+            // Add new derived fields with smart naming
             lookupField.alsoGet.forEach(derivedField => {
               if (sampleRow.hasOwnProperty(derivedField.source)) {
+                // Generate smart column name if not explicitly set
+                const smartName = derivedField.name || generateSmartColumnName(
+                  lookupField.name,
+                  derivedField,
+                  derivedField.source
+                );
+                
+                // Generate smart description
+                const smartDescription = generateSmartDescription(
+                  lookupField.name,
+                  derivedField,
+                  lookupField.referenceFile
+                );
+                
                 const newField: TargetField = {
-                  id: `${lookupFieldId}_${derivedField.name}`,
-                  name: derivedField.name,
+                  id: `${lookupFieldId}_${smartName}`,
+                  name: smartName,
                   type: derivedField.type || 'string',
                   required: false,
-                  description: `Derived from ${lookupField.name} lookup`,
+                  description: smartDescription,
                   metadata: {
                     source: `lookup:${lookupFieldId}`,
                     dataRule: `derived from ${lookupField.referenceFile}`,
+                    sourceField: derivedField.source, // Track original source field
                   },
                 };
                 updatedFields.push(newField);
