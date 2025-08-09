@@ -14,14 +14,50 @@ A comprehensive collection of data manipulation tools built with Next.js, TanSta
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 ```
+
+## 🔧 Development & CI
+
+### Quality Assurance Scripts
+
+```bash
+# Run TypeScript type checking
+pnpm run typecheck
+
+# Run linting
+pnpm run lint
+
+# Check code formatting
+pnpm run format:check
+
+# Run all tests
+pnpm run test
+
+# Run all quality checks at once
+pnpm run check-all
+
+# Auto-fix linting and formatting issues
+pnpm run fix-all
+```
+
+### Continuous Integration
+
+The project includes GitHub Actions workflows that automatically:
+
+- **Type Safety**: Run TypeScript type checking on every push
+- **Code Quality**: Lint code with ESLint
+- **Formatting**: Verify code formatting with Prettier
+- **Testing**: Execute test suite with Vitest
+- **Build Verification**: Ensure production build succeeds
+
+All checks must pass before merging to main branch.
 
 ## 📊 Editable Cell System
 

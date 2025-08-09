@@ -96,11 +96,11 @@ Key system events and their handlers:
 ```typescript
 // System Events
 interface SystemEvents {
-  'referenceData:uploaded': ReferenceDataInfo;
-  'referenceData:updated': { id: string; changes: any[] };
-  'lookup:processed': LookupProcessingResult;
-  'lookup:matchFound': LookupMatch;
-  'lookup:reviewRequired': FuzzyMatchReview;
+  "referenceData:uploaded": ReferenceDataInfo;
+  "referenceData:updated": { id: string; changes: any[] };
+  "lookup:processed": LookupProcessingResult;
+  "lookup:matchFound": LookupMatch;
+  "lookup:reviewRequired": FuzzyMatchReview;
 }
 
 // Event Bus Pattern
@@ -127,9 +127,19 @@ Separate read and write operations:
 ```typescript
 // Command Side - Write Operations
 interface LookupCommands {
-  uploadReferenceData(file: File, config: UploadConfig): Promise<ReferenceDataInfo>;
-  updateLookupField(shapeId: string, fieldId: string, updates: Partial<LookupField>): void;
-  processDataWithLookups(data: TableRow[], targetShape: TargetShape): Promise<ProcessingResult>;
+  uploadReferenceData(
+    file: File,
+    config: UploadConfig
+  ): Promise<ReferenceDataInfo>;
+  updateLookupField(
+    shapeId: string,
+    fieldId: string,
+    updates: Partial<LookupField>
+  ): void;
+  processDataWithLookups(
+    data: TableRow[],
+    targetShape: TargetShape
+  ): Promise<ProcessingResult>;
 }
 
 // Query Side - Read Operations
@@ -151,10 +161,10 @@ Clear separation between logic and presentation:
 // Container Component - Handles logic and state
 export const LookupEditableCellContainer = ({ value, field, rowIndex, onSave }) => {
   const dispatch = useAppDispatch();
-  const referenceData = useAppSelector(state => 
+  const referenceData = useAppSelector(state =>
     selectReferenceDataById(state, field.referenceFile)
   );
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
@@ -208,9 +218,9 @@ export function withLookupSupport<T extends EditableCellProps>(
 ) {
   return function LookupEnhancedComponent(props: T & { lookupField?: LookupField }) {
     const { lookupField, ...otherProps } = props;
-    
+
     const lookupEnhancements = useLookupEnhancements(lookupField);
-    
+
     if (!lookupField) {
       return <WrappedComponent {...otherProps as T} />;
     }
@@ -351,32 +361,34 @@ Custom middleware for cross-cutting concerns:
 
 ```typescript
 // History tracking middleware
-const historyMiddleware: Middleware = (store) => (next) => (action) => {
+const historyMiddleware: Middleware = store => next => action => {
   const result = next(action);
-  
+
   if (meaningfulActions.includes(action.type)) {
-    store.dispatch(historySlice.actions.addAction({
-      type: action.type,
-      payload: action.payload,
-      timestamp: Date.now(),
-      stateSnapshot: store.getState(),
-    }));
+    store.dispatch(
+      historySlice.actions.addAction({
+        type: action.type,
+        payload: action.payload,
+        timestamp: Date.now(),
+        stateSnapshot: store.getState(),
+      })
+    );
   }
-  
+
   return result;
 };
 
 // Persistence middleware
-const persistenceMiddleware: Middleware = (store) => (next) => (action) => {
+const persistenceMiddleware: Middleware = store => next => action => {
   const result = next(action);
-  
+
   if (persistableActions.includes(action.type)) {
     debounce(() => {
       const state = store.getState();
       persistenceManager.saveState(state);
     }, 1000)();
   }
-  
+
   return result;
 };
 ```
@@ -399,16 +411,22 @@ class ValidationStage implements PipelineStage<RawData, ValidatedData> {
   async process(input: RawData): Promise<ValidatedData> {
     // Validation logic
   }
-  getName() { return 'validation'; }
+  getName() {
+    return "validation";
+  }
 }
 
-class LookupProcessingStage implements PipelineStage<ValidatedData, ProcessedData> {
+class LookupProcessingStage
+  implements PipelineStage<ValidatedData, ProcessedData>
+{
   constructor(private matchingEngine: LookupMatchingEngine) {}
-  
+
   async process(input: ValidatedData): Promise<ProcessedData> {
     // Lookup processing logic
   }
-  getName() { return 'lookup-processing'; }
+  getName() {
+    return "lookup-processing";
+  }
 }
 
 // Pipeline orchestrator
@@ -422,11 +440,11 @@ export class DataProcessingPipeline {
 
   async execute<TInput, TOutput>(input: TInput): Promise<TOutput> {
     let result: any = input;
-    
+
     for (const stage of this.stages) {
       result = await stage.process(result);
     }
-    
+
     return result as TOutput;
   }
 }
@@ -446,15 +464,15 @@ interface MatchingStrategy {
 // Concrete strategies
 class ExactMatchStrategy implements MatchingStrategy {
   match(input: string, candidates: string[], config: MatchConfig): MatchResult {
-    const exactMatch = candidates.find(candidate => 
-      candidate.toLowerCase() === input.toLowerCase()
+    const exactMatch = candidates.find(
+      candidate => candidate.toLowerCase() === input.toLowerCase()
     );
-    
+
     return {
       matched: !!exactMatch,
       value: exactMatch,
       confidence: exactMatch ? 1.0 : 0.0,
-      strategy: 'exact',
+      strategy: "exact",
     };
   }
 }
@@ -462,18 +480,20 @@ class ExactMatchStrategy implements MatchingStrategy {
 class FuzzyMatchStrategy implements MatchingStrategy {
   match(input: string, candidates: string[], config: MatchConfig): MatchResult {
     // Implement fuzzy matching with configurable algorithms
-    const matches = candidates.map(candidate => ({
-      value: candidate,
-      confidence: this.calculateSimilarity(input, candidate),
-    })).filter(match => match.confidence >= config.threshold);
-    
+    const matches = candidates
+      .map(candidate => ({
+        value: candidate,
+        confidence: this.calculateSimilarity(input, candidate),
+      }))
+      .filter(match => match.confidence >= config.threshold);
+
     const bestMatch = matches.sort((a, b) => b.confidence - a.confidence)[0];
-    
+
     return {
       matched: !!bestMatch,
       value: bestMatch?.value,
       confidence: bestMatch?.confidence || 0.0,
-      strategy: 'fuzzy',
+      strategy: "fuzzy",
       alternatives: matches.slice(1, 4), // Top 3 alternatives
     };
   }
@@ -482,26 +502,34 @@ class FuzzyMatchStrategy implements MatchingStrategy {
 // Matching engine with strategy selection
 export class LookupMatchingEngine {
   private strategies = new Map<string, MatchingStrategy>([
-    ['exact', new ExactMatchStrategy()],
-    ['fuzzy', new FuzzyMatchStrategy()],
-    ['phonetic', new PhoneticMatchStrategy()],
+    ["exact", new ExactMatchStrategy()],
+    ["fuzzy", new FuzzyMatchStrategy()],
+    ["phonetic", new PhoneticMatchStrategy()],
   ]);
 
-  performLookup(input: string, referenceData: any[], config: LookupConfig): LookupResult {
+  performLookup(
+    input: string,
+    referenceData: any[],
+    config: LookupConfig
+  ): LookupResult {
     const candidates = referenceData.map(row => row[config.matchColumn]);
-    
+
     // Try strategies in order of preference
-    for (const strategyName of config.strategies || ['exact', 'fuzzy']) {
+    for (const strategyName of config.strategies || ["exact", "fuzzy"]) {
       const strategy = this.strategies.get(strategyName);
       if (!strategy) continue;
-      
+
       const result = strategy.match(input, candidates, config);
       if (result.matched && result.confidence >= config.minConfidence) {
         return this.buildLookupResult(result, referenceData, config);
       }
     }
-    
-    return { matched: false, input, suggestions: this.generateSuggestions(input, candidates) };
+
+    return {
+      matched: false,
+      input,
+      suggestions: this.generateSuggestions(input, candidates),
+    };
   }
 }
 ```
@@ -513,10 +541,14 @@ Event-driven processing updates:
 ```typescript
 // Processing event types
 interface ProcessingEvents {
-  'batch.started': { batchId: string; totalRows: number };
-  'row.processed': { batchId: string; rowIndex: number; result: RowProcessingResult };
-  'batch.completed': { batchId: string; statistics: ProcessingStatistics };
-  'error.occurred': { batchId: string; error: ProcessingError };
+  "batch.started": { batchId: string; totalRows: number };
+  "row.processed": {
+    batchId: string;
+    rowIndex: number;
+    result: RowProcessingResult;
+  };
+  "batch.completed": { batchId: string; statistics: ProcessingStatistics };
+  "error.occurred": { batchId: string; error: ProcessingError };
 }
 
 // Observable processing engine
@@ -533,33 +565,39 @@ export class ObservableLookupProcessor {
     this.observers.get(event)!.add(handler);
   }
 
-  private emit<K extends keyof ProcessingEvents>(event: K, data: ProcessingEvents[K]) {
+  private emit<K extends keyof ProcessingEvents>(
+    event: K,
+    data: ProcessingEvents[K]
+  ) {
     const handlers = this.observers.get(event);
     if (handlers) {
       handlers.forEach(handler => handler(data));
     }
   }
 
-  async processBatch(data: TableRow[], targetShape: TargetShape): Promise<ProcessingResult> {
+  async processBatch(
+    data: TableRow[],
+    targetShape: TargetShape
+  ): Promise<ProcessingResult> {
     const batchId = generateBatchId();
-    
-    this.emit('batch.started', { batchId, totalRows: data.length });
-    
+
+    this.emit("batch.started", { batchId, totalRows: data.length });
+
     try {
       const results = [];
       for (let i = 0; i < data.length; i++) {
         const result = await this.processRow(data[i], targetShape);
         results.push(result);
-        
-        this.emit('row.processed', { batchId, rowIndex: i, result });
+
+        this.emit("row.processed", { batchId, rowIndex: i, result });
       }
-      
+
       const statistics = this.calculateStatistics(results);
-      this.emit('batch.completed', { batchId, statistics });
-      
+      this.emit("batch.completed", { batchId, statistics });
+
       return { batchId, results, statistics };
     } catch (error) {
-      this.emit('error.occurred', { batchId, error: error as ProcessingError });
+      this.emit("error.occurred", { batchId, error: error as ProcessingError });
       throw error;
     }
   }
@@ -576,12 +614,12 @@ Complex functionality revealed progressively:
 // Template builder with progressive lookup configuration
 export const LookupFieldConfiguration = ({ field, onUpdate }) => {
   const [configLevel, setConfigLevel] = useState<'basic' | 'advanced'>('basic');
-  
+
   return (
     <div className="lookup-configuration">
       {/* Basic Configuration - Always Visible */}
       <BasicLookupConfig field={field} onUpdate={onUpdate} />
-      
+
       {/* Advanced Configuration - On Demand */}
       <Collapsible
         trigger={
@@ -593,7 +631,7 @@ export const LookupFieldConfiguration = ({ field, onUpdate }) => {
       >
         <AdvancedLookupConfig field={field} onUpdate={onUpdate} />
       </Collapsible>
-      
+
       {/* Expert Configuration - Feature Flag */}
       {isExpertModeEnabled && (
         <ExpertLookupConfig field={field} onUpdate={onUpdate} />
@@ -609,7 +647,7 @@ Immediate user feedback for all actions:
 
 ```typescript
 // Feedback states for lookup operations
-type FeedbackState = 
+type FeedbackState =
   | { type: 'idle' }
   | { type: 'processing'; message: string }
   | { type: 'success'; message: string; data?: any }
@@ -618,18 +656,18 @@ type FeedbackState =
 
 export const LookupEditableCell = ({ value, field, onSave }) => {
   const [feedback, setFeedback] = useState<FeedbackState>({ type: 'idle' });
-  
+
   const performLookup = async (input: string) => {
     setFeedback({ type: 'processing', message: 'Looking up value...' });
-    
+
     try {
       const result = await lookupEngine.performLookup(input, referenceData, field);
-      
+
       if (result.matched) {
         if (result.confidence === 1.0) {
-          setFeedback({ 
-            type: 'success', 
-            message: `Exact match found: ${result.matchedValue}` 
+          setFeedback({
+            type: 'success',
+            message: `Exact match found: ${result.matchedValue}`
           });
         } else {
           setFeedback({
@@ -678,10 +716,10 @@ interface NavigationContext {
 export const LookupNavigationProvider = ({ children }) => {
   const location = useLocation();
   const searchParams = useSearchParams();
-  
+
   const navigationContext = useMemo(() => {
     const context = parseLookupConfigParams(searchParams);
-    
+
     return {
       currentWorkflow: determineWorkflow(location, context),
       breadcrumbs: generateLookupBreadcrumbs(location.pathname, searchParams),
@@ -707,31 +745,31 @@ The lookup system implements a comprehensive routing strategy with deep linking 
 // Route Structure
 const LOOKUP_ROUTES = {
   // Reference data management
-  REFERENCE_DATA: '/playground/reference-data',
+  REFERENCE_DATA: "/playground/reference-data",
   // Template builder with lookup configuration
-  TEMPLATE_BUILDER: '/playground/template-builder',
+  TEMPLATE_BUILDER: "/playground/template-builder",
   // Data table with fuzzy match review
-  DATA_TABLE: '/playground/data-table',
+  DATA_TABLE: "/playground/data-table",
 } as const;
 
 // Query Parameter Patterns
 interface RouteParams {
   // Reference data management: ?file={fileId}&mode={view|edit}
   ReferenceDataParams: {
-    file?: string;        // ref_01H9X2K3L4M5N6P7Q8R9S0T1U2
-    mode?: 'view' | 'edit';
+    file?: string; // ref_01H9X2K3L4M5N6P7Q8R9S0T1U2
+    mode?: "view" | "edit";
   };
-  
+
   // Lookup configuration: ?field={fieldId}&action={configure-lookup}
   LookupConfigParams: {
-    field?: string;       // field_01H9X2K3L4M5N6P7Q8R9S0T1U2
-    action?: 'configure-lookup';
+    field?: string; // field_01H9X2K3L4M5N6P7Q8R9S0T1U2
+    action?: "configure-lookup";
   };
-  
+
   // Fuzzy match review: ?review=fuzzy-matches&batch={batchId}
   FuzzyMatchReviewParams: {
-    review?: 'fuzzy-matches';
-    batch?: string;       // batch_01H9X2K3L4M5N6P7Q8R9S0T1U2
+    review?: "fuzzy-matches";
+    batch?: string; // batch_01H9X2K3L4M5N6P7Q8R9S0T1U2
   };
 }
 ```
@@ -782,26 +820,42 @@ export const LookupRoutes = () => (
 ```typescript
 // Memoized lookup results cache
 class LookupResultsCache {
-  private cache = new Map<string, { result: LookupResult; timestamp: number }>();
+  private cache = new Map<
+    string,
+    { result: LookupResult; timestamp: number }
+  >();
   private readonly TTL = 5 * 60 * 1000; // 5 minutes
 
-  getCacheKey(input: string, referenceId: string, config: LookupConfig): string {
+  getCacheKey(
+    input: string,
+    referenceId: string,
+    config: LookupConfig
+  ): string {
     return `${input}:${referenceId}:${JSON.stringify(config)}`;
   }
 
-  get(input: string, referenceId: string, config: LookupConfig): LookupResult | null {
+  get(
+    input: string,
+    referenceId: string,
+    config: LookupConfig
+  ): LookupResult | null {
     const key = this.getCacheKey(input, referenceId, config);
     const cached = this.cache.get(key);
-    
+
     if (cached && Date.now() - cached.timestamp < this.TTL) {
       return cached.result;
     }
-    
+
     this.cache.delete(key);
     return null;
   }
 
-  set(input: string, referenceId: string, config: LookupConfig, result: LookupResult) {
+  set(
+    input: string,
+    referenceId: string,
+    config: LookupConfig,
+    result: LookupResult
+  ) {
     const key = this.getCacheKey(input, referenceId, config);
     this.cache.set(key, { result, timestamp: Date.now() });
   }
@@ -810,18 +864,25 @@ class LookupResultsCache {
 // Memoized component with lookup cache
 export const MemoizedLookupCell = React.memo(({ value, field, onSave }) => {
   const lookupCache = useMemo(() => new LookupResultsCache(), []);
-  
-  const performLookup = useCallback(async (input: string) => {
-    // Check cache first
-    const cached = lookupCache.get(input, field.referenceFile, field.config);
-    if (cached) return cached;
-    
-    // Perform lookup and cache result
-    const result = await lookupEngine.performLookup(input, referenceData, field.config);
-    lookupCache.set(input, field.referenceFile, field.config, result);
-    
-    return result;
-  }, [lookupCache, field]);
+
+  const performLookup = useCallback(
+    async (input: string) => {
+      // Check cache first
+      const cached = lookupCache.get(input, field.referenceFile, field.config);
+      if (cached) return cached;
+
+      // Perform lookup and cache result
+      const result = await lookupEngine.performLookup(
+        input,
+        referenceData,
+        field.config
+      );
+      lookupCache.set(input, field.referenceFile, field.config, result);
+
+      return result;
+    },
+    [lookupCache, field]
+  );
 
   // Rest of component implementation
 });
@@ -837,27 +898,23 @@ export class OptimizedLookupProcessor {
     targetShape: TargetShape,
     options: BatchProcessingOptions = {}
   ): Promise<ProcessingResult> {
-    const {
-      batchSize = 100,
-      concurrency = 4,
-      onProgress = () => {},
-    } = options;
+    const { batchSize = 100, concurrency = 4, onProgress = () => {} } = options;
 
     // Split data into chunks for parallel processing
     const chunks = this.chunkArray(data, batchSize);
     const results: ProcessingResult[] = [];
-    
+
     // Process chunks with limited concurrency
     const semaphore = new Semaphore(concurrency);
-    
+
     await Promise.all(
       chunks.map(async (chunk, chunkIndex) => {
         await semaphore.acquire();
-        
+
         try {
           const chunkResult = await this.processChunk(chunk, targetShape);
           results[chunkIndex] = chunkResult;
-          
+
           // Report progress
           const processedRows = (chunkIndex + 1) * batchSize;
           onProgress({
@@ -902,26 +959,28 @@ export class OptimizedLookupProcessor {
 
 ```typescript
 // Test utilities for lookup functionality
-export const createMockLookupField = (overrides: Partial<LookupField> = {}): LookupField => ({
-  id: 'test-lookup',
-  name: 'department',
-  type: 'lookup',
+export const createMockLookupField = (
+  overrides: Partial<LookupField> = {}
+): LookupField => ({
+  id: "test-lookup",
+  name: "department",
+  type: "lookup",
   required: false,
-  referenceFile: 'ref_departments',
-  match: { on: 'name', get: 'id' },
+  referenceFile: "ref_departments",
+  match: { on: "name", get: "id" },
   smartMatching: { enabled: true, confidence: 0.8 },
-  onMismatch: 'error',
+  onMismatch: "error",
   ...overrides,
 });
 
-export const createMockReferenceData = (count: number = 5) => 
+export const createMockReferenceData = (count: number = 5) =>
   Array.from({ length: count }, (_, i) => ({
     id: `item_${i}`,
     name: `Item ${i}`,
     category: `Category ${i % 3}`,
   }));
 
-export const createMockStore = (initialState: Partial<RootState> = {}) => 
+export const createMockStore = (initialState: Partial<RootState> = {}) =>
   configureStore({
     reducer: rootReducer,
     preloadedState: {
@@ -939,42 +998,46 @@ export const createMockStore = (initialState: Partial<RootState> = {}) =>
 
 ```typescript
 // Integration test for complete lookup workflow
-describe('Lookup Workflow Integration', () => {
+describe("Lookup Workflow Integration", () => {
   let store: ReturnType<typeof createMockStore>;
   let mockReferenceData: Record<string, any>[];
 
   beforeEach(async () => {
     store = createMockStore();
     mockReferenceData = createMockReferenceData(10);
-    
+
     // Setup reference data
-    await store.dispatch(uploadReferenceDataAsync({
-      file: createMockFile(mockReferenceData),
-      id: 'ref_test',
-    }));
+    await store.dispatch(
+      uploadReferenceDataAsync({
+        file: createMockFile(mockReferenceData),
+        id: "ref_test",
+      })
+    );
   });
 
-  it('should complete end-to-end lookup processing', async () => {
+  it("should complete end-to-end lookup processing", async () => {
     const targetShape = createMockTargetShape({
-      fields: [createMockLookupField({ referenceFile: 'ref_test' })],
+      fields: [createMockLookupField({ referenceFile: "ref_test" })],
     });
 
     const inputData = [
-      { name: 'John Doe', department: 'Item 1' },
-      { name: 'Jane Smith', department: 'Item 2' },
+      { name: "John Doe", department: "Item 1" },
+      { name: "Jane Smith", department: "Item 2" },
     ];
 
     // Process data with lookups
-    const result = await store.dispatch(processDataWithLookups({
-      data: inputData,
-      targetShape,
-    }));
+    const result = await store.dispatch(
+      processDataWithLookups({
+        data: inputData,
+        targetShape,
+      })
+    );
 
     // Verify results
-    expect(result.type).toBe('table/processDataWithLookups/fulfilled');
+    expect(result.type).toBe("table/processDataWithLookups/fulfilled");
     expect(result.payload.processedData).toHaveLength(2);
     expect(result.payload.statistics.successfulLookups).toBe(2);
-    
+
     // Verify state updates
     const state = store.getState();
     expect(state.table.lookupProcessing.statistics).toBeTruthy();

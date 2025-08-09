@@ -32,7 +32,7 @@ export function analyzeDataForTargetShape(data: any[]): {
   const dataTypes: Record<string, string> = {};
 
   // Collect all keys and sample values (excluding vendor-prefixed fields)
-  data.forEach((row) => {
+  data.forEach(row => {
     Object.keys(row)
       .filter(key => !key.startsWith("_")) // Exclude vendor-prefixed fields like _rowId
       .forEach(key => {
@@ -304,10 +304,19 @@ function generateFieldDescription(
   const keyLower = key.toLowerCase();
 
   // Check for specific name patterns first (order matters - most specific first)
-  if (keyLower.includes("first") || keyLower.includes("fname") || keyLower.includes("given")) {
+  if (
+    keyLower.includes("first") ||
+    keyLower.includes("fname") ||
+    keyLower.includes("given")
+  ) {
     return "First name";
   }
-  if (keyLower.includes("last") || keyLower.includes("lname") || keyLower.includes("surname") || keyLower.includes("family")) {
+  if (
+    keyLower.includes("last") ||
+    keyLower.includes("lname") ||
+    keyLower.includes("surname") ||
+    keyLower.includes("family")
+  ) {
     return "Last name";
   }
   if (keyLower.includes("middle") || keyLower.includes("mname")) {

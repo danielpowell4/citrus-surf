@@ -7,22 +7,26 @@ Implement the core matching algorithm that performs exact, normalized, and fuzzy
 ## Acceptance Criteria
 
 ### AC1: Exact Matching
+
 - [x] Implement exact string matching with case sensitivity options
 - [x] Handle null/undefined values appropriately
 - [x] Return match results with confidence scores
 
-### AC2: Normalized Matching  
+### AC2: Normalized Matching
+
 - [x] Auto-trim whitespace from both input and reference values
 - [x] Case-insensitive matching option
 - [x] Handle common encoding/character issues
 
 ### AC3: Fuzzy Matching
+
 - [x] Implement string similarity algorithm (Levenshtein/Jaro-Winkler)
 - [x] Configurable confidence threshold (0-1)
 - [x] Return multiple potential matches with scores
 - [x] Performance optimization for large datasets
 
 ### AC4: Matching API
+
 - [x] `performLookup(inputValue: string, referenceData: any[], config: LookupConfig): LookupResult`
 - [x] `batchLookup(inputValues: string[], referenceData: any[], config: LookupConfig): LookupResult[]`
 - [x] Support for derived field extraction in single operation
@@ -33,9 +37,9 @@ Implement the core matching algorithm that performs exact, normalized, and fuzzy
 interface LookupResult {
   inputValue: string;
   matched: boolean;
-  confidence: number;        // 0-1 confidence score
-  matchType: 'exact' | 'normalized' | 'fuzzy' | 'none';
-  matchedValue: any;         // The matched reference value
+  confidence: number; // 0-1 confidence score
+  matchType: "exact" | "normalized" | "fuzzy" | "none";
+  matchedValue: any; // The matched reference value
   derivedValues: Record<string, any>; // Additional columns
   suggestions?: LookupSuggestion[]; // For fuzzy matches
 }
@@ -47,28 +51,40 @@ interface LookupSuggestion {
 }
 
 interface MatchingEngine {
-  performLookup(input: string, referenceData: any[], config: LookupConfig): LookupResult;
-  batchLookup(inputs: string[], referenceData: any[], config: LookupConfig): LookupResult[];
+  performLookup(
+    input: string,
+    referenceData: any[],
+    config: LookupConfig
+  ): LookupResult;
+  batchLookup(
+    inputs: string[],
+    referenceData: any[],
+    config: LookupConfig
+  ): LookupResult[];
   calculateSimilarity(str1: string, str2: string): number;
 }
 ```
 
 ## Dependencies
+
 - LOOKUP-001 (Core Types)
 - LOOKUP-002 (Reference Data Manager)
 
 ## Estimated Effort
+
 **Large** (5-6 days)
 
 ## Implementation TODOs
 
 ### Types & Interfaces
+
 - [x] Define comprehensive interfaces for all matching engine components
 - [x] Create proper result types with confidence scoring
 - [x] Add types for different match strategies and configurations
 - [x] Ensure type safety for large dataset operations
 
 ### Testing
+
 - [x] Unit tests for exact matching algorithms
 - [x] Unit tests for normalized matching (case, whitespace)
 - [x] Unit tests for fuzzy matching with various similarity algorithms
@@ -78,17 +94,20 @@ interface MatchingEngine {
 - [x] Memory usage tests for large reference datasets
 
 ### Documentation
+
 - [x] Comprehensive JSDoc for all public methods
 - [x] Document matching algorithm choices and trade-offs
 - [x] Add performance characteristics and limitations
 - [x] Create usage examples with different match types
 
 ### Redux History Integration
+
 - [x] Matching operations should NOT be tracked in history (they're processing)
 - [x] Ensure matching results don't pollute Redux state unnecessarily
 - [x] Focus on data transformation results, not matching internals
 
 ## Files to Create
+
 - `lib/utils/lookup-matching-engine.ts`
 - `lib/utils/lookup-matching-engine.test.ts`
 - `lib/utils/string-similarity.ts` (helper utilities)

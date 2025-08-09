@@ -16,6 +16,7 @@ Before creating lookup fields, you need reference data to look up against:
 4. Review the data preview and click **Upload**
 
 **Example Reference Data (departments.csv):**
+
 ```csv
 dept_id,dept_name,manager,budget
 ENG001,Engineering,Sarah Johnson,500000
@@ -48,6 +49,7 @@ HR001,Human Resources,Lisa Wong,150000
 The system first attempts exact matches against your reference data:
 
 **Input Data:**
+
 ```csv
 employee,department
 John Smith,Engineering
@@ -55,6 +57,7 @@ Jane Doe,Marketing
 ```
 
 **Result:**
+
 ```csv
 employee,department
 John Smith,ENG001
@@ -66,6 +69,7 @@ Jane Doe,MKT001
 When exact matches fail, the system uses intelligent fuzzy matching:
 
 **Input Data:**
+
 ```csv
 employee,department
 Bob Wilson,Engineer
@@ -73,6 +77,7 @@ Alice Brown,Mkting
 ```
 
 **Fuzzy Matches Found:**
+
 - `Engineer` → `Engineering` (95% confidence)
 - `Mkting` → `Marketing` (90% confidence)
 
@@ -83,10 +88,12 @@ You'll be prompted to review and approve these matches.
 Automatically add related information from your reference data:
 
 **Configuration:**
+
 - Match: `dept_name` → `dept_id`
 - Also Get: `manager`, `budget`
 
 **Result:**
+
 ```csv
 employee,department,manager,budget
 John Smith,ENG001,Sarah Johnson,500000
@@ -148,10 +155,10 @@ Extract multiple values from the same lookup:
 
 ```typescript
 alsoGet: [
-  { name: 'manager', source: 'manager_name' },
-  { name: 'budget', source: 'annual_budget' },
-  { name: 'location', source: 'office_location' }
-]
+  { name: "manager", source: "manager_name" },
+  { name: "budget", source: "annual_budget" },
+  { name: "location", source: "office_location" },
+];
 ```
 
 ## Best Practices
@@ -192,6 +199,7 @@ Sales,SLS,3100
 ```
 
 **Configuration**:
+
 - Match On: `dept_name`
 - Return: `dept_code`
 - Also Get: `cost_center`
@@ -209,6 +217,7 @@ Office Chair,Furniture,Standard,Steelcase
 ```
 
 **Configuration**:
+
 - Match On: `product_name`
 - Return: `category`
 - Also Get: `price_tier`, `supplier`
@@ -226,6 +235,7 @@ Chicago,IL,Midwest,CST,US
 ```
 
 **Configuration**:
+
 - Match On: `city`
 - Return: `region`
 - Also Get: `timezone`, `country_code`
@@ -235,38 +245,46 @@ Chicago,IL,Midwest,CST,US
 ### Common Issues
 
 #### "No matches found"
+
 - **Cause**: Input values don't match reference data
 - **Solution**: Check spelling, enable fuzzy matching, or update reference data
 
 #### "Multiple matches found"
+
 - **Cause**: Reference data has duplicate entries
 - **Solution**: Clean reference data to ensure unique lookup values
 
 #### "Reference data not found"
+
 - **Cause**: Reference file was deleted or moved
 - **Solution**: Re-upload reference data or update lookup configuration
 
 #### "Low confidence matches"
+
 - **Cause**: Fuzzy matching threshold too strict or data quality issues
 - **Solution**: Lower confidence threshold or clean input data
 
 ### Performance Issues
 
 #### Slow lookup processing
+
 - **Cause**: Large reference files or complex matching
 - **Solution**: Reduce reference data size, simplify matching logic
 
 #### High memory usage
+
 - **Cause**: Processing very large datasets
 - **Solution**: Process data in smaller batches, close other applications
 
 ### Data Quality Issues
 
 #### Inconsistent results
+
 - **Cause**: Reference data changes between processing runs
 - **Solution**: Version control reference data, document changes
 
 #### Missing derived fields
+
 - **Cause**: Source columns missing from reference data
 - **Solution**: Verify reference data structure, update field configuration
 
@@ -289,4 +307,4 @@ When reporting issues, include:
 
 ---
 
-*This guide covers the core functionality of lookup fields. For advanced technical integration details, see the [Developer Documentation](./lookup-fields-developer-guide.md).*
+_This guide covers the core functionality of lookup fields. For advanced technical integration details, see the [Developer Documentation](./lookup-fields-developer-guide.md)._

@@ -7,20 +7,24 @@ Establish the foundational TypeScript types and interfaces for the lookup field 
 ## Acceptance Criteria
 
 ### AC1: Extend FieldType Union
+
 - [x] Add `"lookup"` to the `FieldType` union in `lib/types/target-shapes.ts`
 - [x] Ensure backward compatibility with existing field types
 
 ### AC2: Define LookupField Interface
+
 - [x] Create `LookupField` interface extending `TargetField`
 - [x] Include all required properties: `referenceFile`, `match`, `alsoGet`, `smartMatching`
 - [x] Add optional properties: `onMismatch`, `showReferenceInfo`, `allowReferenceEdit`
 
 ### AC3: Define Supporting Types
+
 - [x] Create `LookupMatch` interface for match configuration
-- [x] Create `SmartMatching` interface for fuzzy matching settings  
+- [x] Create `SmartMatching` interface for fuzzy matching settings
 - [x] Create `DerivedField` interface for additional column derivation
 
 ### AC4: Validation Integration
+
 - [x] Define how lookup fields auto-generate enum validation rules
 - [x] Ensure compatibility with existing `ValidationRule` interface
 
@@ -31,9 +35,9 @@ interface LookupField extends TargetField {
   type: "lookup";
   referenceFile: string;
   match: {
-    on: string;      // Column to match against
-    get: string;     // Column to return as value
-    show?: string;   // Column to display (optional)
+    on: string; // Column to match against
+    get: string; // Column to return as value
+    show?: string; // Column to display (optional)
   };
   alsoGet?: string[];
   smartMatching: {
@@ -47,38 +51,46 @@ interface LookupField extends TargetField {
 ```
 
 ## Dependencies
+
 - None (foundational)
 
 ## Estimated Effort
+
 **Small** (1-2 days)
 
 ## Implementation TODOs
 
 ### Types & Interfaces
+
 - [x] Add comprehensive TypeScript types for all lookup interfaces
 - [x] Ensure proper type exports from `lib/types/target-shapes.ts`
 - [x] Add JSDoc documentation for all new types
 - [x] Validate type compatibility with existing TargetField interface
 
 ### Testing
+
 - [x] Create unit tests for type definitions (compilation tests)
 - [x] Test type inference and compatibility
 - [x] Validate serialization/deserialization of lookup types
 
 ### Documentation
+
 - [x] Update `docs/target-shapes.md` with new lookup field type
 - [x] Update `docs/column-types-reference.md` with lookup examples
 - [x] Add type definitions to documentation
 
 ### Redux History Integration
+
 - [x] Ensure lookup field configurations are properly serialized in history
 - [x] Test that lookup fields restore correctly with time-travel
 - [x] No new actions needed at this level (just types)
 
 ## Files to Modify
+
 - `lib/types/target-shapes.ts`
 
 ## Files to Create
+
 - `lib/types/lookup-types.test.ts` (type validation tests)
 
 ---

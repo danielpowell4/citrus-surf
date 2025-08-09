@@ -7,8 +7,12 @@ import {
   GroupingState,
   PaginationState,
 } from "@tanstack/react-table";
-import { lookupProcessor, ProcessedLookupResult, LookupProcessingOptions } from '../utils/lookup-processor';
-import type { TargetShape, LookupField } from '../types/target-shapes';
+import {
+  lookupProcessor,
+  ProcessedLookupResult,
+  LookupProcessingOptions,
+} from "../utils/lookup-processor";
+import type { TargetShape, LookupField } from "../types/target-shapes";
 
 // Flexible row data type for dynamic data import and transformation
 export type TableRow = Record<string, unknown> & {
@@ -140,7 +144,7 @@ interface TableState {
   error: string | null;
   // Add edit state tracking
   editingCell: { rowId: string; columnId: string } | null;
-  
+
   // Lookup processing state
   lookupProcessing: {
     isProcessing: boolean;
@@ -179,7 +183,7 @@ const initialState: TableState = {
 
 // Async thunk for processing data with lookups
 export const processDataWithLookups = createAsyncThunk(
-  'table/processDataWithLookups',
+  "table/processDataWithLookups",
   async (
     {
       data,
@@ -198,10 +202,14 @@ export const processDataWithLookups = createAsyncThunk(
       dispatch(setLookupProgress(progress));
     };
 
-    const result = await lookupProcessor.processDataWithLookups(data, targetShape, {
-      ...options,
-      onProgress,
-    });
+    const result = await lookupProcessor.processDataWithLookups(
+      data,
+      targetShape,
+      {
+        ...options,
+        onProgress,
+      }
+    );
 
     return result;
   }
@@ -209,7 +217,7 @@ export const processDataWithLookups = createAsyncThunk(
 
 // Async thunk for real-time lookup updates
 export const updateLookupValue = createAsyncThunk(
-  'table/updateLookupValue',
+  "table/updateLookupValue",
   async ({
     rowId,
     fieldName,
@@ -223,7 +231,11 @@ export const updateLookupValue = createAsyncThunk(
     field: LookupField;
     rowData: TableRow;
   }) => {
-    const result = await lookupProcessor.processLookupUpdate(value, field, rowData);
+    const result = await lookupProcessor.processLookupUpdate(
+      value,
+      field,
+      rowData
+    );
     return { rowId, fieldName, result };
   }
 );
@@ -267,11 +279,7 @@ export const tableSlice = createSlice({
         targetFields: Array<{ id: string; name: string }>; // Target shape fields in order
       }>
     ) => {
-      const {
-        targetShapeId,
-        columnMapping,
-        targetFields,
-      } = action.payload;
+      const { targetShapeId, columnMapping, targetFields } = action.payload;
 
       // Transform data according to mapping using current state data
       const transformedData = state.data.map(row => {
@@ -472,10 +480,7 @@ export const tableSlice = createSlice({
     },
 
     // Set applied target shape ID
-    setAppliedTargetShapeId: (
-      state,
-      action: PayloadAction<string | null>
-    ) => {
+    setAppliedTargetShapeId: (state, action: PayloadAction<string | null>) => {
       state.appliedTargetShapeId = action.payload;
     },
 
@@ -499,7 +504,7 @@ export const tableSlice = createSlice({
       state.lookupProcessing.progress = action.payload;
     },
 
-    clearLookupProcessing: (state) => {
+    clearLookupProcessing: state => {
       state.lookupProcessing = {
         isProcessing: false,
         progress: 0,
@@ -508,10 +513,10 @@ export const tableSlice = createSlice({
       };
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       // Handle processDataWithLookups async thunk
-      .addCase(processDataWithLookups.pending, (state) => {
+      .addCase(processDataWithLookups.pending, state => {
         state.lookupProcessing.isProcessing = true;
         state.lookupProcessing.progress = 0;
         state.lookupProcessing.error = null;
@@ -521,10 +526,10 @@ export const tableSlice = createSlice({
         state.lookupProcessing.progress = 100;
         state.lookupProcessing.result = action.payload;
         state.lookupProcessing.error = null;
-        
+
         // Update table data with processed results
         state.data = action.payload.data;
-        
+
         // Update column order to match the actual data structure
         if (action.payload.data.length > 0) {
           const newColumns = Object.keys(action.payload.data[0]).filter(
@@ -537,9 +542,10 @@ export const tableSlice = createSlice({
       })
       .addCase(processDataWithLookups.rejected, (state, action) => {
         state.lookupProcessing.isProcessing = false;
-        state.lookupProcessing.error = action.error.message || 'Lookup processing failed';
+        state.lookupProcessing.error =
+          action.error.message || "Lookup processing failed";
       })
-      
+
       // Handle updateLookupValue async thunk
       .addCase(updateLookupValue.fulfilled, (state, action) => {
         const { rowId, result } = action.payload;

@@ -7,21 +7,25 @@ Integrate lookup fields into the existing target shapes system, including storag
 ## Acceptance Criteria
 
 ### AC1: Target Shapes Storage Integration
+
 - [x] Update `target-shapes-storage.ts` to handle lookup field configurations
 - [x] Serialize/deserialize lookup field properties correctly
 - [x] Maintain backward compatibility with existing target shapes
 
 ### AC2: Auto-Generated Validation
+
 - [x] Generate enum validation rules from reference data automatically
 - [x] Update validation when reference data changes
 - [x] Integrate with existing validation error handling
 
 ### AC3: Field Dependencies Management
+
 - [x] Track which fields are derived from lookup fields
 - [x] Handle cascade updates when lookup source data changes
 - [x] Manage cleanup when lookup fields are removed
 
 ### AC4: Target Shapes Slice Integration
+
 - [x] Add actions for lookup field creation/update/deletion
 - [x] Add actions for reference data management
 - [x] Ensure state consistency between lookup config and reference data
@@ -32,10 +36,14 @@ Integrate lookup fields into the existing target shapes system, including storag
 // Enhanced target shapes slice actions
 interface TargetShapesSlice {
   // Existing actions...
-  
+
   // New lookup-specific actions
   createLookupField: (shapeId: string, field: LookupField) => void;
-  updateLookupField: (shapeId: string, fieldId: string, updates: Partial<LookupField>) => void;
+  updateLookupField: (
+    shapeId: string,
+    fieldId: string,
+    updates: Partial<LookupField>
+  ) => void;
   deleteLookupField: (shapeId: string, fieldId: string) => void;
   refreshLookupValidation: (shapeId: string, fieldId: string) => void;
   updateReferenceData: (referenceId: string, data: any[]) => void;
@@ -43,22 +51,26 @@ interface TargetShapesSlice {
 ```
 
 ## Dependencies
+
 - LOOKUP-001 (Core Types)
 - LOOKUP-002 (Reference Data Manager)
 - Existing target shapes system
 
 ## Estimated Effort
+
 **Medium** (3-4 days)
 
 ## Implementation TODOs
 
 ### Types & Interfaces
+
 - [ ] Add proper typing for all new slice actions and state
 - [ ] Ensure reducer state includes lookup field support
 - [ ] Type the relationship between lookup fields and reference data
 - [ ] Add proper action payload types
 
 ### Testing
+
 - [ ] Unit tests for all new slice actions (create, update, delete lookup fields)
 - [ ] Test target shape serialization/deserialization with lookup fields
 - [ ] Test validation generation from reference data
@@ -67,11 +79,13 @@ interface TargetShapesSlice {
 - [ ] Integration tests with existing target shape functionality
 
 ### Documentation
+
 - [ ] Update `docs/target-shapes.md` with lookup field integration details
 - [ ] Document new slice actions and their usage
 - [ ] Add examples of lookup field configuration
 
 ### Redux History Integration
+
 - [ ] Add new lookup actions to `meaningfulActions` array in `lib/store.ts`:
   - `targetShapes/createLookupField`
   - `targetShapes/updateLookupField`
@@ -82,6 +96,7 @@ interface TargetShapesSlice {
 - [ ] Update `lib/utils/time-travel.ts` to handle lookup field restoration
 
 ## Files to Modify
+
 - `lib/features/targetShapesSlice.ts`
 - `lib/utils/target-shapes-storage.ts`
 - `lib/features/targetShapesSlice.test.ts`

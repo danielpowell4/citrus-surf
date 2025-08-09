@@ -15,12 +15,14 @@ This guide provides comprehensive testing patterns, recipes, and tool overviews 
 ## Testing Stack Overview
 
 ### Core Testing Framework
+
 - **Vitest** - Fast unit test runner (Jest-compatible API)
 - **React Testing Library** - Component testing utilities
 - **jsdom** - Browser environment simulation
 - **@testing-library/react-hooks** - Hook testing utilities
 
 ### Key Testing Principles
+
 1. **Test behavior, not implementation** - Focus on what the user experiences
 2. **Arrange, Act, Assert** - Clear test structure
 3. **Descriptive test names** - Tests should read like specifications
@@ -38,32 +40,42 @@ This guide provides comprehensive testing patterns, recipes, and tool overviews 
 
 ```typescript
 // Example: Testing lookup matching engine
-describe('LookupMatchingEngine', () => {
+describe("LookupMatchingEngine", () => {
   let engine: LookupMatchingEngine;
   let sampleReferenceData: Record<string, any>[];
   let basicConfig: LookupConfig;
 
   beforeEach(() => {
     engine = new LookupMatchingEngine();
-    
+
     // Setup test data
     sampleReferenceData = [
-      { id: 1, name: 'Engineering', department: 'Engineering', manager: 'John Smith' },
-      { id: 2, name: 'Marketing', department: 'Marketing', manager: 'Jane Doe' },
+      {
+        id: 1,
+        name: "Engineering",
+        department: "Engineering",
+        manager: "John Smith",
+      },
+      {
+        id: 2,
+        name: "Marketing",
+        department: "Marketing",
+        manager: "Jane Doe",
+      },
     ];
 
     basicConfig = {
-      matchColumn: 'name',
-      returnColumn: 'department',
+      matchColumn: "name",
+      returnColumn: "department",
       smartMatching: { enabled: true, confidence: 0.7 },
-      onMismatch: 'null' as const,
+      onMismatch: "null" as const,
     };
   });
 
-  describe('Exact Matching', () => {
-    it('should return exact match with high confidence', () => {
+  describe("Exact Matching", () => {
+    it("should return exact match with high confidence", () => {
       const result = engine.performLookup(
-        'Engineering',
+        "Engineering",
         sampleReferenceData,
         basicConfig
       );
@@ -71,31 +83,32 @@ describe('LookupMatchingEngine', () => {
       expect(result).toEqual({
         matched: true,
         confidence: 1.0,
-        matchType: 'exact',
-        matchedValue: 'Engineering',
-        inputValue: 'Engineering',
+        matchType: "exact",
+        matchedValue: "Engineering",
+        inputValue: "Engineering",
       });
     });
   });
 
-  describe('Fuzzy Matching', () => {
-    it('should handle misspellings with confidence scoring', () => {
+  describe("Fuzzy Matching", () => {
+    it("should handle misspellings with confidence scoring", () => {
       const result = engine.performLookup(
-        'Enginering', // typo
+        "Enginering", // typo
         sampleReferenceData,
         basicConfig
       );
 
       expect(result.matched).toBe(true);
-      expect(result.matchType).toBe('fuzzy');
+      expect(result.matchType).toBe("fuzzy");
       expect(result.confidence).toBeGreaterThan(0.7);
-      expect(result.matchedValue).toBe('Engineering');
+      expect(result.matchedValue).toBe("Engineering");
     });
   });
 });
 ```
 
 **Key Patterns:**
+
 - Use `beforeEach` for consistent test setup
 - Create realistic test data that covers edge cases
 - Test both success and failure scenarios
@@ -107,7 +120,7 @@ describe('LookupMatchingEngine', () => {
 
 ```typescript
 // Example: Testing target shapes slice with lookup integration
-describe('targetShapesSlice Integration', () => {
+describe("targetShapesSlice Integration", () => {
   let store: any;
   let mockTargetShape: TargetShape;
 
@@ -118,32 +131,34 @@ describe('targetShapesSlice Integration', () => {
     });
 
     mockTargetShape = {
-      id: 'test-shape',
-      name: 'Test Shape',
+      id: "test-shape",
+      name: "Test Shape",
       fields: [],
       // ... other required fields
     };
   });
 
-  describe('addLookupField', () => {
-    it('should add lookup field with proper initialization', () => {
+  describe("addLookupField", () => {
+    it("should add lookup field with proper initialization", () => {
       const lookupField: LookupField = {
-        id: 'dept-lookup',
-        name: 'department',
-        type: 'lookup',
-        referenceFile: 'ref_departments',
-        match: { on: 'name', get: 'id' },
+        id: "dept-lookup",
+        name: "department",
+        type: "lookup",
+        referenceFile: "ref_departments",
+        match: { on: "name", get: "id" },
         // ... other required fields
       };
 
-      store.dispatch(addLookupField({ 
-        shapeId: 'test-shape', 
-        field: lookupField 
-      }));
+      store.dispatch(
+        addLookupField({
+          shapeId: "test-shape",
+          field: lookupField,
+        })
+      );
 
       const state = store.getState().targetShapes;
-      const updatedShape = state.shapes.find(s => s.id === 'test-shape');
-      
+      const updatedShape = state.shapes.find(s => s.id === "test-shape");
+
       expect(updatedShape.fields).toHaveLength(1);
       expect(updatedShape.fields[0]).toMatchObject(lookupField);
     });
@@ -152,6 +167,7 @@ describe('targetShapesSlice Integration', () => {
 ```
 
 **Key Patterns:**
+
 - Create isolated store instances for each test
 - Test actions and their effects on state
 - Use `toMatchObject` for partial matching
@@ -212,7 +228,7 @@ describe('LookupEditableCell', () => {
     // Test editing interaction
     const input = screen.getByDisplayValue('Engineering');
     fireEvent.doubleClick(input);
-    
+
     // Should enter edit mode
     await waitFor(() => {
       expect(input).not.toHaveAttribute('readonly');
@@ -222,6 +238,7 @@ describe('LookupEditableCell', () => {
 ```
 
 **Key Patterns:**
+
 - Create helper functions for rendering with providers
 - Use realistic mock data and store state
 - Test user interactions (clicks, keyboard input)
@@ -259,7 +276,7 @@ describe('ReferenceUploadDialog', () => {
       value: [file],
       writable: false,
     });
-    
+
     fireEvent.change(fileInput);
 
     // Should show file preview
@@ -284,6 +301,7 @@ describe('ReferenceUploadDialog', () => {
 ```
 
 **Key Patterns:**
+
 - Mock file objects for upload testing
 - Use `Object.defineProperty` for DOM properties
 - Test form validation and error states
@@ -302,7 +320,7 @@ describe('ReferenceDataViewer Integration', () => {
 
   beforeEach(() => {
     mockStore = configureStore({
-      reducer: { 
+      reducer: {
         referenceData: referenceDataReducer,
         targetShapes: targetShapesReducer,
       },
@@ -319,7 +337,7 @@ describe('ReferenceDataViewer Integration', () => {
 
     render(
       <Provider store={mockStore}>
-        <ReferenceDataViewer 
+        <ReferenceDataViewer
           referenceInfo={mockReferenceInfo}
           onClose={vi.fn()}
         />
@@ -347,48 +365,48 @@ describe('ReferenceDataViewer Integration', () => {
 
 ```typescript
 // Example: Testing lookup processor with real data pipeline
-describe('LookupProcessor Integration', () => {
+describe("LookupProcessor Integration", () => {
   let processor: LookupProcessor;
   let mockTargetShape: TargetShape;
 
   beforeEach(() => {
     processor = new LookupProcessor();
-    
+
     mockTargetShape = {
-      id: 'employee-shape',
-      name: 'Employee Data',
+      id: "employee-shape",
+      name: "Employee Data",
       fields: [
         {
-          id: 'dept-lookup',
-          name: 'department',
-          type: 'lookup',
-          referenceFile: 'departments.csv',
-          match: { on: 'dept_name', get: 'dept_id' },
-          alsoGet: [{ name: 'manager', source: 'manager' }],
+          id: "dept-lookup",
+          name: "department",
+          type: "lookup",
+          referenceFile: "departments.csv",
+          match: { on: "dept_name", get: "dept_id" },
+          alsoGet: [{ name: "manager", source: "manager" }],
         },
       ],
     };
   });
 
-  it('should process data with lookups and derive additional fields', async () => {
+  it("should process data with lookups and derive additional fields", async () => {
     const inputData = [
-      { name: 'John Doe', department: 'Engineering' },
-      { name: 'Jane Smith', department: 'Marketing' },
+      { name: "John Doe", department: "Engineering" },
+      { name: "Jane Smith", department: "Marketing" },
     ];
 
     const result = await processor.processData(inputData, mockTargetShape);
 
     expect(result).toEqual({
       processedData: [
-        { 
-          name: 'John Doe', 
-          department: 'ENG001',  // looked up
-          manager: 'Sarah Johnson'  // derived
+        {
+          name: "John Doe",
+          department: "ENG001", // looked up
+          manager: "Sarah Johnson", // derived
         },
-        { 
-          name: 'Jane Smith', 
-          department: 'MKT001',  // looked up
-          manager: 'Mike Chen'  // derived
+        {
+          name: "Jane Smith",
+          department: "MKT001", // looked up
+          manager: "Mike Chen", // derived
         },
       ],
       statistics: {
@@ -409,20 +427,20 @@ describe('LookupProcessor Integration', () => {
 
 ```typescript
 // Mock entire module with specific implementations
-vi.mock('@/lib/utils/reference-data-manager', () => ({
+vi.mock("@/lib/utils/reference-data-manager", () => ({
   referenceDataManager: {
     getReferenceDataRows: vi.fn((id: string) => {
       const mockData = {
-        'ref_departments': [
-          { dept_name: 'Engineering', dept_id: 'ENG001' },
-          { dept_name: 'Marketing', dept_id: 'MKT001' },
+        ref_departments: [
+          { dept_name: "Engineering", dept_id: "ENG001" },
+          { dept_name: "Marketing", dept_id: "MKT001" },
         ],
       };
       return mockData[id as keyof typeof mockData] || null;
     }),
     uploadReferenceFile: vi.fn().mockResolvedValue({
-      id: 'new_ref_id',
-      filename: 'uploaded.csv',
+      id: "new_ref_id",
+      filename: "uploaded.csv",
       rowCount: 10,
     }),
   },
@@ -435,22 +453,22 @@ vi.mock('@/lib/utils/reference-data-manager', () => ({
 
 ```typescript
 // Mock matching engine with controllable behavior
-vi.mock('@/lib/utils/lookup-matching-engine', () => ({
+vi.mock("@/lib/utils/lookup-matching-engine", () => ({
   LookupMatchingEngine: vi.fn().mockImplementation(() => ({
     performLookup: vi.fn().mockImplementation((input: string) => {
       // Return different results based on input for testing
-      if (input === 'Engineering') {
+      if (input === "Engineering") {
         return {
           matched: true,
           confidence: 1.0,
-          matchType: 'exact',
-          matchedValue: 'ENG001',
+          matchType: "exact",
+          matchedValue: "ENG001",
         };
       }
       return {
         matched: false,
         confidence: 0,
-        suggestions: ['Engineering', 'Marketing'],
+        suggestions: ["Engineering", "Marketing"],
       };
     }),
   })),
@@ -463,9 +481,9 @@ vi.mock('@/lib/utils/lookup-matching-engine', () => ({
 
 ```typescript
 // Example: Testing useReferenceDataEditor hook
-describe('useReferenceDataEditor', () => {
-  it('should manage editing state and save changes', async () => {
-    const { result } = renderHook(() => 
+describe("useReferenceDataEditor", () => {
+  it("should manage editing state and save changes", async () => {
+    const { result } = renderHook(() =>
       useReferenceDataEditor(mockReferenceInfo)
     );
 
@@ -481,15 +499,17 @@ describe('useReferenceDataEditor', () => {
     expect(result.current.isEditing).toBe(true);
 
     // Save changes
-    const newData = [{ id: '1', name: 'Updated Name' }];
-    
+    const newData = [{ id: "1", name: "Updated Name" }];
+
     await act(async () => {
       await result.current.saveChanges(newData);
     });
 
     expect(result.current.isEditing).toBe(false);
-    expect(mockReferenceDataManager.updateReferenceData)
-      .toHaveBeenCalledWith('test-ref', newData);
+    expect(mockReferenceDataManager.updateReferenceData).toHaveBeenCalledWith(
+      "test-ref",
+      newData
+    );
   });
 });
 ```
@@ -499,10 +519,10 @@ describe('useReferenceDataEditor', () => {
 ### Recipe: Testing Large Dataset Performance
 
 ```typescript
-describe('LookupMatchingEngine Performance', () => {
-  it('should handle large datasets efficiently', () => {
+describe("LookupMatchingEngine Performance", () => {
+  it("should handle large datasets efficiently", () => {
     const engine = new LookupMatchingEngine();
-    
+
     // Generate large test dataset
     const largeReferenceData = Array.from({ length: 10000 }, (_, i) => ({
       id: i,
@@ -511,13 +531,12 @@ describe('LookupMatchingEngine Performance', () => {
     }));
 
     const startTime = performance.now();
-    
-    const result = engine.performLookup(
-      'Item 5000',
-      largeReferenceData,
-      { matchColumn: 'name', returnColumn: 'category' }
-    );
-    
+
+    const result = engine.performLookup("Item 5000", largeReferenceData, {
+      matchColumn: "name",
+      returnColumn: "category",
+    });
+
     const endTime = performance.now();
     const executionTime = endTime - startTime;
 
@@ -525,18 +544,18 @@ describe('LookupMatchingEngine Performance', () => {
     expect(executionTime).toBeLessThan(100); // Should complete in <100ms
   });
 
-  it('should handle batch operations efficiently', async () => {
+  it("should handle batch operations efficiently", async () => {
     const processor = new LookupProcessor();
-    
+
     const largeBatch = Array.from({ length: 1000 }, (_, i) => ({
       name: `Employee ${i}`,
-      department: 'Engineering',
+      department: "Engineering",
     }));
 
     const startTime = performance.now();
-    
+
     await processor.processBatch(largeBatch, mockTargetShape);
-    
+
     const endTime = performance.now();
     const executionTime = endTime - startTime;
 
@@ -553,16 +572,16 @@ describe('LookupMatchingEngine Performance', () => {
 // vitest.config.ts
 export default defineConfig({
   test: {
-    environment: 'jsdom',
-    setupFiles: ['./test/setup.ts'],
+    environment: "jsdom",
+    setupFiles: ["./test/setup.ts"],
     globals: true,
   },
 });
 
 // test/setup.ts
-import { expect, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
+import { expect, afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+import * as matchers from "@testing-library/jest-dom/matchers";
 
 expect.extend(matchers);
 
@@ -610,15 +629,13 @@ export const renderWithProviders = (
 expect(result).toMatchObject({
   matched: true,
   confidence: expect.any(Number),
-  matchType: 'exact',
+  matchType: "exact",
 });
 
 // Array length and content
 expect(results).toHaveLength(3);
 expect(results).toEqual(
-  expect.arrayContaining([
-    expect.objectContaining({ name: 'Engineering' }),
-  ])
+  expect.arrayContaining([expect.objectContaining({ name: "Engineering" })])
 );
 
 // Function calls
@@ -629,18 +646,19 @@ expect(mockFunction).toHaveBeenCalledWith(
 
 // Async operations
 await waitFor(() => {
-  expect(screen.getByText('Success')).toBeInTheDocument();
+  expect(screen.getByText("Success")).toBeInTheDocument();
 });
 
 // Error handling
 expect(() => {
   engine.performLookup(null, [], config);
-}).toThrow('Invalid input value');
+}).toThrow("Invalid input value");
 ```
 
 ## Test Value Assessment
 
 ### High-Value Tests (Keep & Maintain)
+
 - **User-facing functionality**: Upload success, progress feedback, basic interactions
 - **Core business logic**: Data validation, transformation, matching algorithms
 - **Error handling**: Clear error messages, graceful failures
@@ -648,11 +666,13 @@ expect(() => {
 - **Integration points**: API calls, state management, data flow
 
 ### Medium-Value Tests (Selective)
+
 - **Edge cases**: Only test edge cases that users commonly encounter
 - **Performance**: Test performance for user-impacting operations
 - **Complex workflows**: Only test multi-step flows that are core user journeys
 
 ### Low-Value Tests (Remove)
+
 - **Implementation details**: Internal function calls, component structure
 - **Complex mock setups**: Tests that require extensive mocking infrastructure
 - **Redundant coverage**: Multiple tests covering the same user scenario
@@ -683,6 +703,7 @@ expect(() => {
 ## Test Suite Maintenance
 
 ### Regular Review Process
+
 1. **Identify Failing Tests**: Are they catching real bugs or breaking due to implementation changes?
 2. **Assess Test Value**: Does this test verify user-facing functionality?
 3. **Remove Low-Value Tests**: Clean up tests that don't provide unique value
@@ -690,6 +711,7 @@ expect(() => {
 5. **Simplify Complex Tests**: Break down brittle integration tests into focused unit tests
 
 ### Success Metrics
+
 - **Stable test suite**: Tests should rarely break due to refactoring
 - **Fast feedback**: Test suite should run quickly and provide clear results
 - **User-focused coverage**: Tests should verify features users actually use

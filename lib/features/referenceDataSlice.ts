@@ -4,7 +4,7 @@ import type { ReferenceDataInfo } from "../types/reference-data-types";
 import { referenceDataManager } from "../utils/reference-data-manager";
 
 export interface ReferenceDataHistoryAction {
-  type: 'upload' | 'update' | 'delete' | 'clear';
+  type: "upload" | "update" | "delete" | "clear";
   id: string;
   timestamp: number;
   data?: {
@@ -18,18 +18,18 @@ export interface ReferenceDataHistoryAction {
 interface ReferenceDataState {
   // Current reference data index (cached from storage)
   referenceFiles: Record<string, ReferenceDataInfo>;
-  
+
   // History tracking
   history: ReferenceDataHistoryAction[];
   currentHistoryIndex: number;
   isTimeTraveling: boolean;
   maxHistorySize: number;
-  
+
   // UI state
   isUploading: boolean;
   uploadProgress: number;
   error: string | null;
-  
+
   // Statistics
   stats: {
     totalFiles: number;
@@ -67,19 +67,25 @@ export const referenceDataSlice = createSlice({
       state.error = null;
     },
 
-    uploadFileProgress: (state, action: PayloadAction<{ progress: number }>) => {
+    uploadFileProgress: (
+      state,
+      action: PayloadAction<{ progress: number }>
+    ) => {
       state.uploadProgress = action.payload.progress;
     },
 
-    uploadFileSuccess: (state, action: PayloadAction<{ info: ReferenceDataInfo }>) => {
+    uploadFileSuccess: (
+      state,
+      action: PayloadAction<{ info: ReferenceDataInfo }>
+    ) => {
       const { info } = action.payload;
-      
+
       // Update files index
       state.referenceFiles[info.id] = info;
-      
+
       // Add to history
       const historyAction: ReferenceDataHistoryAction = {
-        type: 'upload',
+        type: "upload",
         id: info.id,
         timestamp: Date.now(),
         data: {
@@ -88,24 +94,30 @@ export const referenceDataSlice = createSlice({
           columns: info.columns,
         },
       };
-      
+
       state.history.push(historyAction);
       state.currentHistoryIndex = state.history.length - 1;
-      
+
       // Trim history if needed
       if (state.history.length > state.maxHistorySize) {
         state.history = state.history.slice(-state.maxHistorySize);
         state.currentHistoryIndex = state.history.length - 1;
       }
-      
+
       state.isUploading = false;
       state.uploadProgress = 100;
       state.error = null;
-      
+
       // Update stats
       state.stats.totalFiles = Object.keys(state.referenceFiles).length;
-      state.stats.totalRows = Object.values(state.referenceFiles).reduce((sum, file) => sum + file.rowCount, 0);
-      state.stats.totalSize = Object.values(state.referenceFiles).reduce((sum, file) => sum + file.fileSize, 0);
+      state.stats.totalRows = Object.values(state.referenceFiles).reduce(
+        (sum, file) => sum + file.rowCount,
+        0
+      );
+      state.stats.totalSize = Object.values(state.referenceFiles).reduce(
+        (sum, file) => sum + file.fileSize,
+        0
+      );
       state.stats.lastUpdated = new Date().toISOString();
     },
 
@@ -115,14 +127,17 @@ export const referenceDataSlice = createSlice({
       state.error = action.payload.error;
     },
 
-    updateFileData: (state, action: PayloadAction<{ 
-      id: string; 
-      newData: Record<string, any>[]; 
-      previousData: Record<string, any>[] 
-    }>) => {
+    updateFileData: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        newData: Record<string, any>[];
+        previousData: Record<string, any>[];
+      }>
+    ) => {
       const { id, newData, previousData } = action.payload;
       const existingFile = state.referenceFiles[id];
-      
+
       if (existingFile) {
         // Update file info
         const updatedInfo: ReferenceDataInfo = {
@@ -131,12 +146,12 @@ export const referenceDataSlice = createSlice({
           columns: newData.length > 0 ? Object.keys(newData[0]) : [],
           lastModified: new Date().toISOString(),
         };
-        
+
         state.referenceFiles[id] = updatedInfo;
-        
+
         // Add to history
         const historyAction: ReferenceDataHistoryAction = {
-          type: 'update',
+          type: "update",
           id,
           timestamp: Date.now(),
           data: {
@@ -145,33 +160,39 @@ export const referenceDataSlice = createSlice({
             previousData,
           },
         };
-        
+
         state.history.push(historyAction);
         state.currentHistoryIndex = state.history.length - 1;
-        
+
         // Trim history if needed
         if (state.history.length > state.maxHistorySize) {
           state.history = state.history.slice(-state.maxHistorySize);
           state.currentHistoryIndex = state.history.length - 1;
         }
-        
+
         // Update stats
-        state.stats.totalRows = Object.values(state.referenceFiles).reduce((sum, file) => sum + file.rowCount, 0);
+        state.stats.totalRows = Object.values(state.referenceFiles).reduce(
+          (sum, file) => sum + file.rowCount,
+          0
+        );
         state.stats.lastUpdated = new Date().toISOString();
       }
-      
+
       state.error = null;
     },
 
-    deleteFile: (state, action: PayloadAction<{ id: string; info: ReferenceDataInfo }>) => {
+    deleteFile: (
+      state,
+      action: PayloadAction<{ id: string; info: ReferenceDataInfo }>
+    ) => {
       const { id, info } = action.payload;
-      
+
       // Remove from files index
       delete state.referenceFiles[id];
-      
+
       // Add to history
       const historyAction: ReferenceDataHistoryAction = {
-        type: 'delete',
+        type: "delete",
         id,
         timestamp: Date.now(),
         data: {
@@ -180,51 +201,60 @@ export const referenceDataSlice = createSlice({
           columns: info.columns,
         },
       };
-      
+
       state.history.push(historyAction);
       state.currentHistoryIndex = state.history.length - 1;
-      
+
       // Trim history if needed
       if (state.history.length > state.maxHistorySize) {
         state.history = state.history.slice(-state.maxHistorySize);
         state.currentHistoryIndex = state.history.length - 1;
       }
-      
+
       // Update stats
       state.stats.totalFiles = Object.keys(state.referenceFiles).length;
-      state.stats.totalRows = Object.values(state.referenceFiles).reduce((sum, file) => sum + file.rowCount, 0);
-      state.stats.totalSize = Object.values(state.referenceFiles).reduce((sum, file) => sum + file.fileSize, 0);
+      state.stats.totalRows = Object.values(state.referenceFiles).reduce(
+        (sum, file) => sum + file.rowCount,
+        0
+      );
+      state.stats.totalSize = Object.values(state.referenceFiles).reduce(
+        (sum, file) => sum + file.fileSize,
+        0
+      );
       state.stats.lastUpdated = new Date().toISOString();
-      
+
       state.error = null;
     },
 
-    clearAllFiles: (state) => {
+    clearAllFiles: state => {
       // Store previous state for history
       const previousFiles = { ...state.referenceFiles };
-      
+
       // Clear files
       state.referenceFiles = {};
-      
+
       // Add to history
       const historyAction: ReferenceDataHistoryAction = {
-        type: 'clear',
-        id: 'all',
+        type: "clear",
+        id: "all",
         timestamp: Date.now(),
         data: {
-          rowCount: Object.values(previousFiles).reduce((sum, file) => sum + file.rowCount, 0),
+          rowCount: Object.values(previousFiles).reduce(
+            (sum, file) => sum + file.rowCount,
+            0
+          ),
         },
       };
-      
+
       state.history.push(historyAction);
       state.currentHistoryIndex = state.history.length - 1;
-      
+
       // Trim history if needed
       if (state.history.length > state.maxHistorySize) {
         state.history = state.history.slice(-state.maxHistorySize);
         state.currentHistoryIndex = state.history.length - 1;
       }
-      
+
       // Reset stats
       state.stats = {
         totalFiles: 0,
@@ -232,12 +262,12 @@ export const referenceDataSlice = createSlice({
         totalSize: 0,
         lastUpdated: new Date().toISOString(),
       };
-      
+
       state.error = null;
     },
 
     // History Management Actions
-    undoAction: (state) => {
+    undoAction: state => {
       if (state.currentHistoryIndex > 0) {
         state.currentHistoryIndex--;
         state.isTimeTraveling = true;
@@ -245,7 +275,7 @@ export const referenceDataSlice = createSlice({
       }
     },
 
-    redoAction: (state) => {
+    redoAction: state => {
       if (state.currentHistoryIndex < state.history.length - 1) {
         state.currentHistoryIndex++;
         state.isTimeTraveling = true;
@@ -262,22 +292,22 @@ export const referenceDataSlice = createSlice({
       }
     },
 
-    finishTimeTravel: (state) => {
+    finishTimeTravel: state => {
       state.isTimeTraveling = false;
     },
 
     // State Synchronization Actions
-    syncWithStorage: (state) => {
+    syncWithStorage: state => {
       // Sync the Redux state with the actual storage
       const files = referenceDataManager.listReferenceFiles();
       const filesIndex: Record<string, ReferenceDataInfo> = {};
-      
+
       files.forEach(file => {
         filesIndex[file.id] = file;
       });
-      
+
       state.referenceFiles = filesIndex;
-      
+
       const stats = referenceDataManager.getStats();
       state.stats = {
         totalFiles: stats.totalFiles,
@@ -292,7 +322,7 @@ export const referenceDataSlice = createSlice({
       state.error = action.payload.error;
     },
 
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
   },
@@ -316,18 +346,24 @@ export const {
 } = referenceDataSlice.actions;
 
 // Selectors
-export const selectReferenceFiles = (state: RootState) => state.referenceData.referenceFiles;
-export const selectReferenceFilesList = (state: RootState) => 
+export const selectReferenceFiles = (state: RootState) =>
+  state.referenceData.referenceFiles;
+export const selectReferenceFilesList = (state: RootState) =>
   Object.values(state.referenceData.referenceFiles);
-export const selectReferenceFileById = (state: RootState, id: string) => 
+export const selectReferenceFileById = (state: RootState, id: string) =>
   state.referenceData.referenceFiles[id];
 
-export const selectReferenceDataHistory = (state: RootState) => state.referenceData.history;
-export const selectCurrentHistoryIndex = (state: RootState) => state.referenceData.currentHistoryIndex;
-export const selectCanUndo = (state: RootState) => state.referenceData.currentHistoryIndex > 0;
-export const selectCanRedo = (state: RootState) => 
-  state.referenceData.currentHistoryIndex < state.referenceData.history.length - 1;
-export const selectIsTimeTraveling = (state: RootState) => state.referenceData.isTimeTraveling;
+export const selectReferenceDataHistory = (state: RootState) =>
+  state.referenceData.history;
+export const selectCurrentHistoryIndex = (state: RootState) =>
+  state.referenceData.currentHistoryIndex;
+export const selectCanUndo = (state: RootState) =>
+  state.referenceData.currentHistoryIndex > 0;
+export const selectCanRedo = (state: RootState) =>
+  state.referenceData.currentHistoryIndex <
+  state.referenceData.history.length - 1;
+export const selectIsTimeTraveling = (state: RootState) =>
+  state.referenceData.isTimeTraveling;
 
 export const selectUploadState = (state: RootState) => ({
   isUploading: state.referenceData.isUploading,
@@ -335,6 +371,7 @@ export const selectUploadState = (state: RootState) => ({
   error: state.referenceData.error,
 });
 
-export const selectReferenceDataStats = (state: RootState) => state.referenceData.stats;
+export const selectReferenceDataStats = (state: RootState) =>
+  state.referenceData.stats;
 
 export default referenceDataSlice.reducer;

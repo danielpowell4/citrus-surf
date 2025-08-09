@@ -3,7 +3,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { EditableCell } from "@/app/playground/editable-cell";
 
-
 // Extended meta interface for our column definitions
 export interface ColumnMeta {
   sortable?: boolean;

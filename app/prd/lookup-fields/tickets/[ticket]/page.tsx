@@ -2,12 +2,12 @@ import fs from "fs";
 import path from "path";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import MarkdownRenderer from '@/components/markdown-renderer';
+import MarkdownRenderer from "@/components/markdown-renderer";
 
 // Map of ticket slugs to actual filenames
 const ticketFiles: Record<string, string> = {
   "lookup-001": "LOOKUP-001-core-types.md",
-  "lookup-002": "LOOKUP-002-reference-data-manager.md", 
+  "lookup-002": "LOOKUP-002-reference-data-manager.md",
   "lookup-003": "LOOKUP-003-target-shapes-integration.md",
   "lookup-004": "LOOKUP-004-matching-engine.md",
   "lookup-005": "LOOKUP-005-data-processing-integration.md",
@@ -23,7 +23,7 @@ const ticketFiles: Record<string, string> = {
 const ticketTitles: Record<string, string> = {
   "lookup-001": "LOOKUP-001: Core Type Definitions",
   "lookup-002": "LOOKUP-002: Reference Data Manager",
-  "lookup-003": "LOOKUP-003: Target Shapes Integration", 
+  "lookup-003": "LOOKUP-003: Target Shapes Integration",
   "lookup-004": "LOOKUP-004: Lookup Matching Engine",
   "lookup-005": "LOOKUP-005: Data Processing Integration",
   "lookup-006": "LOOKUP-006: Enhanced Validation System",
@@ -42,7 +42,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ticket } = await params;
   const title = ticketTitles[ticket] || "Ticket Not Found";
-  
+
   return {
     title: `${title} - Citrus Surf`,
     description: `Implementation ticket: ${title}`,
@@ -61,22 +61,22 @@ function readMarkdownFile(filePath: string): string {
 export default async function TicketPage({ params }: Props) {
   const { ticket } = await params;
   const filename = ticketFiles[ticket];
-  
+
   if (!filename) {
     notFound();
   }
-  
+
   const content = readMarkdownFile(`lookup-fields/tickets/${filename}`);
-  
+
   if (!content) {
     notFound();
   }
-  
+
   return <MarkdownRenderer content={content} />;
 }
 
 export async function generateStaticParams() {
-  return Object.keys(ticketFiles).map((ticket) => ({
+  return Object.keys(ticketFiles).map(ticket => ({
     ticket,
   }));
 }

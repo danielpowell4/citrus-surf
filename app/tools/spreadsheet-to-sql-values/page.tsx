@@ -168,9 +168,9 @@ function SqlConverterTool() {
   const [headers, setHeaders] = useState<string[]>([]);
   const [columnMappings, setColumnMappings] = useState<string[]>([]);
   const [columnCastings, setColumnCastings] = useState<string[]>([]);
-  const [_customCastings, _setCustomCastings] = useState<Record<number, string>>(
-    {}
-  );
+  const [_customCastings, _setCustomCastings] = useState<
+    Record<number, string>
+  >({});
 
   // Convert string to snake_case
   const toSnakeCase = (str: string): string => {

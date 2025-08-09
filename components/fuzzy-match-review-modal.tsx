@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,42 +8,48 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Search, 
-  Filter, 
-  CheckCircle, 
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Search,
+  Filter,
+  CheckCircle,
   XCircle,
   BarChart3,
-  RefreshCw
-} from 'lucide-react';
-import { MatchComparisonCard } from './match-comparison-card';
-import { useFuzzyMatchReview } from '@/hooks/useFuzzyMatchReview';
-import type { 
-  FuzzyMatchReviewModalProps, 
+  RefreshCw,
+} from "lucide-react";
+import { MatchComparisonCard } from "./match-comparison-card";
+import { useFuzzyMatchReview } from "@/hooks/useFuzzyMatchReview";
+import type {
+  FuzzyMatchReviewModalProps,
   FuzzyMatchForReview,
-  FuzzyMatchFilter 
-} from '@/lib/types/fuzzy-match-review';
-import type { FuzzyMatch } from '@/lib/utils/lookup-processor';
+  FuzzyMatchFilter,
+} from "@/lib/types/fuzzy-match-review";
+import type { FuzzyMatch } from "@/lib/utils/lookup-processor";
 
 /**
  * Statistics summary component
  */
-function ReviewStats({ 
-  stats, 
-  showDistribution = false 
-}: { 
-  stats: any; 
-  showDistribution?: boolean; 
+function ReviewStats({
+  stats,
+  showDistribution = false,
+}: {
+  stats: any;
+  showDistribution?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -53,16 +59,20 @@ function ReviewStats({
           {stats.totalMatches - stats.pending} of {stats.totalMatches} processed
         </div>
       </div>
-      
+
       <Progress value={stats.progress} className="h-2" />
-      
+
       <div className="grid grid-cols-4 gap-4 text-center">
         <div className="space-y-1">
-          <div className="text-2xl font-bold text-green-600">{stats.accepted}</div>
+          <div className="text-2xl font-bold text-green-600">
+            {stats.accepted}
+          </div>
           <div className="text-xs text-muted-foreground">Accepted</div>
         </div>
         <div className="space-y-1">
-          <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+          <div className="text-2xl font-bold text-red-600">
+            {stats.rejected}
+          </div>
           <div className="text-xs text-muted-foreground">Rejected</div>
         </div>
         <div className="space-y-1">
@@ -70,7 +80,9 @@ function ReviewStats({
           <div className="text-xs text-muted-foreground">Manual</div>
         </div>
         <div className="space-y-1">
-          <div className="text-2xl font-bold text-gray-600">{stats.pending}</div>
+          <div className="text-2xl font-bold text-gray-600">
+            {stats.pending}
+          </div>
           <div className="text-xs text-muted-foreground">Pending</div>
         </div>
       </div>
@@ -81,16 +93,20 @@ function ReviewStats({
           <div className="space-y-2">
             <div className="text-sm font-medium">Confidence Distribution</div>
             {stats.confidenceDistribution.map((bucket: any, index: number) => (
-              <div key={index} className="flex items-center justify-between text-xs">
+              <div
+                key={index}
+                className="flex items-center justify-between text-xs"
+              >
                 <div className="flex items-center space-x-2">
                   <div className="w-16 text-muted-foreground">
-                    {Math.round(bucket.range[0] * 100)}-{Math.round(bucket.range[1] * 100)}%
+                    {Math.round(bucket.range[0] * 100)}-
+                    {Math.round(bucket.range[1] * 100)}%
                   </div>
                   <div className="flex-1 bg-muted h-2 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-blue-500 transition-all duration-300"
-                      style={{ 
-                        width: `${stats.totalMatches > 0 ? (bucket.count / stats.totalMatches) * 100 : 0}%` 
+                      style={{
+                        width: `${stats.totalMatches > 0 ? (bucket.count / stats.totalMatches) * 100 : 0}%`,
                       }}
                     />
                   </div>
@@ -108,11 +124,11 @@ function ReviewStats({
 /**
  * Filter controls component
  */
-function FilterControls({ 
-  filter, 
-  onFilterChange, 
-  fieldNames 
-}: { 
+function FilterControls({
+  filter,
+  onFilterChange,
+  fieldNames,
+}: {
   filter: FuzzyMatchFilter;
   onFilterChange: (filter: Partial<FuzzyMatchFilter>) => void;
   fieldNames: string[];
@@ -129,20 +145,22 @@ function FilterControls({
           onClick={() => setShowAdvanced(!showAdvanced)}
         >
           <Filter className="h-4 w-4 mr-2" />
-          {showAdvanced ? 'Less' : 'More'}
+          {showAdvanced ? "Less" : "More"}
         </Button>
       </div>
 
       {/* Search */}
       <div className="space-y-2">
-        <Label htmlFor="search" className="text-xs">Search values</Label>
+        <Label htmlFor="search" className="text-xs">
+          Search values
+        </Label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="search"
             placeholder="Search input or suggested values..."
-            value={filter.searchTerm || ''}
-            onChange={(e) => onFilterChange({ searchTerm: e.target.value })}
+            value={filter.searchTerm || ""}
+            onChange={e => onFilterChange({ searchTerm: e.target.value })}
             className="pl-10"
           />
         </div>
@@ -152,12 +170,14 @@ function FilterControls({
       <div className="space-y-2">
         <Label className="text-xs">Status</Label>
         <Select
-          value={filter.status?.join(',') || 'all'}
-          onValueChange={(value) => {
-            if (value === 'all') {
+          value={filter.status?.join(",") || "all"}
+          onValueChange={value => {
+            if (value === "all") {
               onFilterChange({ status: undefined });
             } else {
-              onFilterChange({ status: value.split(',') as FuzzyMatchForReview['status'][] });
+              onFilterChange({
+                status: value.split(",") as FuzzyMatchForReview["status"][],
+              });
             }
           }}
         >
@@ -179,11 +199,15 @@ function FilterControls({
           {/* Confidence Range */}
           <div className="space-y-2">
             <Label className="text-xs">
-              Confidence Range: {Math.round((filter.confidenceRange?.[0] || 0) * 100)}% - {Math.round((filter.confidenceRange?.[1] || 1) * 100)}%
+              Confidence Range:{" "}
+              {Math.round((filter.confidenceRange?.[0] || 0) * 100)}% -{" "}
+              {Math.round((filter.confidenceRange?.[1] || 1) * 100)}%
             </Label>
             <Slider
               value={filter.confidenceRange || [0, 1]}
-              onValueChange={(value) => onFilterChange({ confidenceRange: value as [number, number] })}
+              onValueChange={value =>
+                onFilterChange({ confidenceRange: value as [number, number] })
+              }
               min={0}
               max={1}
               step={0.05}
@@ -196,8 +220,12 @@ function FilterControls({
             <div className="space-y-2">
               <Label className="text-xs">Field</Label>
               <Select
-                value={filter.fieldName || 'all'}
-                onValueChange={(value) => onFilterChange({ fieldName: value === 'all' ? undefined : value })}
+                value={filter.fieldName || "all"}
+                onValueChange={value =>
+                  onFilterChange({
+                    fieldName: value === "all" ? undefined : value,
+                  })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All fields" />
@@ -232,7 +260,7 @@ export function FuzzyMatchReviewModal({
   onBatchReject,
   onManualEntry,
   initialFilter,
-  showBatchOperations = true
+  showBatchOperations = true,
 }: FuzzyMatchReviewModalProps) {
   // Convert to FuzzyMatch array for the hook
   const fuzzyMatches: FuzzyMatch[] = initialMatches.map(match => ({
@@ -240,19 +268,22 @@ export function FuzzyMatchReviewModal({
     fieldName: match.fieldName,
     inputValue: match.inputValue,
     suggestedValue: match.suggestedValue,
-    confidence: match.confidence
+    confidence: match.confidence,
   }));
 
-  const { state, actions, hasChanges, isComplete } = useFuzzyMatchReview(fuzzyMatches, (matchId, status, value) => {
-    // Bridge to parent callbacks
-    if (status === 'accepted') {
-      onAccept(matchId, value);
-    } else if (status === 'rejected') {
-      onReject(matchId);
-    } else if (status === 'manual') {
-      onManualEntry(matchId, value);
+  const { state, actions, hasChanges, isComplete } = useFuzzyMatchReview(
+    fuzzyMatches,
+    (matchId, status, value) => {
+      // Bridge to parent callbacks
+      if (status === "accepted") {
+        onAccept(matchId, value);
+      } else if (status === "rejected") {
+        onReject(matchId);
+      } else if (status === "manual") {
+        onManualEntry(matchId, value);
+      }
     }
-  });
+  );
 
   const [showStats, setShowStats] = useState(true);
 
@@ -269,10 +300,13 @@ export function FuzzyMatchReviewModal({
   }, [state.matches]);
 
   const handleSelectAll = () => {
-    if (state.selectedMatches.size === state.filteredMatches.filter(m => m.status === 'pending').length) {
+    if (
+      state.selectedMatches.size ===
+      state.filteredMatches.filter(m => m.status === "pending").length
+    ) {
       actions.clearSelection();
     } else {
-      actions.selectAll({ status: ['pending'] });
+      actions.selectAll({ status: ["pending"] });
     }
   };
 
@@ -297,8 +331,11 @@ export function FuzzyMatchReviewModal({
     onClose();
   };
 
-  const pendingMatches = state.filteredMatches.filter(m => m.status === 'pending');
-  const allPendingSelected = pendingMatches.length > 0 && 
+  const pendingMatches = state.filteredMatches.filter(
+    m => m.status === "pending"
+  );
+  const allPendingSelected =
+    pendingMatches.length > 0 &&
     pendingMatches.every(m => state.selectedMatches.has(m.id));
 
   return (
@@ -307,8 +344,9 @@ export function FuzzyMatchReviewModal({
         <DialogHeader>
           <DialogTitle>Review Fuzzy Matches</DialogTitle>
           <DialogDescription>
-            Review and approve matches that require manual verification. 
-            {state.stats.totalMatches} matches found with confidence scores below the threshold.
+            Review and approve matches that require manual verification.
+            {state.stats.totalMatches} matches found with confidence scores
+            below the threshold.
           </DialogDescription>
         </DialogHeader>
 
@@ -338,48 +376,51 @@ export function FuzzyMatchReviewModal({
           />
 
           {/* Batch Operations */}
-          {showBatchOperations && state.filteredMatches.some(m => m.status === 'pending') && (
-            <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center space-x-3">
-                <Checkbox
-                  checked={allPendingSelected}
-                  onCheckedChange={handleSelectAll}
-                />
-                <Label className="text-sm font-medium">
-                  {state.selectedMatches.size > 0 
-                    ? `${state.selectedMatches.size} matches selected`
-                    : 'Select all pending matches'
-                  }
-                </Label>
-              </div>
-              
-              {state.canBatchOperate && (
-                <div className="flex space-x-2">
-                  <Button size="sm" onClick={handleBatchAccept}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Accept Selected
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handleBatchReject}>
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Reject Selected
-                  </Button>
+          {showBatchOperations &&
+            state.filteredMatches.some(m => m.status === "pending") && (
+              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    checked={allPendingSelected}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <Label className="text-sm font-medium">
+                    {state.selectedMatches.size > 0
+                      ? `${state.selectedMatches.size} matches selected`
+                      : "Select all pending matches"}
+                  </Label>
                 </div>
-              )}
-            </div>
-          )}
+
+                {state.canBatchOperate && (
+                  <div className="flex space-x-2">
+                    <Button size="sm" onClick={handleBatchAccept}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Accept Selected
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleBatchReject}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject Selected
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
 
           {/* Matches List */}
           <ScrollArea className="flex-1 h-[400px]">
             <div className="space-y-4 p-1">
               {state.filteredMatches.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {state.matches.length === 0 
-                    ? 'No fuzzy matches to review'
-                    : 'No matches found with current filters'
-                  }
+                  {state.matches.length === 0
+                    ? "No fuzzy matches to review"
+                    : "No matches found with current filters"}
                 </div>
               ) : (
-                state.filteredMatches.map((match) => (
+                state.filteredMatches.map(match => (
                   <MatchComparisonCard
                     key={match.id}
                     match={match}
@@ -405,9 +446,7 @@ export function FuzzyMatchReviewModal({
                 <span>All matches processed</span>
               </div>
             ) : (
-              <span>
-                {state.stats.pending} matches remaining
-              </span>
+              <span>{state.stats.pending} matches remaining</span>
             )}
           </div>
 
@@ -419,7 +458,7 @@ export function FuzzyMatchReviewModal({
               </Button>
             )}
             <Button variant="outline" onClick={handleClose}>
-              {isComplete ? 'Done' : 'Cancel'}
+              {isComplete ? "Done" : "Cancel"}
             </Button>
             {!isComplete && (
               <Button onClick={handleClose} disabled={!hasChanges}>

@@ -1,9 +1,16 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
-import type { TargetShape, TargetField, LookupField } from "@/lib/types/target-shapes";
+import type {
+  TargetShape,
+  TargetField,
+  LookupField,
+} from "@/lib/types/target-shapes";
 import { referenceDataManager } from "@/lib/utils/reference-data-manager";
 import { generateLookupValidation } from "@/lib/utils/lookup-validation";
-import { generateSmartColumnName, generateSmartDescription } from "@/lib/utils/smart-column-naming";
+import {
+  generateSmartColumnName,
+  generateSmartDescription,
+} from "@/lib/utils/smart-column-naming";
 
 // Note: generateLookupValidation function moved to lookup-validation.ts for better organization
 
@@ -16,7 +23,7 @@ interface TargetShapesState {
 
 // Async thunk for saving target shape
 export const saveTargetShapeAsync = createAsyncThunk(
-  'targetShapes/saveAsync',
+  "targetShapes/saveAsync",
   async (shape: TargetShape) => {
     const savedShape = targetShapesStorage.save(shape);
     return savedShape;
@@ -108,7 +115,7 @@ export const targetShapesSlice = createSlice({
     },
 
     // Lookup Field Management Actions
-    
+
     // Add a lookup field to a target shape
     addLookupField: (
       state,
@@ -148,17 +155,17 @@ export const targetShapesSlice = createSlice({
           state.error = "Failed to add lookup field";
         }
       } catch (error) {
-        state.error = `Failed to add lookup field: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        state.error = `Failed to add lookup field: ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     },
 
     // Update a lookup field
     updateLookupField: (
       state,
-      action: PayloadAction<{ 
-        shapeId: string; 
-        fieldId: string; 
-        updates: Partial<LookupField> 
+      action: PayloadAction<{
+        shapeId: string;
+        fieldId: string;
+        updates: Partial<LookupField>;
       }>
     ) => {
       const { shapeId, fieldId, updates } = action.payload;
@@ -176,14 +183,14 @@ export const targetShapesSlice = createSlice({
         }
 
         const existingField = shape.fields[fieldIndex];
-        if (existingField.type !== 'lookup') {
+        if (existingField.type !== "lookup") {
           state.error = `Field '${fieldId}' is not a lookup field`;
           return;
         }
 
         // Update the field
         const updatedField: LookupField = {
-          ...existingField as LookupField,
+          ...(existingField as LookupField),
           ...updates,
         };
 
@@ -191,7 +198,8 @@ export const targetShapesSlice = createSlice({
         if (updates.referenceFile || updates.match) {
           const validationRules = generateLookupValidation(updatedField);
           updatedField.validation = [
-            ...(updatedField.validation?.filter(rule => rule.type !== 'enum') || []),
+            ...(updatedField.validation?.filter(rule => rule.type !== "enum") ||
+              []),
             ...validationRules,
           ];
         }
@@ -218,7 +226,7 @@ export const targetShapesSlice = createSlice({
           state.error = "Failed to update lookup field";
         }
       } catch (error) {
-        state.error = `Failed to update lookup field: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        state.error = `Failed to update lookup field: ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     },
 
@@ -244,12 +252,14 @@ export const targetShapesSlice = createSlice({
         // Remove field and any derived fields if it's a lookup field
         let updatedFields = shape.fields.filter(f => f.id !== fieldId);
 
-        if (fieldToRemove.type === 'lookup') {
+        if (fieldToRemove.type === "lookup") {
           const lookupField = fieldToRemove as LookupField;
           // Remove derived fields created by this lookup
           if (lookupField.alsoGet) {
             const derivedFieldNames = lookupField.alsoGet.map(d => d.name);
-            updatedFields = updatedFields.filter(f => !derivedFieldNames.includes(f.name));
+            updatedFields = updatedFields.filter(
+              f => !derivedFieldNames.includes(f.name)
+            );
           }
         }
 
@@ -271,7 +281,7 @@ export const targetShapesSlice = createSlice({
           state.error = "Failed to remove lookup field";
         }
       } catch (error) {
-        state.error = `Failed to remove lookup field: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        state.error = `Failed to remove lookup field: ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     },
 
@@ -288,8 +298,10 @@ export const targetShapesSlice = createSlice({
           return;
         }
 
-        let fieldsToUpdate = shape.fields.filter(f => f.type === 'lookup') as LookupField[];
-        
+        let fieldsToUpdate = shape.fields.filter(
+          f => f.type === "lookup"
+        ) as LookupField[];
+
         // If fieldId specified, only update that field
         if (fieldId) {
           fieldsToUpdate = fieldsToUpdate.filter(f => f.id === fieldId);
@@ -301,13 +313,18 @@ export const targetShapesSlice = createSlice({
 
         let hasUpdates = false;
         const updatedFields = shape.fields.map(field => {
-          if (field.type === 'lookup' && fieldsToUpdate.some(f => f.id === field.id)) {
+          if (
+            field.type === "lookup" &&
+            fieldsToUpdate.some(f => f.id === field.id)
+          ) {
             const lookupField = field as LookupField;
             const newValidation = generateLookupValidation(lookupField);
-            
+
             // Replace enum validation rules
             const updatedValidation = [
-              ...(lookupField.validation?.filter(rule => rule.type !== 'enum') || []),
+              ...(lookupField.validation?.filter(
+                rule => rule.type !== "enum"
+              ) || []),
               ...newValidation,
             ];
 
@@ -340,7 +357,7 @@ export const targetShapesSlice = createSlice({
           }
         }
       } catch (error) {
-        state.error = `Failed to refresh lookup validation: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        state.error = `Failed to refresh lookup validation: ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     },
 
@@ -357,7 +374,9 @@ export const targetShapesSlice = createSlice({
           return;
         }
 
-        const lookupField = shape.fields.find(f => f.id === lookupFieldId && f.type === 'lookup') as LookupField;
+        const lookupField = shape.fields.find(
+          f => f.id === lookupFieldId && f.type === "lookup"
+        ) as LookupField;
         if (!lookupField) {
           state.error = `Lookup field with ID '${lookupFieldId}' not found`;
           return;
@@ -365,36 +384,40 @@ export const targetShapesSlice = createSlice({
 
         // Generate/update derived fields
         if (lookupField.alsoGet && lookupField.alsoGet.length > 0) {
-          const referenceData = referenceDataManager.getReferenceDataRows(lookupField.referenceFile);
+          const referenceData = referenceDataManager.getReferenceDataRows(
+            lookupField.referenceFile
+          );
           if (referenceData && referenceData.length > 0) {
             const sampleRow = referenceData[0];
-            
+
             // Remove existing derived fields
-            const updatedFields = shape.fields.filter(f => 
-              !lookupField.alsoGet?.some(d => d.name === f.name)
+            const updatedFields = shape.fields.filter(
+              f => !lookupField.alsoGet?.some(d => d.name === f.name)
             );
 
             // Add new derived fields with smart naming
             lookupField.alsoGet.forEach(derivedField => {
               if (sampleRow.hasOwnProperty(derivedField.source)) {
                 // Generate smart column name if not explicitly set
-                const smartName = derivedField.name || generateSmartColumnName(
-                  lookupField.name,
-                  derivedField,
-                  derivedField.source
-                );
-                
+                const smartName =
+                  derivedField.name ||
+                  generateSmartColumnName(
+                    lookupField.name,
+                    derivedField,
+                    derivedField.source
+                  );
+
                 // Generate smart description
                 const smartDescription = generateSmartDescription(
                   lookupField.name,
                   derivedField,
                   lookupField.referenceFile
                 );
-                
+
                 const newField: TargetField = {
                   id: `${lookupFieldId}_${smartName}`,
                   name: smartName,
-                  type: derivedField.type || 'string',
+                  type: derivedField.type || "string",
                   required: false,
                   description: smartDescription,
                   metadata: {
@@ -414,7 +437,10 @@ export const targetShapesSlice = createSlice({
             };
 
             // Save to storage
-            const savedShape = targetShapesStorage.update(shapeId, updatedShape);
+            const savedShape = targetShapesStorage.update(
+              shapeId,
+              updatedShape
+            );
             if (savedShape) {
               const index = state.shapes.findIndex(s => s.id === shapeId);
               if (index !== -1) {
@@ -427,18 +453,18 @@ export const targetShapesSlice = createSlice({
           }
         }
       } catch (error) {
-        state.error = `Failed to update derived fields: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        state.error = `Failed to update derived fields: ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
       .addCase(saveTargetShapeAsync.fulfilled, (state, action) => {
         state.shapes.push(action.payload);
         state.error = null;
         state.isLoading = false;
       })
-      .addCase(saveTargetShapeAsync.pending, (state) => {
+      .addCase(saveTargetShapeAsync.pending, state => {
         state.isLoading = true;
       })
       .addCase(saveTargetShapeAsync.rejected, (state, action) => {

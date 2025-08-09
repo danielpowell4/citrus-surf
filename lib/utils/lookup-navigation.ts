@@ -6,131 +6,143 @@
 // Route parameter types
 export interface ReferenceDataRouteParams {
   file?: string;
-  mode?: 'view' | 'edit';
+  mode?: "view" | "edit";
 }
 
 export interface LookupConfigRouteParams {
   field?: string;
-  action?: 'configure-lookup';
+  action?: "configure-lookup";
 }
 
 export interface FuzzyMatchReviewRouteParams {
-  review?: 'fuzzy-matches';
+  review?: "fuzzy-matches";
   batch?: string;
 }
 
 // Base route paths
 export const LOOKUP_ROUTES = {
-  REFERENCE_DATA: '/playground/reference-data',
-  TEMPLATE_BUILDER: '/playground/template-builder',
-  DATA_TABLE: '/playground/data-table',
+  REFERENCE_DATA: "/playground/reference-data",
+  TEMPLATE_BUILDER: "/playground/template-builder",
+  DATA_TABLE: "/playground/data-table",
 } as const;
 
 /**
  * Generate URL for reference data management
  */
-export function generateReferenceDataUrl(params?: ReferenceDataRouteParams): string {
-  const url = new URL(LOOKUP_ROUTES.REFERENCE_DATA, 'http://localhost');
-  
+export function generateReferenceDataUrl(
+  params?: ReferenceDataRouteParams
+): string {
+  const url = new URL(LOOKUP_ROUTES.REFERENCE_DATA, "http://localhost");
+
   if (params?.file) {
-    url.searchParams.set('file', params.file);
+    url.searchParams.set("file", params.file);
   }
-  
+
   if (params?.mode) {
-    url.searchParams.set('mode', params.mode);
+    url.searchParams.set("mode", params.mode);
   }
-  
+
   return url.pathname + url.search;
 }
 
 /**
  * Generate URL for lookup field configuration in template builder
  */
-export function generateLookupConfigUrl(params?: LookupConfigRouteParams): string {
-  const url = new URL(LOOKUP_ROUTES.TEMPLATE_BUILDER, 'http://localhost');
-  
+export function generateLookupConfigUrl(
+  params?: LookupConfigRouteParams
+): string {
+  const url = new URL(LOOKUP_ROUTES.TEMPLATE_BUILDER, "http://localhost");
+
   if (params?.field) {
-    url.searchParams.set('field', params.field);
+    url.searchParams.set("field", params.field);
   }
-  
+
   if (params?.action) {
-    url.searchParams.set('action', params.action);
+    url.searchParams.set("action", params.action);
   }
-  
+
   return url.pathname + url.search;
 }
 
 /**
  * Generate URL for fuzzy match review
  */
-export function generateFuzzyMatchReviewUrl(params?: FuzzyMatchReviewRouteParams): string {
-  const url = new URL(LOOKUP_ROUTES.DATA_TABLE, 'http://localhost');
-  
+export function generateFuzzyMatchReviewUrl(
+  params?: FuzzyMatchReviewRouteParams
+): string {
+  const url = new URL(LOOKUP_ROUTES.DATA_TABLE, "http://localhost");
+
   if (params?.review) {
-    url.searchParams.set('review', params.review);
+    url.searchParams.set("review", params.review);
   }
-  
+
   if (params?.batch) {
-    url.searchParams.set('batch', params.batch);
+    url.searchParams.set("batch", params.batch);
   }
-  
+
   return url.pathname + url.search;
 }
 
 /**
  * Parse reference data route parameters from URL search params
  */
-export function parseReferenceDataParams(searchParams: URLSearchParams): ReferenceDataRouteParams {
+export function parseReferenceDataParams(
+  searchParams: URLSearchParams
+): ReferenceDataRouteParams {
   const params: ReferenceDataRouteParams = {};
-  
-  const file = searchParams.get('file');
+
+  const file = searchParams.get("file");
   if (file) {
     params.file = file;
   }
-  
-  const mode = searchParams.get('mode');
-  if (mode === 'view' || mode === 'edit') {
+
+  const mode = searchParams.get("mode");
+  if (mode === "view" || mode === "edit") {
     params.mode = mode;
   }
-  
+
   return params;
 }
 
 /**
  * Parse lookup configuration route parameters from URL search params
  */
-export function parseLookupConfigParams(searchParams: URLSearchParams): LookupConfigRouteParams {
+export function parseLookupConfigParams(
+  searchParams: URLSearchParams
+): LookupConfigRouteParams {
   const params: LookupConfigRouteParams = {};
-  
-  const field = searchParams.get('field');
+
+  const field = searchParams.get("field");
   if (field) {
     params.field = field;
   }
-  
-  const action = searchParams.get('action');
-  if (action === 'configure-lookup') {
+
+  const action = searchParams.get("action");
+  if (action === "configure-lookup") {
     params.action = action;
   }
-  
+
   return params;
 }
 
 /**
  * Parse fuzzy match review route parameters from URL search params
  */
-export function parseFuzzyMatchReviewParams(searchParams: URLSearchParams): FuzzyMatchReviewRouteParams {
+export function parseFuzzyMatchReviewParams(
+  searchParams: URLSearchParams
+): FuzzyMatchReviewRouteParams {
   const params: FuzzyMatchReviewRouteParams = {};
-  
-  const review = searchParams.get('review');
-  if (review === 'fuzzy-matches') {
+
+  const review = searchParams.get("review");
+  if (review === "fuzzy-matches") {
     params.review = review;
   }
-  
-  const batch = searchParams.get('batch');
+
+  const batch = searchParams.get("batch");
   if (batch) {
     params.batch = batch;
   }
-  
+
   return params;
 }
 
@@ -157,8 +169,8 @@ export class LookupNavigator {
    * Navigate to reference data viewer
    */
   toReferenceDataViewer(fileId: string, options?: RedirectOptions) {
-    const url = generateReferenceDataUrl({ file: fileId, mode: 'view' });
-    
+    const url = generateReferenceDataUrl({ file: fileId, mode: "view" });
+
     if (options?.replace) {
       this.router.replace(url);
     } else {
@@ -170,8 +182,8 @@ export class LookupNavigator {
    * Navigate to reference data editor
    */
   toReferenceDataEditor(fileId: string, options?: RedirectOptions) {
-    const url = generateReferenceDataUrl({ file: fileId, mode: 'edit' });
-    
+    const url = generateReferenceDataUrl({ file: fileId, mode: "edit" });
+
     if (options?.replace) {
       this.router.replace(url);
     } else {
@@ -183,8 +195,11 @@ export class LookupNavigator {
    * Navigate to lookup field configuration
    */
   toLookupConfiguration(fieldId: string, options?: RedirectOptions) {
-    const url = generateLookupConfigUrl({ field: fieldId, action: 'configure-lookup' });
-    
+    const url = generateLookupConfigUrl({
+      field: fieldId,
+      action: "configure-lookup",
+    });
+
     if (options?.replace) {
       this.router.replace(url);
     } else {
@@ -196,8 +211,11 @@ export class LookupNavigator {
    * Navigate to fuzzy match review
    */
   toFuzzyMatchReview(batchId: string, options?: RedirectOptions) {
-    const url = generateFuzzyMatchReviewUrl({ review: 'fuzzy-matches', batch: batchId });
-    
+    const url = generateFuzzyMatchReviewUrl({
+      review: "fuzzy-matches",
+      batch: batchId,
+    });
+
     if (options?.replace) {
       this.router.replace(url);
     } else {
@@ -210,7 +228,7 @@ export class LookupNavigator {
    */
   toDataTableWithResults(options?: RedirectOptions) {
     const url = LOOKUP_ROUTES.DATA_TABLE;
-    
+
     if (options?.replace) {
       this.router.replace(url);
     } else {
@@ -223,7 +241,7 @@ export class LookupNavigator {
    */
   toTemplateBuilder(options?: RedirectOptions) {
     const url = LOOKUP_ROUTES.TEMPLATE_BUILDER;
-    
+
     if (options?.replace) {
       this.router.replace(url);
     } else {
@@ -236,7 +254,7 @@ export class LookupNavigator {
    */
   toReferenceDataManagement(options?: RedirectOptions) {
     const url = LOOKUP_ROUTES.REFERENCE_DATA;
-    
+
     if (options?.replace) {
       this.router.replace(url);
     } else {
@@ -250,8 +268,8 @@ export class LookupNavigator {
  * Usage: const navigator = useLookupNavigator();
  */
 export function createLookupNavigator(
-  router: any, 
-  pathname: string, 
+  router: any,
+  pathname: string,
   searchParams: URLSearchParams
 ): LookupNavigator {
   return new LookupNavigator(router, pathname, searchParams);
@@ -283,48 +301,54 @@ export interface BreadcrumbItem {
 }
 
 export function generateLookupBreadcrumbs(
-  pathname: string, 
+  pathname: string,
   searchParams: URLSearchParams
 ): BreadcrumbItem[] {
   const breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Playground', href: '/playground' },
+    { label: "Playground", href: "/playground" },
   ];
 
-  if (pathname.startsWith('/playground/reference-data')) {
-    breadcrumbs.push({ label: 'Reference Data', href: '/playground/reference-data' });
-    
+  if (pathname.startsWith("/playground/reference-data")) {
+    breadcrumbs.push({
+      label: "Reference Data",
+      href: "/playground/reference-data",
+    });
+
     const params = parseReferenceDataParams(searchParams);
     if (params.file) {
-      breadcrumbs.push({ 
-        label: params.mode === 'edit' ? 'Edit File' : 'View File', 
+      breadcrumbs.push({
+        label: params.mode === "edit" ? "Edit File" : "View File",
         href: generateReferenceDataUrl(params),
-        current: true 
+        current: true,
       });
     } else {
       breadcrumbs[breadcrumbs.length - 1].current = true;
     }
-  } else if (pathname.startsWith('/playground/template-builder')) {
-    breadcrumbs.push({ label: 'Template Builder', href: '/playground/template-builder' });
-    
+  } else if (pathname.startsWith("/playground/template-builder")) {
+    breadcrumbs.push({
+      label: "Template Builder",
+      href: "/playground/template-builder",
+    });
+
     const params = parseLookupConfigParams(searchParams);
-    if (params.action === 'configure-lookup') {
-      breadcrumbs.push({ 
-        label: 'Configure Lookup', 
+    if (params.action === "configure-lookup") {
+      breadcrumbs.push({
+        label: "Configure Lookup",
         href: generateLookupConfigUrl(params),
-        current: true 
+        current: true,
       });
     } else {
       breadcrumbs[breadcrumbs.length - 1].current = true;
     }
-  } else if (pathname.startsWith('/playground/data-table')) {
-    breadcrumbs.push({ label: 'Data Table', href: '/playground/data-table' });
-    
+  } else if (pathname.startsWith("/playground/data-table")) {
+    breadcrumbs.push({ label: "Data Table", href: "/playground/data-table" });
+
     const params = parseFuzzyMatchReviewParams(searchParams);
-    if (params.review === 'fuzzy-matches') {
-      breadcrumbs.push({ 
-        label: 'Review Fuzzy Matches', 
+    if (params.review === "fuzzy-matches") {
+      breadcrumbs.push({
+        label: "Review Fuzzy Matches",
         href: generateFuzzyMatchReviewUrl(params),
-        current: true 
+        current: true,
       });
     } else {
       breadcrumbs[breadcrumbs.length - 1].current = true;
@@ -337,19 +361,25 @@ export function generateLookupBreadcrumbs(
 /**
  * Check if current route is a lookup-related route
  */
-export function isLookupRoute(pathname: string, searchParams: URLSearchParams): boolean {
-  if (pathname === '/playground/reference-data') {
+export function isLookupRoute(
+  pathname: string,
+  searchParams: URLSearchParams
+): boolean {
+  if (pathname === "/playground/reference-data") {
     return true;
   }
-  
-  if (pathname === '/playground/template-builder' && searchParams.has('action')) {
-    return searchParams.get('action') === 'configure-lookup';
+
+  if (
+    pathname === "/playground/template-builder" &&
+    searchParams.has("action")
+  ) {
+    return searchParams.get("action") === "configure-lookup";
   }
-  
-  if (pathname === '/playground/data-table' && searchParams.has('review')) {
-    return searchParams.get('review') === 'fuzzy-matches';
+
+  if (pathname === "/playground/data-table" && searchParams.has("review")) {
+    return searchParams.get("review") === "fuzzy-matches";
   }
-  
+
   return false;
 }
 
@@ -359,7 +389,7 @@ export function isLookupRoute(pathname: string, searchParams: URLSearchParams): 
 export interface NextAction {
   label: string;
   href: string;
-  variant?: 'primary' | 'secondary';
+  variant?: "primary" | "secondary";
 }
 
 export function getSuggestedNextActions(
@@ -375,25 +405,25 @@ export function getSuggestedNextActions(
 ): NextAction[] {
   const actions: NextAction[] = [];
 
-  if (pathname === '/playground/reference-data') {
+  if (pathname === "/playground/reference-data") {
     const params = parseReferenceDataParams(searchParams);
-    
-    if (params.mode === 'edit' && context?.operationComplete) {
+
+    if (params.mode === "edit" && context?.operationComplete) {
       actions.push({
-        label: 'View Updated Data',
-        href: generateReferenceDataUrl({ file: params.file, mode: 'view' }),
-        variant: 'primary'
+        label: "View Updated Data",
+        href: generateReferenceDataUrl({ file: params.file, mode: "view" }),
+        variant: "primary",
       });
       actions.push({
-        label: 'Back to Reference Data',
+        label: "Back to Reference Data",
         href: generateReferenceDataUrl(),
-        variant: 'secondary'
+        variant: "secondary",
       });
-    } else if (params.mode === 'view') {
+    } else if (params.mode === "view") {
       actions.push({
-        label: 'Edit This Data',
-        href: generateReferenceDataUrl({ file: params.file, mode: 'edit' }),
-        variant: 'primary'
+        label: "Edit This Data",
+        href: generateReferenceDataUrl({ file: params.file, mode: "edit" }),
+        variant: "primary",
       });
     }
   }

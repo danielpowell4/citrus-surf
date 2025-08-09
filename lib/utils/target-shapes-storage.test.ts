@@ -106,9 +106,9 @@ describe("Target Shapes Storage", () => {
 
     expect(updatedShape).not.toBeNull();
     expect(updatedShape?.name).toBe("Updated Shape Name");
-    expect(updatedShape?.updatedAt && new Date(updatedShape.updatedAt).getTime()).toBeGreaterThanOrEqual(
-      originalTime
-    );
+    expect(
+      updatedShape?.updatedAt && new Date(updatedShape.updatedAt).getTime()
+    ).toBeGreaterThanOrEqual(originalTime);
 
     // Verify persistence
     const retrieved = targetShapesStorage.getById(savedShape.id);

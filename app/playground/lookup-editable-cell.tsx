@@ -3,14 +3,33 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { updateCell, updateLookupValue, startEditing, stopEditing } from "@/lib/features/tableSlice";
+import {
+  updateCell,
+  updateLookupValue,
+  startEditing,
+  stopEditing,
+} from "@/lib/features/tableSlice";
 import { ChevronDown, Edit3, AlertCircle, CheckCircle } from "lucide-react";
 import type { LookupField } from "@/lib/types/target-shapes";
 import type { LookupResult } from "@/lib/utils/lookup-matching-engine";
-import { LookupMatchingEngine, createLookupConfig } from "@/lib/utils/lookup-matching-engine";
+import {
+  LookupMatchingEngine,
+  createLookupConfig,
+} from "@/lib/utils/lookup-matching-engine";
 import { referenceDataManager } from "@/lib/utils/reference-data-manager";
 import { ReferenceInfoPopup } from "@/components/reference-info-popup";
 
@@ -39,17 +58,19 @@ export function LookupEditableCell({
 }: LookupEditableCellProps) {
   const dispatch = useAppDispatch();
   const editingCell = useAppSelector(state => state.table.editingCell);
-  
+
   const safeInitialValue = String(initialValue ?? "");
   const [inputValue, setInputValue] = useState(safeInitialValue);
   const [open, setOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState<Array<{
-    value: unknown;
-    displayValue: string;
-    confidence: number;
-    matchType: string;
-    originalRow?: Record<string, unknown>;
-  }>>([]);
+  const [suggestions, setSuggestions] = useState<
+    Array<{
+      value: unknown;
+      displayValue: string;
+      confidence: number;
+      matchType: string;
+      originalRow?: Record<string, unknown>;
+    }>
+  >([]);
   const [lookupResult, setLookupResult] = useState<LookupResult | null>(null);
 
   const columnId = column.id;
@@ -57,11 +78,15 @@ export function LookupEditableCell({
   const internalRowId = (row.original as any)._rowId || rowId;
 
   // Check if this cell is currently being edited
-  const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === columnId;
+  const isEditing =
+    editingCell?.rowId === rowId && editingCell?.columnId === columnId;
 
   // Get reference data
-  const referenceData = referenceDataManager.getReferenceDataRows(lookupField.referenceFile) || [];
-  const referenceInfo = referenceDataManager.getReferenceData(lookupField.referenceFile)?.info;
+  const referenceData =
+    referenceDataManager.getReferenceDataRows(lookupField.referenceFile) || [];
+  const referenceInfo = referenceDataManager.getReferenceData(
+    lookupField.referenceFile
+  )?.info;
 
   // Initialize lookup engine
   const lookupEngine = new LookupMatchingEngine();
@@ -75,7 +100,11 @@ export function LookupEditableCell({
   useEffect(() => {
     if (inputValue && referenceData.length > 0) {
       const config = createLookupConfig(lookupField);
-      const result = lookupEngine.performLookup(inputValue, referenceData, config);
+      const result = lookupEngine.performLookup(
+        inputValue,
+        referenceData,
+        config
+      );
       setLookupResult(result);
 
       // Generate suggestions from reference data for fuzzy search
@@ -83,15 +112,18 @@ export function LookupEditableCell({
         .map(row => {
           const lookupValue = row[lookupField.match.on];
           if (!lookupValue) return null;
-          
+
           const fuzzyConfig = { ...config };
-          fuzzyConfig.smartMatching = { ...config.smartMatching, confidence: 0.3 };
+          fuzzyConfig.smartMatching = {
+            ...config.smartMatching,
+            confidence: 0.3,
+          };
           const fuzzyResult = lookupEngine.performLookup(
             inputValue,
             [row],
             fuzzyConfig
           );
-          
+
           return {
             value: row[lookupField.match.get],
             displayValue: lookupValue,
@@ -103,12 +135,12 @@ export function LookupEditableCell({
         .filter(result => result !== null && result.confidence > 0.3)
         .sort((a, b) => b!.confidence - a!.confidence)
         .slice(0, 10) as Array<{
-          value: unknown;
-          displayValue: string;
-          confidence: number;
-          matchType: string;
-          originalRow?: Record<string, unknown>;
-        }>;
+        value: unknown;
+        displayValue: string;
+        confidence: number;
+        matchType: string;
+        originalRow?: Record<string, unknown>;
+      }>;
 
       setSuggestions(fuzzyResults);
     } else {
@@ -117,27 +149,34 @@ export function LookupEditableCell({
     }
   }, [inputValue, referenceData, lookupField]);
 
-  const handleValueSelect = async (selectedValue: string, originalRow?: Record<string, unknown>) => {
+  const handleValueSelect = async (
+    selectedValue: string,
+    originalRow?: Record<string, unknown>
+  ) => {
     setInputValue(selectedValue);
     setOpen(false);
-    
+
     // Use the updateLookupValue thunk to handle the lookup update properly
-    const targetValue = originalRow ? originalRow[lookupField.match.get] : selectedValue;
-    
+    const targetValue = originalRow
+      ? originalRow[lookupField.match.get]
+      : selectedValue;
+
     try {
-      await dispatch(updateLookupValue({
-        rowId: internalRowId,
-        fieldName: columnId,
-        value: targetValue,
-        field: lookupField,
-        rowData: row.original,
-      }));
+      await dispatch(
+        updateLookupValue({
+          rowId: internalRowId,
+          fieldName: columnId,
+          value: targetValue,
+          field: lookupField,
+          rowData: row.original,
+        })
+      );
     } catch (error) {
       console.error("Failed to update lookup value:", error);
       // Fallback to simple cell update
       dispatch(updateCell({ rowId, columnId, value: targetValue }));
     }
-    
+
     dispatch(stopEditing());
   };
 
@@ -150,17 +189,22 @@ export function LookupEditableCell({
     if (e.key === "Enter") {
       e.preventDefault();
       if (suggestions.length > 0) {
-        await handleValueSelect(suggestions[0].displayValue, suggestions[0].originalRow);
+        await handleValueSelect(
+          suggestions[0].displayValue,
+          suggestions[0].originalRow
+        );
       } else {
         // For manual entry without suggestions, try to use updateLookupValue if it's a lookup field
         try {
-          await dispatch(updateLookupValue({
-            rowId: internalRowId,
-            fieldName: columnId,
-            value: inputValue,
-            field: lookupField,
-            rowData: row.original,
-          }));
+          await dispatch(
+            updateLookupValue({
+              rowId: internalRowId,
+              fieldName: columnId,
+              value: inputValue,
+              field: lookupField,
+              rowData: row.original,
+            })
+          );
         } catch (error) {
           console.error("Failed to update lookup value:", error);
           // Fallback to simple cell update
@@ -185,8 +229,8 @@ export function LookupEditableCell({
       <div className="flex items-center justify-between">
         <span>{String(initialValue ?? "")}</span>
         {lookupField.showReferenceInfo && (
-          <ReferenceInfoPopup 
-            referenceInfo={referenceInfo} 
+          <ReferenceInfoPopup
+            referenceInfo={referenceInfo}
             referenceData={referenceData}
             lookupField={lookupField}
           />
@@ -198,11 +242,21 @@ export function LookupEditableCell({
   // Render confidence indicator
   const renderConfidenceIndicator = () => {
     if (!lookupResult || !lookupResult.matched) return null;
-    
+
     const confidence = lookupResult.confidence;
-    const Icon = confidence >= 0.9 ? CheckCircle : confidence >= 0.7 ? AlertCircle : AlertCircle;
-    const color = confidence >= 0.9 ? "text-green-500" : confidence >= 0.7 ? "text-yellow-500" : "text-red-500";
-    
+    const Icon =
+      confidence >= 0.9
+        ? CheckCircle
+        : confidence >= 0.7
+          ? AlertCircle
+          : AlertCircle;
+    const color =
+      confidence >= 0.9
+        ? "text-green-500"
+        : confidence >= 0.7
+          ? "text-yellow-500"
+          : "text-red-500";
+
     return (
       <div title={`${Math.round(confidence * 100)}% confidence`}>
         <Icon className={`h-3 w-3 ${color}`} />
@@ -226,8 +280,8 @@ export function LookupEditableCell({
             <Edit3 className="h-3 w-3" />
           </Button>
           {lookupField.showReferenceInfo && (
-            <ReferenceInfoPopup 
-              referenceInfo={referenceInfo} 
+            <ReferenceInfoPopup
+              referenceInfo={referenceInfo}
               referenceData={referenceData}
               lookupField={lookupField}
             />
@@ -243,8 +297,8 @@ export function LookupEditableCell({
           {renderConfidenceIndicator()}
         </div>
         {lookupField.showReferenceInfo && (
-          <ReferenceInfoPopup 
-            referenceInfo={referenceInfo} 
+          <ReferenceInfoPopup
+            referenceInfo={referenceInfo}
             referenceData={referenceData}
             lookupField={lookupField}
           />
@@ -255,7 +309,9 @@ export function LookupEditableCell({
 
   return (
     <div
-      onDoubleClick={!initialValue && initialValue !== 0 ? undefined : handleDoubleClick}
+      onDoubleClick={
+        !initialValue && initialValue !== 0 ? undefined : handleDoubleClick
+      }
       className={`cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors ${
         isEditing ? "ring-2 ring-primary bg-primary/10" : ""
       }`}
@@ -300,14 +356,19 @@ export function LookupEditableCell({
                     "Start typing to search..."
                   )}
                 </CommandEmpty>
-                
+
                 {suggestions.length > 0 && (
                   <CommandGroup heading="Suggestions">
                     {suggestions.map((suggestion, index) => (
                       <CommandItem
                         key={index}
                         value={suggestion.displayValue}
-                        onSelect={() => handleValueSelect(suggestion.displayValue, suggestion.originalRow)}
+                        onSelect={() =>
+                          handleValueSelect(
+                            suggestion.displayValue,
+                            suggestion.originalRow
+                          )
+                        }
                         className="flex items-center justify-between"
                       >
                         <span>{suggestion.displayValue}</span>
@@ -315,9 +376,15 @@ export function LookupEditableCell({
                           <Badge variant="outline" className="text-xs">
                             {Math.round(suggestion.confidence * 100)}%
                           </Badge>
-                          {suggestion.matchType === 'exact' && <CheckCircle className="h-3 w-3 text-green-500" />}
-                          {suggestion.matchType === 'normalized' && <CheckCircle className="h-3 w-3 text-blue-500" />}
-                          {suggestion.matchType === 'fuzzy' && <AlertCircle className="h-3 w-3 text-yellow-500" />}
+                          {suggestion.matchType === "exact" && (
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                          )}
+                          {suggestion.matchType === "normalized" && (
+                            <CheckCircle className="h-3 w-3 text-blue-500" />
+                          )}
+                          {suggestion.matchType === "fuzzy" && (
+                            <AlertCircle className="h-3 w-3 text-yellow-500" />
+                          )}
                         </div>
                       </CommandItem>
                     ))}
@@ -329,7 +396,7 @@ export function LookupEditableCell({
                     {referenceData.slice(0, 20).map((row, index) => {
                       const displayValue = row[lookupField.match.on];
                       if (!displayValue) return null;
-                      
+
                       return (
                         <CommandItem
                           key={index}

@@ -3,7 +3,7 @@ import { TargetShape } from "@/lib/types/target-shapes";
 
 /**
  * Template Builder Navigation Logic Tests
- * 
+ *
  * Tests the conditional navigation behavior after template creation:
  * - With data: Navigate to mapping mode for immediate column mapping
  * - Without data: Navigate to data table (no mapping needed)
@@ -12,7 +12,7 @@ describe("Template Builder Navigation Logic", () => {
   describe("handleShapeCreated behavior", () => {
     const mockRouter = { push: vi.fn() };
     const mockDispatch = vi.fn();
-    
+
     const testShape: TargetShape = {
       id: "test-shape-id",
       name: "Test Shape",
@@ -26,10 +26,15 @@ describe("Template Builder Navigation Logic", () => {
     // Simulate the handleShapeCreated logic
     const simulateHandleShapeCreated = (data: any[], shape: TargetShape) => {
       // This mirrors the actual logic in the component
-      mockDispatch({ type: "targetShapes/selectTargetShape", payload: shape.id });
-      
+      mockDispatch({
+        type: "targetShapes/selectTargetShape",
+        payload: shape.id,
+      });
+
       if (data.length > 0) {
-        mockRouter.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
+        mockRouter.push(
+          `/playground/data-table?targetShape=${shape.id}&mode=mapping`
+        );
       } else {
         mockRouter.push("/playground/data-table");
       }
@@ -74,7 +79,7 @@ describe("Template Builder Navigation Logic", () => {
       // Test with data (typical 'from data' flow)
       const dataRows = [{ id: "1", name: "Test" }];
       simulateHandleShapeCreated(dataRows, testShape);
-      
+
       expect(mockRouter.push).toHaveBeenCalledWith(
         "/playground/data-table?targetShape=test-shape-id&mode=mapping"
       );
@@ -83,7 +88,7 @@ describe("Template Builder Navigation Logic", () => {
 
       // Test without data (typical 'from scratch' flow when no data uploaded)
       simulateHandleShapeCreated([], testShape);
-      
+
       expect(mockRouter.push).toHaveBeenCalledWith("/playground/data-table");
     });
 
@@ -95,18 +100,18 @@ describe("Template Builder Navigation Logic", () => {
         name: "Test Shape",
         fields: [],
       };
-      
+
       const savedShape: TargetShape = {
         id: "storage-generated-id", // Different ID after storage
-        name: "Test Shape", 
+        name: "Test Shape",
         fields: [],
       };
-      
+
       const dataRows = [{ id: "1", name: "Test" }];
-      
+
       // Simulate the workflow: original shape created, but saved shape has different ID
       simulateHandleShapeCreated(dataRows, savedShape); // Use savedShape for callback
-      
+
       // Should use the saved shape's ID, not the original
       expect(mockRouter.push).toHaveBeenCalledWith(
         "/playground/data-table?targetShape=storage-generated-id&mode=mapping"
@@ -132,17 +137,17 @@ describe("Template Builder Navigation Logic", () => {
 
     it("should navigate to data table when data exists", () => {
       const dataWithRows = [{ id: "1", name: "Test" }];
-      
+
       simulateHandleCancel(dataWithRows);
-      
+
       expect(mockRouter.push).toHaveBeenCalledWith("/playground/data-table");
     });
 
     it("should navigate to playground when no data exists", () => {
       const emptyData: any[] = [];
-      
+
       simulateHandleCancel(emptyData);
-      
+
       expect(mockRouter.push).toHaveBeenCalledWith("/playground");
     });
   });

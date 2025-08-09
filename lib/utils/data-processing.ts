@@ -11,7 +11,7 @@ export function injectRowIds(
   data: any[],
   _preserveExistingId: boolean = false
 ): any[] {
-  return data.map((row) => {
+  return data.map(row => {
     const processedRow = { ...row };
 
     // Generate unique row ID with vendor prefix (cs_...)

@@ -19,6 +19,7 @@ This directory contains comprehensive PRDs for major features, broken down into 
 ## Ticket Format
 
 Each ticket follows a consistent format:
+
 - **Context**: Why this work is needed
 - **Acceptance Criteria**: Specific requirements that must be met
 - **Technical Notes**: Implementation guidance and considerations

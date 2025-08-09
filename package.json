@@ -70,11 +70,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
+    "typecheck:watch": "tsc --noEmit --watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "check-all": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test",
+    "check-critical": "pnpm run build && pnpm run lint && pnpm run format:check",
+    "fix-all": "pnpm run format && pnpm run lint:fix"
   }
 }

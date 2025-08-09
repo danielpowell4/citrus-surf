@@ -6,12 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Wand2,
-  Database,
-  Table,
-  ArrowRight,
-} from "lucide-react";
+import { Wand2, Database, Table, ArrowRight } from "lucide-react";
 import { setData } from "@/lib/features/tableSlice";
 import { loadShapes } from "@/lib/features/targetShapesSlice";
 import { DataImport } from "./data-import";

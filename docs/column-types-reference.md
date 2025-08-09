@@ -239,13 +239,13 @@ const columns = [
         match: {
           on: "dept_name",
           get: "dept_id",
-          show: "dept_name"
+          show: "dept_name",
         },
         alsoGet: ["budget_code"],
         smartMatching: {
           enabled: true,
-          confidence: 0.85
-        }
+          confidence: 0.85,
+        },
       },
     },
   },

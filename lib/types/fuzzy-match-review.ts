@@ -2,7 +2,7 @@
  * Types for fuzzy match review interface and operations
  */
 
-import { FuzzyMatch } from '../utils/lookup-processor';
+import { FuzzyMatch } from "../utils/lookup-processor";
 
 /**
  * Extended fuzzy match for review with additional UI metadata
@@ -15,7 +15,7 @@ export interface FuzzyMatchForReview extends FuzzyMatch {
   /** Whether this match is currently selected for batch operations */
   selected?: boolean;
   /** Current review status */
-  status: 'pending' | 'accepted' | 'rejected' | 'manual';
+  status: "pending" | "accepted" | "rejected" | "manual";
   /** Alternative suggestions from the matching engine */
   suggestions?: FuzzyMatchSuggestion[];
   /** Manual value entered by user (if status is 'manual') */
@@ -63,7 +63,7 @@ export interface FuzzyMatchFilter {
   /** Filter by field name */
   fieldName?: string;
   /** Filter by review status */
-  status?: FuzzyMatchForReview['status'][];
+  status?: FuzzyMatchForReview["status"][];
   /** Search term for input values or suggestions */
   searchTerm?: string;
   /** Group matches by similarity */

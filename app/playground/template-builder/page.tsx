@@ -5,8 +5,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { TargetShapeWorkflow } from "../target-shape-workflow";
 import { TargetShape } from "@/lib/types/target-shapes";
-import { selectTargetShape, loadShapes } from "@/lib/features/targetShapesSlice";
-import { createLookupNavigator, parseLookupConfigParams, generateLookupBreadcrumbs } from "@/lib/utils/lookup-navigation";
+import {
+  selectTargetShape,
+  loadShapes,
+} from "@/lib/features/targetShapesSlice";
+import {
+  createLookupNavigator,
+  parseLookupConfigParams,
+  generateLookupBreadcrumbs,
+} from "@/lib/utils/lookup-navigation";
 
 function TemplateBuilderContent() {
   const router = useRouter();
@@ -14,36 +21,45 @@ function TemplateBuilderContent() {
   const searchParams = useSearchParams();
   const { data } = useAppSelector(state => state.table);
   const { shapes } = useAppSelector(state => state.targetShapes);
-  
-  const _navigator = createLookupNavigator(router, "/playground/template-builder", searchParams);
+
+  const _navigator = createLookupNavigator(
+    router,
+    "/playground/template-builder",
+    searchParams
+  );
 
   const source = searchParams.get("source");
   const editId = searchParams.get("edit");
-  
+
   // Parse lookup configuration parameters
   const lookupParams = parseLookupConfigParams(searchParams);
-  const isLookupConfiguration = lookupParams.action === 'configure-lookup';
+  const isLookupConfiguration = lookupParams.action === "configure-lookup";
 
   // Find the shape to edit if in edit mode
   const shapeToEdit = editId
     ? shapes.find(shape => shape.id === editId)
     : undefined;
-    
+
   // Generate breadcrumbs
-  const breadcrumbs = generateLookupBreadcrumbs("/playground/template-builder", searchParams);
+  const breadcrumbs = generateLookupBreadcrumbs(
+    "/playground/template-builder",
+    searchParams
+  );
 
   const handleShapeCreated = (shape: TargetShape) => {
     // Select the newly created shape
     dispatch(selectTargetShape(shape.id));
-    
+
     // Reload shapes to ensure the newly created shape is available in the store
     // This ensures the shape will be found when the data table page loads
     dispatch(loadShapes());
-    
+
     // If there's data available, go to mapping mode; otherwise just go to data table
     if (data.length > 0) {
       // Navigate to data table in mapping mode with the newly created shape
-      router.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
+      router.push(
+        `/playground/data-table?targetShape=${shape.id}&mode=mapping`
+      );
     } else {
       // Navigate to data table without mapping mode (no data to map)
       router.push("/playground/data-table");
@@ -69,7 +85,9 @@ function TemplateBuilderContent() {
               <div key={index} className="flex items-center">
                 {index > 0 && <span className="mx-2">/</span>}
                 {breadcrumb.current ? (
-                  <span className="font-medium text-foreground">{breadcrumb.label}</span>
+                  <span className="font-medium text-foreground">
+                    {breadcrumb.label}
+                  </span>
                 ) : (
                   <button
                     onClick={() => router.push(breadcrumb.href)}
@@ -82,7 +100,7 @@ function TemplateBuilderContent() {
             ))}
           </nav>
         )}
-        
+
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">
             {isLookupConfiguration

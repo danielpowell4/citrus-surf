@@ -1,6 +1,6 @@
 /**
  * Lookup Matching Engine
- * 
+ *
  * Core matching algorithms for lookup operations with exact, normalized, and fuzzy matching.
  * Optimized for performance with large datasets and comprehensive result reporting.
  */
@@ -9,8 +9,8 @@ import {
   normalizeString,
   combinedSimilarity,
   findBestMatches,
-} from './string-similarity';
-import type { LookupField, DerivedField } from '../types/target-shapes';
+} from "./string-similarity";
+import type { LookupField, DerivedField } from "../types/target-shapes";
 
 /**
  * Result of a single lookup operation
@@ -23,7 +23,7 @@ export interface LookupResult {
   /** Confidence score (0-1) */
   confidence: number;
   /** Type of match that was successful */
-  matchType: 'exact' | 'normalized' | 'fuzzy' | 'none';
+  matchType: "exact" | "normalized" | "fuzzy" | "none";
   /** The matched reference value */
   matchedValue: any;
   /** Additional derived values from alsoGet configuration */
@@ -71,7 +71,7 @@ export interface LookupConfig {
     confidence: number;
   };
   /** Behavior when no match is found */
-  onMismatch: 'error' | 'warning' | 'null';
+  onMismatch: "error" | "warning" | "null";
   /** Normalization options */
   normalization?: {
     caseSensitive?: boolean;
@@ -90,7 +90,11 @@ export interface BatchLookupConfig extends LookupConfig {
   /** Batch size for processing (default: 1000) */
   batchSize?: number;
   /** Progress callback for large operations */
-  onProgress?: (progress: { completed: number; total: number; percentage: number }) => void;
+  onProgress?: (progress: {
+    completed: number;
+    total: number;
+    percentage: number;
+  }) => void;
 }
 
 /**
@@ -110,7 +114,7 @@ export interface BatchMetrics {
 export class LookupMatchingEngine {
   /**
    * Perform a single lookup operation
-   * 
+   *
    * @param inputValue Value to look up
    * @param referenceData Reference dataset
    * @param config Lookup configuration
@@ -125,12 +129,12 @@ export class LookupMatchingEngine {
     let comparisons = 0;
 
     // Handle null/undefined/empty input
-    if (inputValue == null || inputValue === '') {
+    if (inputValue == null || inputValue === "") {
       return {
-        inputValue: inputValue || '',
+        inputValue: inputValue || "",
         matched: false,
         confidence: 0,
-        matchType: 'none',
+        matchType: "none",
         matchedValue: null,
         derivedValues: {},
         metrics: {
@@ -146,7 +150,7 @@ export class LookupMatchingEngine {
         inputValue,
         matched: false,
         confidence: 0,
-        matchType: 'none',
+        matchType: "none",
         matchedValue: null,
         derivedValues: {},
         metrics: {
@@ -158,11 +162,17 @@ export class LookupMatchingEngine {
 
     // Validate configuration
     if (!config.matchColumn || !config.returnColumn) {
-      throw new Error('matchColumn and returnColumn are required in lookup configuration');
+      throw new Error(
+        "matchColumn and returnColumn are required in lookup configuration"
+      );
     }
 
     // Step 1: Try exact matching
-    const exactResult = this.performExactMatch(inputValue, referenceData, config);
+    const exactResult = this.performExactMatch(
+      inputValue,
+      referenceData,
+      config
+    );
     comparisons += referenceData.length;
 
     if (exactResult.matched) {
@@ -176,7 +186,11 @@ export class LookupMatchingEngine {
     }
 
     // Step 2: Try normalized matching
-    const normalizedResult = this.performNormalizedMatch(inputValue, referenceData, config);
+    const normalizedResult = this.performNormalizedMatch(
+      inputValue,
+      referenceData,
+      config
+    );
     comparisons += referenceData.length;
 
     if (normalizedResult.matched) {
@@ -191,7 +205,11 @@ export class LookupMatchingEngine {
 
     // Step 3: Try fuzzy matching (if enabled)
     if (config.smartMatching.enabled) {
-      const fuzzyResult = this.performFuzzyMatch(inputValue, referenceData, config);
+      const fuzzyResult = this.performFuzzyMatch(
+        inputValue,
+        referenceData,
+        config
+      );
       comparisons += referenceData.length;
 
       if (fuzzyResult.matched) {
@@ -219,7 +237,7 @@ export class LookupMatchingEngine {
       inputValue,
       matched: false,
       confidence: 0,
-      matchType: 'none',
+      matchType: "none",
       matchedValue: null,
       derivedValues: {},
       metrics: {
@@ -231,7 +249,7 @@ export class LookupMatchingEngine {
 
   /**
    * Perform batch lookup operations with performance optimizations
-   * 
+   *
    * @param inputValues Array of values to look up
    * @param referenceData Reference dataset
    * @param config Batch lookup configuration
@@ -251,16 +269,16 @@ export class LookupMatchingEngine {
     // Process in batches to avoid blocking the main thread
     for (let i = 0; i < inputValues.length; i += batchSize) {
       const batch = inputValues.slice(i, i + batchSize);
-      
+
       // Process batch
       for (const inputValue of batch) {
         const result = this.performLookup(inputValue, referenceData, config);
         results.push(result);
-        
+
         if (result.metrics) {
           totalComparisons += result.metrics.comparisons;
         }
-        
+
         if (result.matched) {
           matchCount++;
         }
@@ -277,15 +295,20 @@ export class LookupMatchingEngine {
       }
 
       // Yield control to prevent blocking (in browser environment)
-      if (typeof window !== 'undefined' && i + batchSize < inputValues.length) {
+      if (typeof window !== "undefined" && i + batchSize < inputValues.length) {
         await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
 
     const totalExecutionTime = performance.now() - startTime;
-    const averageExecutionTime = inputValues.length > 0 ? totalExecutionTime / inputValues.length : 0;
-    const matchRate = inputValues.length > 0 ? matchCount / inputValues.length : 0;
-    const throughput = totalExecutionTime > 0 ? inputValues.length / (totalExecutionTime / 1000) : 0; // ops per second
+    const averageExecutionTime =
+      inputValues.length > 0 ? totalExecutionTime / inputValues.length : 0;
+    const matchRate =
+      inputValues.length > 0 ? matchCount / inputValues.length : 0;
+    const throughput =
+      totalExecutionTime > 0
+        ? inputValues.length / (totalExecutionTime / 1000)
+        : 0; // ops per second
 
     return {
       results,
@@ -301,7 +324,7 @@ export class LookupMatchingEngine {
 
   /**
    * Calculate string similarity using the configured algorithm
-   * 
+   *
    * @param str1 First string
    * @param str2 Second string
    * @returns Similarity score (0-1)
@@ -319,9 +342,9 @@ export class LookupMatchingEngine {
   ): LookupResult {
     for (const row of referenceData) {
       const referenceValue = row[config.matchColumn];
-      
+
       if (referenceValue != null && String(referenceValue) === inputValue) {
-        return this.createSuccessResult(inputValue, row, config, 1.0, 'exact');
+        return this.createSuccessResult(inputValue, row, config, 1.0, "exact");
       }
     }
 
@@ -344,12 +367,21 @@ export class LookupMatchingEngine {
 
     for (const row of referenceData) {
       const referenceValue = row[config.matchColumn];
-      
+
       if (referenceValue != null) {
-        const normalizedReference = normalizeString(String(referenceValue), normalizationOptions);
-        
+        const normalizedReference = normalizeString(
+          String(referenceValue),
+          normalizationOptions
+        );
+
         if (normalizedInput === normalizedReference) {
-          return this.createSuccessResult(inputValue, row, config, 0.95, 'normalized');
+          return this.createSuccessResult(
+            inputValue,
+            row,
+            config,
+            0.95,
+            "normalized"
+          );
         }
       }
     }
@@ -368,7 +400,7 @@ export class LookupMatchingEngine {
     // Extract candidate values for fuzzy matching
     const candidates = referenceData
       .map((row, index) => ({
-        value: String(row[config.matchColumn] || ''),
+        value: String(row[config.matchColumn] || ""),
         row,
         index,
       }))
@@ -377,10 +409,16 @@ export class LookupMatchingEngine {
     const candidateStrings = candidates.map(c => c.value);
 
     // Find best matches using fuzzy algorithm
-    const matches = findBestMatches(inputValue, candidateStrings, 0.1, maxSuggestions + 5);
+    const matches = findBestMatches(
+      inputValue,
+      candidateStrings,
+      0.1,
+      maxSuggestions + 5
+    );
 
     const suggestions: LookupSuggestion[] = [];
-    let bestMatch: { row: Record<string, any>; confidence: number } | null = null;
+    let bestMatch: { row: Record<string, any>; confidence: number } | null =
+      null;
 
     for (const match of matches) {
       const candidate = candidates[match.index];
@@ -394,7 +432,11 @@ export class LookupMatchingEngine {
         suggestions.push({
           value: candidate.row[config.returnColumn],
           confidence,
-          reason: this.generateSuggestionReason(confidence, inputValue, match.value),
+          reason: this.generateSuggestionReason(
+            confidence,
+            inputValue,
+            match.value
+          ),
           sourceRow: candidate.row,
         });
       }
@@ -402,7 +444,13 @@ export class LookupMatchingEngine {
 
     if (bestMatch) {
       return {
-        ...this.createSuccessResult(inputValue, bestMatch.row, config, bestMatch.confidence, 'fuzzy'),
+        ...this.createSuccessResult(
+          inputValue,
+          bestMatch.row,
+          config,
+          bestMatch.confidence,
+          "fuzzy"
+        ),
         suggestions: suggestions.slice(1), // Don't include the matched result in suggestions
       };
     }
@@ -418,7 +466,7 @@ export class LookupMatchingEngine {
     matchedRow: Record<string, any>,
     config: LookupConfig,
     confidence: number,
-    matchType: 'exact' | 'normalized' | 'fuzzy'
+    matchType: "exact" | "normalized" | "fuzzy"
   ): LookupResult {
     const matchedValue = matchedRow[config.returnColumn];
     const derivedValues: Record<string, any> = {};
@@ -449,32 +497,39 @@ export class LookupMatchingEngine {
       inputValue,
       matched: false,
       confidence: 0,
-      matchType: 'none',
+      matchType: "none",
       matchedValue: null,
       derivedValues: {},
     };
   }
 
-  private generateSuggestionReason(confidence: number, input: string, suggestion: string): string {
+  private generateSuggestionReason(
+    confidence: number,
+    input: string,
+    suggestion: string
+  ): string {
     if (confidence >= 0.9) {
-      return 'Very similar spelling';
+      return "Very similar spelling";
     } else if (confidence >= 0.8) {
-      return 'Similar spelling';
+      return "Similar spelling";
     } else if (confidence >= 0.7) {
-      return 'Possible match';
-    } else if (normalizeString(input, { lowercase: true }) === normalizeString(suggestion, { lowercase: true })) {
-      return 'Case difference';
+      return "Possible match";
+    } else if (
+      normalizeString(input, { lowercase: true }) ===
+      normalizeString(suggestion, { lowercase: true })
+    ) {
+      return "Case difference";
     } else if (normalizeString(input) === normalizeString(suggestion)) {
-      return 'Spacing or punctuation difference';
+      return "Spacing or punctuation difference";
     } else {
-      return 'Partial match';
+      return "Partial match";
     }
   }
 }
 
 /**
  * Create a lookup configuration from a LookupField
- * 
+ *
  * @param lookupField Lookup field configuration
  * @returns Lookup configuration for the matching engine
  */

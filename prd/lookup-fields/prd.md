@@ -7,6 +7,7 @@ Implement a new "lookup" field type that provides Excel VLOOKUP-style functional
 ## Problem Statement
 
 Users frequently need to enrich CSV data by cross-referencing against other datasets (like converting department names to department IDs for database imports). Currently, this requires:
+
 - Complex Excel VLOOKUP formulas that are error-prone
 - Manual data cleanup for mismatches
 - No visibility into reference data sources
@@ -15,6 +16,7 @@ Users frequently need to enrich CSV data by cross-referencing against other data
 ## Solution Overview
 
 A new `lookup` field type that:
+
 1. **Matches input data** against reference files with smart algorithms
 2. **Enriches data** with additional columns automatically
 3. **Handles fuzzy matches** with confidence scoring
@@ -25,12 +27,13 @@ A new `lookup` field type that:
 
 - **Zero formulas required** (vs Excel VLOOKUP complexity)
 - **95%+ auto-match rate** with smart normalization
-- **<30 seconds** to configure typical lookup workflow  
+- **<30 seconds** to configure typical lookup workflow
 - **Clear error resolution** for unmatched data
 
 ## Technical Architecture
 
 ### Core Components
+
 1. **Lookup Field Type** - New field type in target shapes system
 2. **Matching Engine** - Exact, normalized, and fuzzy matching algorithms
 3. **Reference Data Manager** - Upload, view, and edit reference files
@@ -38,6 +41,7 @@ A new `lookup` field type that:
 5. **Validation Integration** - Auto-generated enum validation from reference data
 
 ### Data Flow
+
 ```
 Input Data → Lookup Configuration → Matching Engine → Enriched Output
      ↑              ↓
@@ -49,7 +53,7 @@ Reference Data ← Data Manager
 See individual tickets in the `tickets/` directory for detailed implementation requirements:
 
 1. **Core Type System** (`LOOKUP-001` to `LOOKUP-003`)
-2. **Matching Engine** (`LOOKUP-004` to `LOOKUP-006`) 
+2. **Matching Engine** (`LOOKUP-004` to `LOOKUP-006`)
 3. **UI Components** (`LOOKUP-007` to `LOOKUP-010`)
 4. **Integration & Polish** (`LOOKUP-011` to `LOOKUP-013`)
 
@@ -71,6 +75,6 @@ Estimated total: **4-6 weeks** for complete implementation
 ## Risk Mitigation
 
 - **Performance**: Implement efficient matching algorithms for large datasets
-- **UX Complexity**: Progressive disclosure of advanced features  
+- **UX Complexity**: Progressive disclosure of advanced features
 - **Data Quality**: Robust error handling and validation
 - **Integration**: Careful testing with existing target shapes system

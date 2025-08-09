@@ -113,11 +113,13 @@ The core data transformation system based on schema definitions:
 Complete lookup field system with matching engine and data processing integration:
 
 **Core Components:**
+
 - **Matching Engine**: `lib/utils/lookup-matching-engine.ts`, `lib/utils/string-similarity.ts`
 - **Data Processor**: `lib/utils/lookup-processor.ts` - Full Redux integration with async processing
 - **Redux Integration**: Enhanced `lib/features/tableSlice.ts` with lookup async thunks
 
 **Key Features:**
+
 - **Multi-tier Matching**: Exact → Normalized → Fuzzy matching with configurable thresholds
 - **Advanced Algorithms**: Levenshtein, Jaro, and Jaro-Winkler similarity with weighted scoring
 - **Data Processing**: Automatic lookup processing during import with derived column generation
@@ -165,7 +167,6 @@ Complete lookup field system with matching engine and data processing integratio
 3. Validation rules and type checking must be preserved
 4. Support for large file processing with efficient memory usage
 
-
 ### Testing Patterns
 
 **Framework**: Vitest with React Testing Library
@@ -173,6 +174,7 @@ Complete lookup field system with matching engine and data processing integratio
 **Location**: Tests co-located with source files (`.test.ts/.test.tsx`)
 
 **Testing Philosophy**: Focus on user-facing acceptance criteria rather than implementation details
+
 - ✅ **High-Value Tests**: Upload success, progress feedback, error handling, accessibility
 - ✅ **Core Business Logic**: Data processing, validation, transformation algorithms
 - ❌ **Low-Value Tests**: Complex integration workflows, implementation details, redundant scenarios

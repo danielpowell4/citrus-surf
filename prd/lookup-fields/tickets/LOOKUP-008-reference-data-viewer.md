@@ -7,6 +7,7 @@ Create a modal/popup interface for viewing and editing reference data directly w
 ## Acceptance Criteria
 
 ### AC1: Reference Data Viewer Modal
+
 - [x] Modal popup displaying reference data in table format
 - [x] Sortable columns with TanStack Table
 - [x] Search/filter functionality across all columns
@@ -14,6 +15,7 @@ Create a modal/popup interface for viewing and editing reference data directly w
 - [x] Export reference data functionality
 
 ### AC2: Inline Reference Data Editor
+
 - [x] Edit reference data cells directly in the modal
 - [x] Add new rows to reference data
 - [x] Delete rows from reference data
@@ -21,12 +23,14 @@ Create a modal/popup interface for viewing and editing reference data directly w
 - [x] Auto-save changes to reference data storage
 
 ### AC3: Impact Analysis
+
 - [x] Show which lookup fields use this reference data
 - [x] Display count of affected records when editing
 - [x] Preview impact of reference data changes
 - [x] Confirm dialog for destructive changes
 
 ### AC4: Reference Data Management
+
 - [x] Upload new reference files via drag-and-drop
 - [x] Replace existing reference data
 - [x] Download reference data as CSV
@@ -62,23 +66,27 @@ interface ReferenceDataEditor {
 ```
 
 ## Dependencies
+
 - LOOKUP-002 (Reference Data Manager)
 - TanStack Table
 - shadcn/ui components (Dialog, Table, etc.)
 - File upload utilities
 
 ## Estimated Effort
+
 **Large** (6-7 days)
 
 ## Implementation TODOs
 
 ### Types & Interfaces
+
 - [x] Define comprehensive props interfaces for all viewer/editor components
 - [x] Create types for reference data editing operations and validation
 - [x] Add proper types for impact analysis and change previews
 - [x] Ensure compatibility with existing modal/dialog patterns
 
 ### Testing
+
 - [x] Unit tests for reference data viewer modal
 - [x] Unit tests for inline editing functionality
 - [x] Unit tests for impact analysis features
@@ -88,12 +96,14 @@ interface ReferenceDataEditor {
 - [x] Accessibility testing for modal interactions
 
 ### Documentation
+
 - [x] Add comprehensive component documentation
 - [x] Document reference data editing workflows
 - [x] Create user guide for reference data management
 - [x] Add troubleshooting guide for common editing issues
 
 ### Redux History Integration
+
 - [x] Create dedicated reference data slice for viewer/editor state
 - [x] Add reference data editing actions to separate history:
   - `referenceData/editCell`
@@ -105,12 +115,14 @@ interface ReferenceDataEditor {
 - [x] Ensure reference data editor state doesn't interfere with main table history
 
 ### Navigation & Routing Integration
+
 - [x] Integrate with `/playground/reference-data` route structure
 - [x] Support deep linking to reference file viewer/editor
 - [x] Implement user-friendly redirects after edit operations
 - [x] Add breadcrumb navigation back to main workflow
 
 ## Files Created
+
 - ✅ `components/reference-data-viewer.tsx`
 - ✅ `components/reference-data-viewer.test.tsx`
 - ✅ `components/reference-data-editor.tsx`

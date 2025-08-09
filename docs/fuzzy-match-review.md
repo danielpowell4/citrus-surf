@@ -60,7 +60,7 @@ import { MatchComparisonCard } from '@/components/match-comparison-card';
 State management hook for review operations.
 
 ```typescript
-import { useFuzzyMatchReview } from '@/hooks/useFuzzyMatchReview';
+import { useFuzzyMatchReview } from "@/hooks/useFuzzyMatchReview";
 
 const { state, actions, hasChanges, isComplete } = useFuzzyMatchReview(
   initialMatches,
@@ -76,13 +76,16 @@ During lookup processing, matches with confidence scores below the threshold are
 
 ```typescript
 // In lookup processor
-if (result.confidence < minConfidence && fuzzyMatches.length < maxFuzzyMatches) {
+if (
+  result.confidence < minConfidence &&
+  fuzzyMatches.length < maxFuzzyMatches
+) {
   fuzzyMatches.push({
     rowId: row._rowId,
     fieldName: lookupField.id,
     inputValue: inputValue,
     suggestedValue: result.matchedValue,
-    confidence: result.confidence
+    confidence: result.confidence,
   });
 }
 ```
@@ -92,14 +95,16 @@ if (result.confidence < minConfidence && fuzzyMatches.length < maxFuzzyMatches) 
 Fuzzy matches are enhanced with UI metadata:
 
 ```typescript
-const reviewMatches: FuzzyMatchForReview[] = fuzzyMatches.map((match, index) => ({
-  ...match,
-  id: `match_${match.rowId}_${match.fieldName}_${index}`,
-  rowIndex: parseInt(match.rowId.replace(/^row_/, '')) || index,
-  status: 'pending',
-  selected: false,
-  suggestions: generateSuggestions(match)
-}));
+const reviewMatches: FuzzyMatchForReview[] = fuzzyMatches.map(
+  (match, index) => ({
+    ...match,
+    id: `match_${match.rowId}_${match.fieldName}_${index}`,
+    rowIndex: parseInt(match.rowId.replace(/^row_/, "")) || index,
+    status: "pending",
+    selected: false,
+    suggestions: generateSuggestions(match),
+  })
+);
 ```
 
 ### 3. User Actions
@@ -117,13 +122,19 @@ All actions trigger Redux actions for history tracking:
 
 ```typescript
 // Individual actions
-dispatch({ type: 'lookup/acceptFuzzyMatch', payload: { matchId, acceptedValue } });
-dispatch({ type: 'lookup/rejectFuzzyMatch', payload: { matchId } });
-dispatch({ type: 'lookup/manualEntryForMatch', payload: { matchId, value } });
+dispatch({
+  type: "lookup/acceptFuzzyMatch",
+  payload: { matchId, acceptedValue },
+});
+dispatch({ type: "lookup/rejectFuzzyMatch", payload: { matchId } });
+dispatch({ type: "lookup/manualEntryForMatch", payload: { matchId, value } });
 
 // Batch actions
-dispatch({ type: 'lookup/batchAcceptMatches', payload: { matchIds, acceptedValue } });
-dispatch({ type: 'lookup/batchRejectMatches', payload: { matchIds } });
+dispatch({
+  type: "lookup/batchAcceptMatches",
+  payload: { matchIds, acceptedValue },
+});
+dispatch({ type: "lookup/batchRejectMatches", payload: { matchIds } });
 ```
 
 ## Usage Patterns
@@ -162,7 +173,7 @@ function LookupDataProcessor() {
   return (
     <>
       {/* Your data processing UI */}
-      
+
       <FuzzyMatchReviewModal
         matches={fuzzyMatches}
         isOpen={isReviewOpen}
@@ -203,7 +214,7 @@ function BatchReviewHandler() {
   const handleAcceptHighConfidence = () => {
     // Select all matches above 85% confidence
     actions.selectAll({ confidenceRange: [0.85, 1.0] });
-    
+
     // Accept all selected matches
     actions.acceptSelected();
   };
@@ -211,7 +222,7 @@ function BatchReviewHandler() {
   const handleRejectLowConfidence = () => {
     // Select all matches below 60% confidence
     actions.selectAll({ confidenceRange: [0.0, 0.6] });
-    
+
     // Reject all selected matches
     actions.rejectSelected();
   };
@@ -235,9 +246,9 @@ function BatchReviewHandler() {
 
 ```typescript
 const processingOptions: LookupProcessingOptions = {
-  minConfidence: 0.7,        // Matches below this go to review
-  autoAcceptThreshold: 0.9,  // Matches above this are auto-accepted
-  maxFuzzyMatches: 100       // Maximum matches to collect for review
+  minConfidence: 0.7, // Matches below this go to review
+  autoAcceptThreshold: 0.9, // Matches above this are auto-accepted
+  maxFuzzyMatches: 100, // Maximum matches to collect for review
 };
 ```
 
@@ -269,8 +280,8 @@ For datasets with many fuzzy matches:
 
 ```typescript
 const options: LookupProcessingOptions = {
-  maxFuzzyMatches: 50,  // Limit to top 50 matches
-  minConfidence: 0.8,   // Higher threshold for fewer matches
+  maxFuzzyMatches: 50, // Limit to top 50 matches
+  minConfidence: 0.8, // Higher threshold for fewer matches
 };
 ```
 
@@ -291,14 +302,14 @@ The review system efficiently manages memory by:
 // For high-accuracy requirements
 const strictOptions = {
   minConfidence: 0.9,
-  autoAcceptThreshold: 0.95
+  autoAcceptThreshold: 0.95,
 };
 
 // For bulk processing with manual review
 const bulkOptions = {
   minConfidence: 0.7,
   autoAcceptThreshold: 0.85,
-  maxFuzzyMatches: 100
+  maxFuzzyMatches: 100,
 };
 ```
 
@@ -312,8 +323,8 @@ const enhancedMatch: FuzzyMatchForReview = {
   rowContext: {
     firstName: row.firstName,
     lastName: row.lastName,
-    email: row.email
-  }
+    email: row.email,
+  },
 };
 ```
 
@@ -346,7 +357,9 @@ const handleReviewCompletion = (reviewResults: ReviewResults) => {
 const smartBatchStrategy = (matches: FuzzyMatchForReview[]) => {
   // Group by confidence ranges
   const highConfidence = matches.filter(m => m.confidence >= 0.85);
-  const mediumConfidence = matches.filter(m => m.confidence >= 0.7 && m.confidence < 0.85);
+  const mediumConfidence = matches.filter(
+    m => m.confidence >= 0.7 && m.confidence < 0.85
+  );
   const lowConfidence = matches.filter(m => m.confidence < 0.7);
 
   // Auto-accept high confidence
@@ -355,7 +368,8 @@ const smartBatchStrategy = (matches: FuzzyMatchForReview[]) => {
   // Review medium confidence individually
   // Auto-reject very low confidence (optional)
   if (autoRejectVeryLow) {
-    lowConfidence.filter(m => m.confidence < 0.5)
+    lowConfidence
+      .filter(m => m.confidence < 0.5)
       .forEach(match => actions.rejectMatch(match.id));
   }
 };
@@ -404,13 +418,13 @@ The fuzzy match review system supports:
 // Enable debug logging
 const debugOptions: LookupProcessingOptions = {
   debug: true,
-  logLevel: 'verbose'
+  logLevel: "verbose",
 };
 
 // Access match details
-console.log('Fuzzy matches:', result.fuzzyMatches);
-console.log('Processing stats:', result.stats);
-console.log('Performance metrics:', result.performance);
+console.log("Fuzzy matches:", result.fuzzyMatches);
+console.log("Processing stats:", result.stats);
+console.log("Performance metrics:", result.performance);
 ```
 
 ## Integration with History System
@@ -420,11 +434,11 @@ All fuzzy match review actions are tracked in the history system for undo/redo f
 ```typescript
 // Actions that trigger history tracking
 const meaningfulActions = [
-  'lookup/acceptFuzzyMatch',
-  'lookup/rejectFuzzyMatch',
-  'lookup/batchAcceptMatches',
-  'lookup/batchRejectMatches',
-  'lookup/manualEntryForMatch'
+  "lookup/acceptFuzzyMatch",
+  "lookup/rejectFuzzyMatch",
+  "lookup/batchAcceptMatches",
+  "lookup/batchRejectMatches",
+  "lookup/manualEntryForMatch",
 ];
 ```
 

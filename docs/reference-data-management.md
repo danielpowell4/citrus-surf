@@ -7,6 +7,7 @@ The Reference Data Management System provides comprehensive tools for uploading,
 ## Core Components
 
 ### ReferenceDataViewer
+
 **Location**: `components/reference-data-viewer.tsx`
 
 A modal component for viewing reference data with comprehensive functionality:
@@ -32,6 +33,7 @@ interface ReferenceDataViewerProps {
 ```
 
 ### ReferenceDataEditor
+
 **Location**: `components/reference-data-editor.tsx`
 
 A comprehensive editor for modifying reference data inline:
@@ -57,6 +59,7 @@ interface ReferenceDataEditorProps {
 ```
 
 ### ReferenceUploadDialog
+
 **Location**: `components/reference-upload-dialog.tsx`
 
 A file upload dialog with validation and preview:
@@ -74,7 +77,7 @@ interface ReferenceUploadDialogProps {
   onClose: () => void;
   onSuccess?: (referenceInfo: ReferenceDataInfo) => void;
   onError?: (error: string) => void;
-  mode?: 'upload' | 'replace';
+  mode?: "upload" | "replace";
   existingReferenceId?: string;
   existingReferenceInfo?: ReferenceDataInfo;
 }
@@ -83,6 +86,7 @@ interface ReferenceUploadDialogProps {
 ## Hook Integration
 
 ### useReferenceDataEditor
+
 **Location**: `hooks/useReferenceDataEditor.ts`
 
 A comprehensive hook for managing reference data editing state:
@@ -103,6 +107,7 @@ const [state, actions] = useReferenceDataEditor({
 ## Redux Integration
 
 ### referenceDataSlice
+
 **Location**: `lib/features/referenceDataSlice.ts`
 
 Redux slice for managing reference data state with full history integration:
@@ -114,6 +119,7 @@ Redux slice for managing reference data state with full history integration:
 - **Error handling** with meaningful error states
 
 Key actions:
+
 - `uploadFileSuccess` - Track new file uploads
 - `updateFileData` - Track data modifications
 - `deleteFile` - Track file deletions
@@ -130,7 +136,7 @@ const findAffectedLookupFields = (referenceId: string): string[] => {
   const affectedFields: string[] = [];
 
   allShapes.forEach((shape: TargetShape) => {
-    shape.fields.forEach((field) => {
+    shape.fields.forEach(field => {
       if (field.type === "lookup") {
         const lookupField = field as LookupField;
         if (lookupField.referenceFile === referenceId) {
@@ -191,17 +197,20 @@ const findAffectedLookupFields = (referenceId: string): string[] => {
 ## Validation Rules
 
 ### File Validation
+
 - **File types**: CSV, JSON only
 - **File size**: Maximum 10MB
 - **Format**: Valid CSV/JSON structure required
 - **Headers**: Must have column headers
 
 ### Data Validation
+
 - **Key uniqueness**: Key column values must be unique
 - **Required fields**: Key column cannot be empty
 - **Consistency**: Empty rows allowed but not partial rows
 
 ### UI Validation
+
 - **Real-time feedback** with error highlighting
 - **Detailed error messages** with specific locations
 - **Save prevention** when validation errors exist
@@ -230,6 +239,7 @@ Comprehensive test coverage includes:
 - **Integration tests**: End-to-end workflows
 
 Key test files:
+
 - `components/reference-data-viewer.test.tsx`
 - `components/reference-data-editor.test.tsx`
 - `components/reference-upload-dialog.test.tsx`
@@ -248,16 +258,19 @@ Key test files:
 ## Integration Points
 
 ### With Lookup Fields
+
 - Reference data files are linked via `referenceFile` property
 - Impact analysis tracks these relationships
 - Changes trigger lookup field re-validation
 
 ### With Target Shapes
+
 - Target shapes contain lookup field definitions
 - Reference data changes may affect shape validation
 - Template system can include reference data
 
 ### With History System
+
 - All reference data changes are tracked in Redux history
 - Undo/redo works across file operations
 - Time travel restores complete reference data state

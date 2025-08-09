@@ -116,6 +116,7 @@ The lookup cell system consists of:
 #### Integration with History System
 
 All lookup operations are tracked in the Redux history system:
+
 - Cell value changes (`table/updateCell`)
 - Derived field updates (automatic)
 - Lookup processing results (`table/processDataWithLookups/fulfilled`)
@@ -318,15 +319,15 @@ Cross-reference lookup with automatic derived column updates. The lookup field i
 
 #### Configuration Options
 
-| Option              | Type                | Description                           | Default |
-| ------------------- | ------------------- | ------------------------------------- | ------- |
-| `referenceFile`     | `string`            | Reference data source file            | Required |
-| `match.on`          | `string`            | Column to match against               | Required |
-| `match.get`         | `string`            | Column to return as value             | Required |
-| `match.show`        | `string`            | Column to display (optional)          | `match.on` |
-| `alsoGet`           | `string[]`          | Additional columns to derive          | `[]` |
-| `smartMatching.enabled` | `boolean`       | Enable fuzzy matching                 | `true` |
-| `smartMatching.confidence` | `number`     | Match confidence threshold (0-1)      | `0.85` |
+| Option                     | Type       | Description                      | Default    |
+| -------------------------- | ---------- | -------------------------------- | ---------- |
+| `referenceFile`            | `string`   | Reference data source file       | Required   |
+| `match.on`                 | `string`   | Column to match against          | Required   |
+| `match.get`                | `string`   | Column to return as value        | Required   |
+| `match.show`               | `string`   | Column to display (optional)     | `match.on` |
+| `alsoGet`                  | `string[]` | Additional columns to derive     | `[]`       |
+| `smartMatching.enabled`    | `boolean`  | Enable fuzzy matching            | `true`     |
+| `smartMatching.confidence` | `number`   | Match confidence threshold (0-1) | `0.85`     |
 
 #### Editability Rules
 
@@ -339,7 +340,7 @@ Cross-reference lookup with automatic derived column updates. The lookup field i
 ```typescript
 {
   accessorKey: "department",
-  header: "Department", 
+  header: "Department",
   meta: {
     editable: {
       type: 'lookup',
@@ -362,7 +363,7 @@ Cross-reference lookup with automatic derived column updates. The lookup field i
 {
   accessorKey: "budget_code",
   header: "Budget Code",
-  meta: { 
+  meta: {
     editable: false,
     derivedFrom: "department" // Indicates this is auto-derived
   }
@@ -375,7 +376,7 @@ Cross-reference lookup with automatic derived column updates. The lookup field i
 // User edits department:
 "Engineering" → Auto-updates:
 - dept_id: "ENG001"
-- budget_code: "TECH-001" 
+- budget_code: "TECH-001"
 - manager: "Sarah Johnson"
 
 // Invalid entry with suggestion:
@@ -385,27 +386,30 @@ Cross-reference lookup with automatic derived column updates. The lookup field i
 #### Reference Data Transparency
 
 **UI Enhancement Features**:
+
 - **Info icon** (ℹ️) next to lookup fields shows available options
 - **Source indicator** displays reference file name and row count
 - **View/Edit links** allow inspection and modification of reference data
 
 **Example Enhanced UI**:
+
 ```
 | Department                    | Dept ID | Budget Code |
-|-------------------------------|---------|-------------|  
+|-------------------------------|---------|-------------|
 | [Engineering ▼] ℹ️           | ENG001  | TECH-001    |
     ↳ Popup shows:
       📋 Available Options:
       • Engineering
-      • Marketing  
+      • Marketing
       • HR
       • Finance
-      
+
       📁 Source: departments.csv (23 rows)
       [👁 View Reference Data] [✏️ Edit Values]
 ```
 
 **Configuration for Enhanced UI**:
+
 ```typescript
 {
   type: 'lookup',
@@ -441,7 +445,7 @@ Columns automatically derived from lookup fields are read-only but show their so
 {
   accessorKey: "budget_code",
   header: "Budget Code",
-  meta: { 
+  meta: {
     editable: false,
     derivedFrom: "department",        // Source lookup field
     referenceFile: "departments.csv" // Source data file

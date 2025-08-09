@@ -47,17 +47,17 @@ The lookup fields system is built with a layered architecture that separates con
 The core engine that performs exact, normalized, and fuzzy matching.
 
 ```typescript
-import { LookupMatchingEngine } from '@/lib/utils/lookup-matching-engine';
+import { LookupMatchingEngine } from "@/lib/utils/lookup-matching-engine";
 
 // Initialize the engine
 const engine = new LookupMatchingEngine();
 
 // Configure lookup parameters
 const config = {
-  matchColumn: 'department_name',
-  returnColumn: 'department_id',
+  matchColumn: "department_name",
+  returnColumn: "department_id",
   fuzzyThreshold: 0.8,
-  normalizeValues: true
+  normalizeValues: true,
 };
 
 // Perform lookup
@@ -70,6 +70,7 @@ if (result.matched) {
 ```
 
 **Key Methods**:
+
 - `performLookup(value, referenceData, config)`: Main lookup operation
 - `performBatchLookup(values, referenceData, config)`: Process multiple values efficiently
 - `generateSuggestions(value, referenceData, config)`: Get ranked suggestions
@@ -81,7 +82,7 @@ if (result.matched) {
 Integrates lookup operations with the Redux store and handles async processing.
 
 ```typescript
-import { lookupProcessor } from '@/lib/utils/lookup-processor';
+import { lookupProcessor } from "@/lib/utils/lookup-processor";
 
 // Process single lookup with Redux integration
 const result = await lookupProcessor.processSingleLookup(value, lookupField);
@@ -92,12 +93,13 @@ const processedData = await lookupProcessor.processDataWithLookups(
   targetShape,
   {
     continueOnError: true,
-    updateProgress: (progress) => console.log(`${progress}% complete`)
+    updateProgress: progress => console.log(`${progress}% complete`),
   }
 );
 ```
 
 **Features**:
+
 - **Async Processing**: Handles large datasets without blocking UI
 - **Progress Tracking**: Real-time progress updates for long-running operations
 - **Error Collection**: Comprehensive error reporting and statistics
@@ -110,12 +112,12 @@ const processedData = await lookupProcessor.processDataWithLookups(
 Manages reference data storage, validation, and CRUD operations.
 
 ```typescript
-import { referenceDataManager } from '@/lib/utils/reference-data-manager';
+import { referenceDataManager } from "@/lib/utils/reference-data-manager";
 
 // Upload new reference data
 const info = await referenceDataManager.uploadReferenceFile(file, {
   overwrite: false,
-  validate: true
+  validate: true,
 });
 
 // Retrieve reference data
@@ -130,6 +132,7 @@ const success = await referenceDataManager.updateReferenceData(
 ```
 
 **Storage Format**:
+
 ```typescript
 interface ReferenceData {
   info: ReferenceDataInfo;
@@ -145,10 +148,10 @@ interface ReferenceData {
 Provides enhanced validation specifically for lookup fields.
 
 ```typescript
-import { 
+import {
   LookupValidationSystem,
-  generateLookupValidation 
-} from '@/lib/utils/lookup-validation';
+  generateLookupValidation,
+} from "@/lib/utils/lookup-validation";
 
 // Create validation system
 const validator = new LookupValidationSystem();
@@ -161,6 +164,7 @@ const enumRules = generateLookupValidation(lookupField, referenceData);
 ```
 
 **Validation Types**:
+
 - **Enum Validation**: Ensures values exist in reference data
 - **Confidence Validation**: Checks fuzzy match confidence scores
 - **Reference Integrity**: Validates reference data structure and quality
@@ -220,16 +224,16 @@ The system integrates with existing Redux middleware:
 ```typescript
 // History tracking for undo/redo
 const meaningfulActions = [
-  'targetShapes/addLookupField',
-  'targetShapes/updateLookupField',
-  'table/processDataWithLookups/fulfilled',
-  'lookup/acceptFuzzyMatch'
+  "targetShapes/addLookupField",
+  "targetShapes/updateLookupField",
+  "table/processDataWithLookups/fulfilled",
+  "lookup/acceptFuzzyMatch",
 ];
 
 // Auto-persistence
 const persistedSlices = [
-  'referenceData',
-  'targetShapes'  // includes lookup field configurations
+  "referenceData",
+  "targetShapes", // includes lookup field configurations
 ];
 ```
 
@@ -247,12 +251,9 @@ export function customSimilarity(str1: string, str2: string): number {
 }
 
 // Register with the matching engine
-import { LookupMatchingEngine } from '@/lib/utils/lookup-matching-engine';
+import { LookupMatchingEngine } from "@/lib/utils/lookup-matching-engine";
 
-LookupMatchingEngine.registerSimilarityFunction(
-  'custom',
-  customSimilarity
-);
+LookupMatchingEngine.registerSimilarityFunction("custom", customSimilarity);
 ```
 
 ### Custom Field Types
@@ -261,18 +262,18 @@ Create specialized lookup field variants:
 
 ```typescript
 interface GeographicLookupField extends LookupField {
-  type: 'geographic_lookup';
+  type: "geographic_lookup";
   geocodingEnabled: boolean;
   defaultCountry?: string;
 }
 
 // Register the field type
-import { registerFieldType } from '@/lib/types/field-registry';
+import { registerFieldType } from "@/lib/types/field-registry";
 
-registerFieldType('geographic_lookup', {
+registerFieldType("geographic_lookup", {
   component: GeographicLookupCell,
   validator: GeographicLookupValidator,
-  processor: GeographicLookupProcessor
+  processor: GeographicLookupProcessor,
 });
 ```
 
@@ -313,7 +314,7 @@ const processInChunks = async (
   chunkSize: number = 1000
 ) => {
   const results = [];
-  
+
   for (let i = 0; i < data.length; i += chunkSize) {
     const chunk = data.slice(i, i + chunkSize);
     const processed = await lookupProcessor.processDataWithLookups(
@@ -321,11 +322,11 @@ const processInChunks = async (
       targetShape
     );
     results.push(...processed);
-    
+
     // Yield control to prevent blocking UI
     await new Promise(resolve => setTimeout(resolve, 0));
   }
-  
+
   return results;
 };
 ```
@@ -338,11 +339,11 @@ Implement intelligent caching:
 class LookupCache {
   private exactMatches = new Map<string, LookupResult>();
   private fuzzyMatches = new Map<string, LookupResult[]>();
-  
+
   getCachedExactMatch(value: string, configHash: string): LookupResult | null {
     return this.exactMatches.get(`${configHash}:${value}`) || null;
   }
-  
+
   cacheExactMatch(value: string, configHash: string, result: LookupResult) {
     this.exactMatches.set(`${configHash}:${value}`, result);
   }
@@ -363,15 +364,15 @@ const memoryTracker = {
     const usage = process.memoryUsage();
     console.log(`Memory: ${Math.round(usage.heapUsed / 1024 / 1024)}MB`);
   },
-  
+
   startTracking() {
     this.startMemory = process.memoryUsage().heapUsed;
   },
-  
+
   getIncrease() {
     const current = process.memoryUsage().heapUsed;
     return Math.round((current - this.startMemory) / 1024 / 1024);
-  }
+  },
 };
 ```
 
@@ -383,20 +384,20 @@ Test core functionality in isolation:
 
 ```typescript
 // lib/utils/lookup-matching-engine.test.ts
-import { LookupMatchingEngine } from './lookup-matching-engine';
+import { LookupMatchingEngine } from "./lookup-matching-engine";
 
-describe('LookupMatchingEngine', () => {
+describe("LookupMatchingEngine", () => {
   let engine: LookupMatchingEngine;
-  
+
   beforeEach(() => {
     engine = new LookupMatchingEngine();
   });
-  
-  it('should perform exact matches', () => {
-    const result = engine.performLookup('Engineering', referenceData, config);
-    
+
+  it("should perform exact matches", () => {
+    const result = engine.performLookup("Engineering", referenceData, config);
+
     expect(result.matched).toBe(true);
-    expect(result.matchType).toBe('exact');
+    expect(result.matchType).toBe("exact");
     expect(result.confidence).toBe(1.0);
   });
 });
@@ -408,20 +409,20 @@ Test component interactions:
 
 ```typescript
 // Test complete lookup workflow
-describe('Lookup Integration', () => {
-  it('should process data end-to-end', async () => {
+describe("Lookup Integration", () => {
+  it("should process data end-to-end", async () => {
     // Upload reference data
     await store.dispatch(uploadReferenceFileAsync(referenceFile));
-    
+
     // Create target shape with lookup field
     const targetShape = createTargetShapeWithLookup();
     await store.dispatch(saveTargetShape(targetShape));
-    
+
     // Process input data
     const result = await store.dispatch(
       processDataWithLookups({ data: inputData, targetShape })
     );
-    
+
     expect(result.payload.processedData).toHaveLength(inputData.length);
     expect(result.payload.errors).toHaveLength(0);
   });
@@ -434,15 +435,15 @@ Validate performance requirements:
 
 ```typescript
 // test/performance/lookup-performance.test.ts
-describe('Lookup Performance', () => {
-  it('should process 1000 rows within 10 seconds', async () => {
+describe("Lookup Performance", () => {
+  it("should process 1000 rows within 10 seconds", async () => {
     const startTime = Date.now();
-    
+
     await lookupProcessor.processDataWithLookups(
       generateTestData(1000),
       targetShape
     );
-    
+
     const duration = Date.now() - startTime;
     expect(duration).toBeLessThan(10000); // 10 seconds
   });
@@ -458,7 +459,7 @@ The system defines specific error types for better handling:
 ```typescript
 // Reference data errors
 class ReferenceDataError extends Error {
-  code: 'DUPLICATE_ID' | 'VALIDATION_ERROR' | 'STORAGE_ERROR' | 'NOT_FOUND';
+  code: "DUPLICATE_ID" | "VALIDATION_ERROR" | "STORAGE_ERROR" | "NOT_FOUND";
   details: any;
 }
 
@@ -472,7 +473,7 @@ class LookupProcessingError extends Error {
 
 // Validation errors
 class LookupValidationError extends Error {
-  validationType: 'enum' | 'confidence' | 'reference';
+  validationType: "enum" | "confidence" | "reference";
   context: ValidationContext;
 }
 ```
@@ -482,10 +483,13 @@ class LookupValidationError extends Error {
 Implement graceful error recovery:
 
 ```typescript
-const processWithErrorRecovery = async (data: any[], targetShape: TargetShape) => {
+const processWithErrorRecovery = async (
+  data: any[],
+  targetShape: TargetShape
+) => {
   const results = [];
   const errors = [];
-  
+
   for (const [index, row] of data.entries()) {
     try {
       const processed = await processRowWithLookups(row, targetShape);
@@ -495,14 +499,14 @@ const processWithErrorRecovery = async (data: any[], targetShape: TargetShape) =
       errors.push({
         rowIndex: index,
         error: error.message,
-        originalData: row
+        originalData: row,
       });
-      
+
       // Add row with original values
       results.push(row);
     }
   }
-  
+
   return { results, errors };
 };
 ```
@@ -560,15 +564,15 @@ const normalizeLookupField = (field: any): LookupField => {
       ...field,
       match: {
         on: field.lookupConfig.matchColumn,
-        get: field.lookupConfig.returnColumn
+        get: field.lookupConfig.returnColumn,
       },
       smartMatching: {
         enabled: field.lookupConfig.fuzzyEnabled || false,
-        confidence: field.lookupConfig.fuzzyThreshold || 0.8
-      }
+        confidence: field.lookupConfig.fuzzyThreshold || 0.8,
+      },
     };
   }
-  
+
   // New format - return as-is
   return field;
 };
@@ -576,4 +580,4 @@ const normalizeLookupField = (field: any): LookupField => {
 
 ---
 
-*For user-facing documentation, see the [User Guide](./lookup-fields-user-guide.md). For architectural patterns, see the [Architecture Patterns](./patterns/lookup-architecture-patterns.md).*
+_For user-facing documentation, see the [User Guide](./lookup-fields-user-guide.md). For architectural patterns, see the [Architecture Patterns](./patterns/lookup-architecture-patterns.md)._

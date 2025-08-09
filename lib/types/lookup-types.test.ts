@@ -34,7 +34,7 @@ describe("Lookup Types", () => {
         "object",
         "lookup",
       ];
-      
+
       expect(fieldTypes).toContain("lookup");
       expect(fieldTypes).toContain("string");
       expect(fieldTypes).toContain("number");
@@ -47,7 +47,7 @@ describe("Lookup Types", () => {
         on: "department_name",
         get: "department_id",
       };
-      
+
       expect(match.on).toBe("department_name");
       expect(match.get).toBe("department_id");
     });
@@ -58,7 +58,7 @@ describe("Lookup Types", () => {
         get: "department_id",
         show: "department_display_name",
       };
-      
+
       expect(match.show).toBe("department_display_name");
     });
   });
@@ -69,7 +69,7 @@ describe("Lookup Types", () => {
         enabled: true,
         confidence: 0.8,
       };
-      
+
       expect(smartMatching.enabled).toBe(true);
       expect(smartMatching.confidence).toBe(0.8);
     });
@@ -80,7 +80,7 @@ describe("Lookup Types", () => {
         { enabled: true, confidence: 0.5 },
         { enabled: true, confidence: 1 },
       ];
-      
+
       configs.forEach(config => {
         expect(config.confidence).toBeGreaterThanOrEqual(0);
         expect(config.confidence).toBeLessThanOrEqual(1);
@@ -94,7 +94,7 @@ describe("Lookup Types", () => {
         name: "department_code",
         source: "code",
       };
-      
+
       expect(derivedField.name).toBe("department_code");
       expect(derivedField.source).toBe("code");
     });
@@ -105,7 +105,7 @@ describe("Lookup Types", () => {
         source: "code",
         type: "string",
       };
-      
+
       expect(derivedField.type).toBe("string");
     });
   });
@@ -128,13 +128,13 @@ describe("Lookup Types", () => {
         },
         onMismatch: "error",
       };
-      
+
       // Test TargetField properties
       expect(lookupField.id).toBe("dept_lookup");
       expect(lookupField.name).toBe("Department");
       expect(lookupField.type).toBe("lookup");
       expect(lookupField.required).toBe(true);
-      
+
       // Test lookup-specific properties
       expect(lookupField.referenceFile).toBe("departments.csv");
       expect(lookupField.match.on).toBe("department_name");
@@ -146,10 +146,10 @@ describe("Lookup Types", () => {
     it("should support all onMismatch options", () => {
       const onMismatchOptions: Array<"error" | "warning" | "null"> = [
         "error",
-        "warning", 
+        "warning",
         "null",
       ];
-      
+
       onMismatchOptions.forEach(option => {
         const field: Partial<LookupField> = {
           onMismatch: option,
@@ -192,11 +192,13 @@ describe("Lookup Types", () => {
         validation: [],
         transformation: [],
       };
-      
+
       expect(lookupField.alsoGet).toHaveLength(2);
       expect(lookupField.showReferenceInfo).toBe(true);
       expect(lookupField.allowReferenceEdit).toBe(false);
-      expect(lookupField.description).toBe("Department lookup with smart matching");
+      expect(lookupField.description).toBe(
+        "Department lookup with smart matching"
+      );
     });
 
     it("should be assignable to TargetField", () => {
@@ -210,7 +212,7 @@ describe("Lookup Types", () => {
         smartMatching: { enabled: false, confidence: 0.5 },
         onMismatch: "null",
       };
-      
+
       // This should compile without errors
       const targetField: TargetField = lookupField;
       expect(targetField.type).toBe("lookup");
@@ -235,10 +237,10 @@ describe("Lookup Types", () => {
         },
         onMismatch: "error",
       };
-      
+
       const serialized = JSON.stringify(lookupField);
       const deserialized = JSON.parse(serialized) as LookupField;
-      
+
       expect(deserialized.type).toBe("lookup");
       expect(deserialized.referenceFile).toBe("departments.csv");
       expect(deserialized.match.on).toBe("department_name");

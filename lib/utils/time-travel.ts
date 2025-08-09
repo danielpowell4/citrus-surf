@@ -188,7 +188,7 @@ export const getActionSummary = (action: HistoryAction) => {
     case "processDataWithLookups/fulfilled":
       return `Processed ${action.stateSnapshot?.data?.length || 0} rows with lookups`;
     case "updateLookupValue/fulfilled":
-      return `Updated lookup value for ${action.payload?.fieldName || 'field'}`;
+      return `Updated lookup value for ${action.payload?.fieldName || "field"}`;
     default:
       return actionType;
   }

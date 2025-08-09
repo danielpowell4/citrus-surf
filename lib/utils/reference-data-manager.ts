@@ -1,30 +1,30 @@
 /**
  * Reference Data Manager
- * 
+ *
  * Manages upload, storage, and retrieval of reference data files for lookup operations.
  * Supports CSV and JSON formats with validation and efficient browser storage.
- * 
+ *
  * @example
  * ```typescript
  * import { referenceDataManager } from './reference-data-manager';
- * 
+ *
  * // Upload a CSV file
  * const file = new File(['name,age\nJohn,30'], 'employees.csv');
  * const info = await referenceDataManager.uploadReferenceFile(file, 'ref_employees');
- * 
+ *
  * // Retrieve data
  * const data = referenceDataManager.getReferenceDataRows('ref_employees');
  * console.log(data); // [{ name: 'John', age: '30' }]
- * 
+ *
  * // List all files
  * const files = referenceDataManager.listReferenceFiles();
- * 
+ *
  * // Get statistics
  * const stats = referenceDataManager.getStats();
  * ```
  */
 
-import { storage } from './localStorage';
+import { storage } from "./localStorage";
 import type {
   IReferenceDataManager,
   ReferenceDataInfo,
@@ -32,15 +32,15 @@ import type {
   UploadReferenceOptions,
   ValidationResult,
   ReferenceDataStats,
-} from '../types/reference-data-types';
-import { ReferenceDataError } from '../types/reference-data-types';
+} from "../types/reference-data-types";
+import { ReferenceDataError } from "../types/reference-data-types";
 
 /**
  * Storage keys for reference data
  */
 const STORAGE_KEYS = {
-  REFERENCE_DATA_INDEX: 'citrus_surf_reference_data_index',
-  REFERENCE_DATA_PREFIX: 'citrus_surf_reference_data_',
+  REFERENCE_DATA_INDEX: "citrus_surf_reference_data_index",
+  REFERENCE_DATA_PREFIX: "citrus_surf_reference_data_",
 } as const;
 
 /**
@@ -60,28 +60,28 @@ export class ReferenceDataManager implements IReferenceDataManager {
       if (this.hasReferenceData(id) && !options.overwrite) {
         throw new ReferenceDataError(
           `Reference data with ID '${id}' already exists`,
-          'DUPLICATE_ID',
+          "DUPLICATE_ID",
           { id, filename: file.name }
         );
       }
 
       // Read file content
       const content = await this.readFileContent(file);
-      
+
       // Validate the file
       const validation = await this.validateReferenceData(file);
       if (!validation.valid) {
         throw new ReferenceDataError(
-          `Validation failed: ${validation.errors.join(', ')}`,
-          'VALIDATION_ERROR',
+          `Validation failed: ${validation.errors.join(", ")}`,
+          "VALIDATION_ERROR",
           { errors: validation.errors, warnings: validation.warnings }
         );
       }
 
       // Parse the data
       const parsedData = await this.parseFileContent(
-        content, 
-        validation.format || 'csv',
+        content,
+        validation.format || "csv",
         {
           delimiter: options.delimiter || validation.delimiter,
           hasHeaders: options.hasHeaders ?? validation.hasHeaders ?? true,
@@ -98,12 +98,12 @@ export class ReferenceDataManager implements IReferenceDataManager {
         uploadedAt: now,
         lastModified: now,
         fileSize: file.size,
-        format: validation.format || 'csv',
+        format: validation.format || "csv",
         metadata: {
           mimeType: file.type,
           delimiter: validation.delimiter,
           hasHeaders: validation.hasHeaders,
-          encoding: 'utf-8',
+          encoding: "utf-8",
           ...options.metadata,
         },
       };
@@ -123,8 +123,8 @@ export class ReferenceDataManager implements IReferenceDataManager {
         throw error;
       }
       throw new ReferenceDataError(
-        `Failed to upload reference file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'STORAGE_ERROR',
+        `Failed to upload reference file: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "STORAGE_ERROR",
         { filename: file.name, originalError: error }
       );
     }
@@ -162,7 +162,7 @@ export class ReferenceDataManager implements IReferenceDataManager {
       );
       return Object.values(index || {});
     } catch (error) {
-      console.error('Error listing reference files:', error);
+      console.error("Error listing reference files:", error);
       return [];
     }
   }
@@ -179,7 +179,7 @@ export class ReferenceDataManager implements IReferenceDataManager {
 
       // Remove from storage
       const key = this.getStorageKey(id);
-      if (typeof window !== 'undefined' && window.localStorage) {
+      if (typeof window !== "undefined" && window.localStorage) {
         window.localStorage.removeItem(key);
       }
 
@@ -209,7 +209,7 @@ export class ReferenceDataManager implements IReferenceDataManager {
       if (!existingData) {
         throw new ReferenceDataError(
           `Reference data with ID '${id}' not found`,
-          'NOT_FOUND',
+          "NOT_FOUND",
           { id }
         );
       }
@@ -253,7 +253,7 @@ export class ReferenceDataManager implements IReferenceDataManager {
    */
   getStats(): ReferenceDataStats {
     const files = this.listReferenceFiles();
-    
+
     return {
       totalFiles: files.length,
       totalRows: files.reduce((sum, file) => sum + file.rowCount, 0),
@@ -281,22 +281,26 @@ export class ReferenceDataManager implements IReferenceDataManager {
       // Check file size (warn if > 10MB, error if > 50MB)
       const maxSize = 50 * 1024 * 1024; // 50MB
       const warnSize = 10 * 1024 * 1024; // 10MB
-      
+
       if (file.size > maxSize) {
         result.valid = false;
-        result.errors.push(`File size (${this.formatFileSize(file.size)}) exceeds maximum allowed size (50MB)`);
+        result.errors.push(
+          `File size (${this.formatFileSize(file.size)}) exceeds maximum allowed size (50MB)`
+        );
       } else if (file.size > warnSize) {
-        result.warnings.push(`Large file size (${this.formatFileSize(file.size)}) may impact performance`);
+        result.warnings.push(
+          `Large file size (${this.formatFileSize(file.size)}) may impact performance`
+        );
       }
 
       // Read and validate content
       const content = await this.readFileContent(file);
-      
+
       // Detect format
       const format = this.detectFileFormat(content, file.name);
       result.format = format;
 
-      if (format === 'json') {
+      if (format === "json") {
         // Validate JSON
         const validation = this.validateJsonContent(content);
         result.valid = result.valid && validation.valid;
@@ -311,10 +315,11 @@ export class ReferenceDataManager implements IReferenceDataManager {
         result.delimiter = validation.delimiter;
         result.hasHeaders = validation.hasHeaders;
       }
-
     } catch (error) {
       result.valid = false;
-      result.errors.push(`Failed to read file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      result.errors.push(
+        `Failed to read file: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
 
     return result;
@@ -327,7 +332,7 @@ export class ReferenceDataManager implements IReferenceDataManager {
     try {
       // Get all reference data IDs
       const files = this.listReferenceFiles();
-      
+
       // Remove each file
       files.forEach(file => {
         this.deleteReferenceFile(file.id);
@@ -336,7 +341,7 @@ export class ReferenceDataManager implements IReferenceDataManager {
       // Clear the index
       storage.setItem(STORAGE_KEYS.REFERENCE_DATA_INDEX, {});
     } catch (error) {
-      console.error('Error clearing all reference data:', error);
+      console.error("Error clearing all reference data:", error);
     }
   }
 
@@ -368,8 +373,8 @@ export class ReferenceDataManager implements IReferenceDataManager {
       });
     } catch (error) {
       throw new ReferenceDataError(
-        'Failed to import reference data',
-        'STORAGE_ERROR',
+        "Failed to import reference data",
+        "STORAGE_ERROR",
         { originalError: error }
       );
     }
@@ -381,29 +386,29 @@ export class ReferenceDataManager implements IReferenceDataManager {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file, 'utf-8');
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsText(file, "utf-8");
     });
   }
 
-  private detectFileFormat(content: string, filename?: string): 'csv' | 'json' {
+  private detectFileFormat(content: string, filename?: string): "csv" | "json" {
     // Check file extension first
     if (filename) {
-      const ext = filename.split('.').pop()?.toLowerCase();
-      if (ext === 'json') return 'json';
-      if (['csv', 'tsv', 'txt'].includes(ext || '')) return 'csv';
+      const ext = filename.split(".").pop()?.toLowerCase();
+      if (ext === "json") return "json";
+      if (["csv", "tsv", "txt"].includes(ext || "")) return "csv";
     }
 
     // Try to parse as JSON
     try {
       const parsed = JSON.parse(content.trim());
-      if (Array.isArray(parsed)) return 'json';
+      if (Array.isArray(parsed)) return "json";
     } catch {
       // Not valid JSON
     }
 
     // Default to CSV
-    return 'csv';
+    return "csv";
   }
 
   private validateJsonContent(content: string): ValidationResult {
@@ -411,23 +416,25 @@ export class ReferenceDataManager implements IReferenceDataManager {
 
     try {
       const parsed = JSON.parse(content);
-      
+
       if (!Array.isArray(parsed)) {
         result.valid = false;
-        result.errors.push('JSON must be an array of objects');
+        result.errors.push("JSON must be an array of objects");
         return result;
       }
 
       if (parsed.length === 0) {
-        result.warnings.push('JSON array is empty');
+        result.warnings.push("JSON array is empty");
         return result;
       }
 
       // Check if all items are objects
-      const nonObjects = parsed.filter(item => typeof item !== 'object' || item === null || Array.isArray(item));
+      const nonObjects = parsed.filter(
+        item => typeof item !== "object" || item === null || Array.isArray(item)
+      );
       if (nonObjects.length > 0) {
         result.valid = false;
-        result.errors.push('All array items must be objects');
+        result.errors.push("All array items must be objects");
       }
 
       // Check for consistent structure
@@ -439,31 +446,40 @@ export class ReferenceDataManager implements IReferenceDataManager {
         });
 
         if (inconsistent) {
-          result.warnings.push('Objects have inconsistent properties');
+          result.warnings.push("Objects have inconsistent properties");
         }
       }
-
     } catch (error) {
       result.valid = false;
-      result.errors.push(`Invalid JSON: ${error instanceof Error ? error.message : 'Parse error'}`);
+      result.errors.push(
+        `Invalid JSON: ${error instanceof Error ? error.message : "Parse error"}`
+      );
     }
 
     return result;
   }
 
-  private validateCsvContent(content: string): ValidationResult & { delimiter?: string; hasHeaders?: boolean } {
-    const result: ValidationResult & { delimiter?: string; hasHeaders?: boolean } = {
+  private validateCsvContent(
+    content: string
+  ): ValidationResult & { delimiter?: string; hasHeaders?: boolean } {
+    const result: ValidationResult & {
+      delimiter?: string;
+      hasHeaders?: boolean;
+    } = {
       valid: true,
       errors: [],
       warnings: [],
     };
 
     try {
-      const lines = content.trim().split('\n');
-      
-      if (lines.length === 0 || (lines.length === 1 && lines[0].trim() === '')) {
+      const lines = content.trim().split("\n");
+
+      if (
+        lines.length === 0 ||
+        (lines.length === 1 && lines[0].trim() === "")
+      ) {
         result.valid = false;
-        result.errors.push('CSV file is empty');
+        result.errors.push("CSV file is empty");
         return result;
       }
 
@@ -479,41 +495,45 @@ export class ReferenceDataManager implements IReferenceDataManager {
       // Parse a few lines to validate structure
       const sampleSize = Math.min(10, lines.length);
       let expectedColumns = 0;
-      
+
       for (let i = 0; i < sampleSize; i++) {
         const columns = this.parseCsvLine(lines[i], delimiter);
-        
+
         if (i === 0) {
           expectedColumns = columns.length;
           if (expectedColumns === 0) {
             result.valid = false;
-            result.errors.push('CSV has no columns');
+            result.errors.push("CSV has no columns");
             break;
           }
         } else if (columns.length !== expectedColumns) {
-          result.warnings.push(`Line ${i + 1} has ${columns.length} columns, expected ${expectedColumns}`);
+          result.warnings.push(
+            `Line ${i + 1} has ${columns.length} columns, expected ${expectedColumns}`
+          );
         }
       }
 
       if (lines.length === 1 && hasHeaders) {
-        result.warnings.push('CSV contains only headers, no data rows');
+        result.warnings.push("CSV contains only headers, no data rows");
       }
-
     } catch (error) {
       result.valid = false;
-      result.errors.push(`CSV validation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      result.errors.push(
+        `CSV validation error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
 
     return result;
   }
 
   private detectDelimiter(line: string): string {
-    const delimiters = [',', '\t', ';', '|'];
-    let bestDelimiter = ',';
+    const delimiters = [",", "\t", ";", "|"];
+    let bestDelimiter = ",";
     let maxCount = 0;
 
     for (const delimiter of delimiters) {
-      const count = (line.match(new RegExp(`\\${delimiter}`, 'g')) || []).length;
+      const count = (line.match(new RegExp(`\\${delimiter}`, "g")) || [])
+        .length;
       if (count > maxCount) {
         maxCount = count;
         bestDelimiter = delimiter;
@@ -525,7 +545,7 @@ export class ReferenceDataManager implements IReferenceDataManager {
 
   private detectHeaders(line: string, delimiter: string): boolean {
     const columns = this.parseCsvLine(line, delimiter);
-    
+
     // Check if all columns are strings without numbers
     return columns.every(col => {
       const trimmed = col.trim();
@@ -535,19 +555,19 @@ export class ReferenceDataManager implements IReferenceDataManager {
 
   private parseCsvLine(line: string, delimiter: string): string[] {
     if (!line.trim()) return [];
-    
-    if (delimiter === '\t') {
-      return line.split('\t').map(field => field.trim());
+
+    if (delimiter === "\t") {
+      return line.split("\t").map(field => field.trim());
     }
 
     // Handle CSV with quoted fields
     const result: string[] = [];
-    let current = '';
+    let current = "";
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
-      
+
       if (char === '"') {
         if (inQuotes && i < line.length - 1 && line[i + 1] === '"') {
           current += '"';
@@ -557,43 +577,43 @@ export class ReferenceDataManager implements IReferenceDataManager {
         }
       } else if (char === delimiter && !inQuotes) {
         result.push(current.trim());
-        current = '';
+        current = "";
       } else {
         current += char;
       }
     }
-    
+
     result.push(current.trim());
     return result;
   }
 
   private async parseFileContent(
     content: string,
-    format: 'csv' | 'json',
+    format: "csv" | "json",
     options: { delimiter?: string; hasHeaders?: boolean }
   ): Promise<Record<string, any>[]> {
-    if (format === 'json') {
+    if (format === "json") {
       const parsed = JSON.parse(content);
       return Array.isArray(parsed) ? parsed : [];
     }
 
     // Parse CSV
-    const lines = content.trim().split('\n');
+    const lines = content.trim().split("\n");
     if (lines.length === 0) return [];
 
-    const delimiter = options.delimiter || ',';
+    const delimiter = options.delimiter || ",";
     const hasHeaders = options.hasHeaders !== false;
-    
+
     if (!hasHeaders) {
       // Generate column names: col1, col2, etc.
       const firstRow = this.parseCsvLine(lines[0], delimiter);
       const headers = firstRow.map((_, i) => `col${i + 1}`);
-      
+
       return lines.map(line => {
         const values = this.parseCsvLine(line, delimiter);
         const row: Record<string, any> = {};
         headers.forEach((header, i) => {
-          row[header] = values[i] || '';
+          row[header] = values[i] || "";
         });
         return row;
       });
@@ -602,12 +622,12 @@ export class ReferenceDataManager implements IReferenceDataManager {
     // Parse with headers
     const headers = this.parseCsvLine(lines[0], delimiter);
     const dataRows = lines.slice(1);
-    
+
     return dataRows.map(line => {
       const values = this.parseCsvLine(line, delimiter);
       const row: Record<string, any> = {};
       headers.forEach((header, i) => {
-        row[header] = values[i] || '';
+        row[header] = values[i] || "";
       });
       return row;
     });
@@ -634,15 +654,15 @@ export class ReferenceDataManager implements IReferenceDataManager {
   }
 
   private formatFileSize(bytes: number): string {
-    const units = ['B', 'KB', 'MB', 'GB'];
+    const units = ["B", "KB", "MB", "GB"];
     let size = bytes;
     let unitIndex = 0;
-    
+
     while (size >= 1024 && unitIndex < units.length - 1) {
       size /= 1024;
       unitIndex++;
     }
-    
+
     return `${Math.round(size * 100) / 100} ${units[unitIndex]}`;
   }
 }

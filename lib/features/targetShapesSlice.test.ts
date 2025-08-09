@@ -118,7 +118,9 @@ describe("targetShapesSlice", () => {
       const savedShape = { ...mockShape, id: "async-generated-id" };
       mockTargetShapesStorage.save.mockReturnValue(savedShape);
 
-      const result = await store.dispatch(saveTargetShapeAsync(mockShapeInput as TargetShape));
+      const result = await store.dispatch(
+        saveTargetShapeAsync(mockShapeInput as TargetShape)
+      );
 
       // Check that the thunk fulfilled successfully
       expect(saveTargetShapeAsync.fulfilled.match(result)).toBe(true);
@@ -138,7 +140,9 @@ describe("targetShapesSlice", () => {
         throw new Error("Async storage error");
       });
 
-      const result = await store.dispatch(saveTargetShapeAsync(mockShapeInput as TargetShape));
+      const result = await store.dispatch(
+        saveTargetShapeAsync(mockShapeInput as TargetShape)
+      );
 
       // Check that the thunk was rejected
       expect(saveTargetShapeAsync.rejected.match(result)).toBe(true);
@@ -153,14 +157,16 @@ describe("targetShapesSlice", () => {
     it("should set loading state during async operation", async () => {
       const store = createTestStore();
       let resolvePromise: (value: TargetShape) => void;
-      const savePromise = new Promise<TargetShape>((resolve) => {
+      const savePromise = new Promise<TargetShape>(resolve => {
         resolvePromise = resolve;
       });
-      
+
       mockTargetShapesStorage.save.mockReturnValue(savePromise);
 
       // Start the async operation
-      const thunkPromise = store.dispatch(saveTargetShapeAsync(mockShapeInput as TargetShape));
+      const thunkPromise = store.dispatch(
+        saveTargetShapeAsync(mockShapeInput as TargetShape)
+      );
 
       // Check loading state
       let state = store.getState().targetShapes;
@@ -180,32 +186,39 @@ describe("targetShapesSlice", () => {
     it("should update an existing shape", () => {
       const store = createTestStore();
       const updatedShape = { ...mockShape, name: "Updated Name" };
-      
+
       // Setup initial state with a shape
       mockTargetShapesStorage.getAll.mockReturnValue([mockShape]);
       store.dispatch(loadShapes());
-      
+
       // Mock the update
       mockTargetShapesStorage.update.mockReturnValue(updatedShape);
 
-      store.dispatch(updateTargetShape({
-        id: mockShape.id,
-        updates: { name: "Updated Name" }
-      }));
+      store.dispatch(
+        updateTargetShape({
+          id: mockShape.id,
+          updates: { name: "Updated Name" },
+        })
+      );
 
       const state = store.getState().targetShapes;
       expect(state.shapes[0]).toEqual(updatedShape);
-      expect(mockTargetShapesStorage.update).toHaveBeenCalledWith(mockShape.id, { name: "Updated Name" });
+      expect(mockTargetShapesStorage.update).toHaveBeenCalledWith(
+        mockShape.id,
+        { name: "Updated Name" }
+      );
     });
 
     it("should handle update errors when shape not found", () => {
       const store = createTestStore();
       mockTargetShapesStorage.update.mockReturnValue(null);
 
-      store.dispatch(updateTargetShape({
-        id: "non-existent-id",
-        updates: { name: "Updated Name" }
-      }));
+      store.dispatch(
+        updateTargetShape({
+          id: "non-existent-id",
+          updates: { name: "Updated Name" },
+        })
+      );
 
       const state = store.getState().targetShapes;
       expect(state.error).toBe("Failed to update target shape");
@@ -215,11 +228,11 @@ describe("targetShapesSlice", () => {
   describe("deleteTargetShape", () => {
     it("should delete a shape", () => {
       const store = createTestStore();
-      
+
       // Setup initial state with shapes
       mockTargetShapesStorage.getAll.mockReturnValue([mockShape]);
       store.dispatch(loadShapes());
-      
+
       // Mock successful deletion
       mockTargetShapesStorage.delete.mockReturnValue(true);
       mockTargetShapesStorage.getAll.mockReturnValue([]); // Empty after deletion
@@ -233,7 +246,7 @@ describe("targetShapesSlice", () => {
 
     it("should clear selectedShapeId when deleting the selected shape", () => {
       const store = createTestStore();
-      
+
       // Setup with selected shape
       store.dispatch(selectTargetShape(mockShape.id));
       mockTargetShapesStorage.delete.mockReturnValue(true);
@@ -258,10 +271,10 @@ describe("targetShapesSlice", () => {
 
     it("should clear selection when passing null", () => {
       const store = createTestStore();
-      
+
       // First select a shape
       store.dispatch(selectTargetShape(mockShape.id));
-      
+
       // Then clear selection
       store.dispatch(selectTargetShape(null));
 

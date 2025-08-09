@@ -1,14 +1,17 @@
 /**
  * Lookup Data Processing Integration
- * 
+ *
  * Integrates the lookup matching engine with the data processing pipeline to automatically
  * perform lookups during data import and provide real-time lookup updates.
  */
 
-import { LookupMatchingEngine, createLookupConfig } from './lookup-matching-engine';
-import { referenceDataManager } from './reference-data-manager';
-import type { TargetShape, LookupField } from '../types/target-shapes';
-import type { TableRow } from '../features/tableSlice';
+import {
+  LookupMatchingEngine,
+  createLookupConfig,
+} from "./lookup-matching-engine";
+import { referenceDataManager } from "./reference-data-manager";
+import type { TargetShape, LookupField } from "../types/target-shapes";
+import type { TableRow } from "../features/tableSlice";
 
 /**
  * Result of processing data with lookups
@@ -37,7 +40,7 @@ export interface LookupError {
   /** Original input value */
   inputValue: any;
   /** Error type */
-  type: 'no_match' | 'multiple_matches' | 'reference_missing' | 'invalid_input';
+  type: "no_match" | "multiple_matches" | "reference_missing" | "invalid_input";
   /** Human-readable error message */
   message: string;
   /** Suggested corrections if available */
@@ -142,7 +145,7 @@ export class LookupProcessor {
 
     // Find all lookup fields in the target shape
     const lookupFields = targetShape.fields.filter(
-      (field): field is LookupField => field.type === 'lookup'
+      (field): field is LookupField => field.type === "lookup"
     );
 
     if (lookupFields.length === 0) {
@@ -196,16 +199,19 @@ export class LookupProcessor {
 
                 // Update statistics
                 switch (result.matchType) {
-                  case 'exact':
+                  case "exact":
                     stats.exactMatches++;
                     break;
-                  case 'normalized':
+                  case "normalized":
                     stats.normalizedMatches++;
                     break;
-                  case 'fuzzy':
+                  case "fuzzy":
                     stats.fuzzyMatches++;
                     // Collect fuzzy match for review if confidence is low
-                    if (result.confidence < minConfidence && fuzzyMatches.length < maxFuzzyMatches) {
+                    if (
+                      result.confidence < minConfidence &&
+                      fuzzyMatches.length < maxFuzzyMatches
+                    ) {
                       fuzzyMatches.push({
                         rowId: row._rowId || `row_${index}`,
                         fieldName: lookupField.name,
@@ -223,7 +229,7 @@ export class LookupProcessor {
                   rowId: row._rowId || `row_${index}`,
                   fieldName: lookupField.name,
                   inputValue: result.inputValue,
-                  type: 'no_match' as const,
+                  type: "no_match" as const,
                   message: `No match found for "${result.inputValue}" in ${lookupField.referenceFile}`,
                   suggestions: result.suggestions?.map(s => s.value) || [],
                 };
@@ -240,10 +246,14 @@ export class LookupProcessor {
                 rowId: row._rowId || `row_${index}`,
                 fieldName: lookupField.name,
                 inputValue: processedRow[lookupField.name],
-                type: error instanceof Error && error.message.includes('reference') 
-                  ? 'reference_missing' 
-                  : 'invalid_input',
-                message: error instanceof Error ? error.message : 'Unknown lookup error',
+                type:
+                  error instanceof Error && error.message.includes("reference")
+                    ? "reference_missing"
+                    : "invalid_input",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Unknown lookup error",
                 suggestions: [],
               });
 
@@ -255,7 +265,11 @@ export class LookupProcessor {
 
           // Process derived fields if enabled
           if (processDerivedFields) {
-            this.updateDerivedColumns(processedRow, rowLookupResults, lookupFields);
+            this.updateDerivedColumns(
+              processedRow,
+              rowLookupResults,
+              lookupFields
+            );
             stats.derivedColumns += this.countDerivedFields(lookupFields);
           }
 
@@ -276,8 +290,9 @@ export class LookupProcessor {
 
     // Calculate final statistics
     const totalTime = performance.now() - startTime;
-    stats.successRate = (stats.exactMatches + stats.normalizedMatches + stats.fuzzyMatches) / 
-                       (data.length * lookupFields.length);
+    stats.successRate =
+      (stats.exactMatches + stats.normalizedMatches + stats.fuzzyMatches) /
+      (data.length * lookupFields.length);
 
     return {
       data: processedData,
@@ -300,10 +315,12 @@ export class LookupProcessor {
     value: any,
     field: LookupField,
     _rowId: string
-  ): Promise<import('./lookup-matching-engine').LookupResult> {
+  ): Promise<import("./lookup-matching-engine").LookupResult> {
     // Get reference data for this lookup field
-    const referenceData = referenceDataManager.getReferenceDataRows(field.referenceFile);
-    
+    const referenceData = referenceDataManager.getReferenceDataRows(
+      field.referenceFile
+    );
+
     if (!referenceData || referenceData.length === 0) {
       throw new Error(`Reference data not found for ${field.referenceFile}`);
     }
@@ -325,7 +342,7 @@ export class LookupProcessor {
   ): void {
     for (const lookupField of lookupFields) {
       const lookupResult = lookupResults[lookupField.name];
-      
+
       if (lookupResult?.matched && lookupResult.derivedValues) {
         // Add derived values to the row
         Object.entries(lookupResult.derivedValues).forEach(([key, value]) => {
@@ -391,8 +408,12 @@ export class LookupProcessor {
     confidence?: number;
   }> {
     try {
-      const result = await this.processSingleLookup(value, field, rowData._rowId || 'unknown');
-      
+      const result = await this.processSingleLookup(
+        value,
+        field,
+        rowData._rowId || "unknown"
+      );
+
       if (result.matched) {
         const updatedRow = { ...rowData };
         updatedRow[field.name] = result.matchedValue;
@@ -421,7 +442,7 @@ export class LookupProcessor {
       return {
         updatedRow: rowData,
         success: false,
-        error: error instanceof Error ? error.message : 'Lookup failed',
+        error: error instanceof Error ? error.message : "Lookup failed",
         confidence: 0,
       };
     }
@@ -440,17 +461,19 @@ export class LookupProcessor {
       rowData: TableRow;
     }>,
     onProgress?: (processed: number, total: number) => void
-  ): Promise<Array<{
-    rowId: string;
-    updatedRow: TableRow;
-    success: boolean;
-    error?: string;
-  }>> {
+  ): Promise<
+    Array<{
+      rowId: string;
+      updatedRow: TableRow;
+      success: boolean;
+      error?: string;
+    }>
+  > {
     const results = [];
 
     for (let i = 0; i < updates.length; i++) {
       const update = updates[i];
-      
+
       if (onProgress && i % 10 === 0) {
         onProgress(i, updates.length);
       }
@@ -491,7 +514,7 @@ export class LookupProcessor {
     }>;
   } {
     const lookupFields = targetShape.fields.filter(
-      (field): field is LookupField => field.type === 'lookup'
+      (field): field is LookupField => field.type === "lookup"
     );
 
     return {
@@ -517,7 +540,7 @@ export const lookupProcessor = new LookupProcessor();
  * Utility function to check if a target shape has lookup fields
  */
 export function hasLookupFields(targetShape: TargetShape): boolean {
-  return targetShape.fields.some(field => field.type === 'lookup');
+  return targetShape.fields.some(field => field.type === "lookup");
 }
 
 /**
@@ -525,6 +548,6 @@ export function hasLookupFields(targetShape: TargetShape): boolean {
  */
 export function getLookupFields(targetShape: TargetShape): LookupField[] {
   return targetShape.fields.filter(
-    (field): field is LookupField => field.type === 'lookup'
+    (field): field is LookupField => field.type === "lookup"
   );
 }

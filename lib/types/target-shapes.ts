@@ -4,7 +4,7 @@
  * Represents a complete data transformation schema that defines how to process
  * and validate incoming data. A Target Shape includes field definitions, validation
  * rules, and transformation logic.
- * 
+ *
  * @example
  * ```typescript
  * const employeeShape: TargetShape = {
@@ -49,7 +49,7 @@ export interface TargetShape {
 /**
  * Defines a single field within a target shape, including its type, validation rules,
  * and transformation logic. Fields are the building blocks of data processing schemas.
- * 
+ *
  * @example
  * ```typescript
  * const emailField: TargetField = {
@@ -116,7 +116,17 @@ export type FieldType =
 
 // Validation Rules
 export interface ValidationRule {
-  type: "required" | "min" | "max" | "pattern" | "format" | "enum" | "custom" | "lookup_enum" | "lookup_confidence" | "lookup_reference";
+  type:
+    | "required"
+    | "min"
+    | "max"
+    | "pattern"
+    | "format"
+    | "enum"
+    | "custom"
+    | "lookup_enum"
+    | "lookup_confidence"
+    | "lookup_reference";
   value: any;
   message: string;
   severity: "error" | "warning" | "info";
@@ -156,7 +166,7 @@ export interface ShapeTemplate {
 /**
  * Defines how to match input values against reference data columns.
  * This configuration determines which columns to compare and what values to return.
- * 
+ *
  * @example
  * ```typescript
  * const deptMatch: LookupMatch = {
@@ -178,7 +188,7 @@ export interface LookupMatch {
 /**
  * Configuration for fuzzy/smart matching capabilities that can find approximate
  * matches when exact matches fail. Helps handle typos and variations in data.
- * 
+ *
  * @example
  * ```typescript
  * const smartConfig: SmartMatching = {
@@ -197,7 +207,7 @@ export interface SmartMatching {
 /**
  * Defines an additional field to derive from reference data when a lookup succeeds.
  * This allows enriching data with multiple related values from the same lookup.
- * 
+ *
  * @example
  * ```typescript
  * const managerField: DerivedField = {
@@ -220,7 +230,7 @@ export interface DerivedField {
  * Specialized field type that performs lookups against reference data to enrich
  * and validate input values. Supports exact matching, fuzzy matching, and automatic
  * data enrichment with related values.
- * 
+ *
  * @example
  * ```typescript
  * const departmentLookup: LookupField = {

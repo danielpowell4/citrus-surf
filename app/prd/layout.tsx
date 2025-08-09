@@ -31,30 +31,73 @@ const navigationItems: NavItem[] = [
       {
         title: "Tickets",
         children: [
-          { title: "LOOKUP-001: Core Types", href: "/prd/lookup-fields/tickets/lookup-001" },
-          { title: "LOOKUP-002: Reference Data Manager", href: "/prd/lookup-fields/tickets/lookup-002" },
-          { title: "LOOKUP-003: Target Shapes Integration", href: "/prd/lookup-fields/tickets/lookup-003" },
-          { title: "LOOKUP-004: Matching Engine", href: "/prd/lookup-fields/tickets/lookup-004" },
-          { title: "LOOKUP-005: Data Processing Integration", href: "/prd/lookup-fields/tickets/lookup-005" },
-          { title: "LOOKUP-006: Validation System", href: "/prd/lookup-fields/tickets/lookup-006" },
-          { title: "LOOKUP-007: Editable Cell Component", href: "/prd/lookup-fields/tickets/lookup-007" },
-          { title: "LOOKUP-008: Reference Data Viewer", href: "/prd/lookup-fields/tickets/lookup-008" },
-          { title: "LOOKUP-009: Template Builder Integration", href: "/prd/lookup-fields/tickets/lookup-009" },
-          { title: "LOOKUP-010: Fuzzy Match Review UI", href: "/prd/lookup-fields/tickets/lookup-010" },
-          { title: "LOOKUP-011: Routing and Navigation", href: "/prd/lookup-fields/tickets/lookup-011" },
-          { title: "LOOKUP-012: Integration and Polish", href: "/prd/lookup-fields/tickets/lookup-012" },
+          {
+            title: "LOOKUP-001: Core Types",
+            href: "/prd/lookup-fields/tickets/lookup-001",
+          },
+          {
+            title: "LOOKUP-002: Reference Data Manager",
+            href: "/prd/lookup-fields/tickets/lookup-002",
+          },
+          {
+            title: "LOOKUP-003: Target Shapes Integration",
+            href: "/prd/lookup-fields/tickets/lookup-003",
+          },
+          {
+            title: "LOOKUP-004: Matching Engine",
+            href: "/prd/lookup-fields/tickets/lookup-004",
+          },
+          {
+            title: "LOOKUP-005: Data Processing Integration",
+            href: "/prd/lookup-fields/tickets/lookup-005",
+          },
+          {
+            title: "LOOKUP-006: Validation System",
+            href: "/prd/lookup-fields/tickets/lookup-006",
+          },
+          {
+            title: "LOOKUP-007: Editable Cell Component",
+            href: "/prd/lookup-fields/tickets/lookup-007",
+          },
+          {
+            title: "LOOKUP-008: Reference Data Viewer",
+            href: "/prd/lookup-fields/tickets/lookup-008",
+          },
+          {
+            title: "LOOKUP-009: Template Builder Integration",
+            href: "/prd/lookup-fields/tickets/lookup-009",
+          },
+          {
+            title: "LOOKUP-010: Fuzzy Match Review UI",
+            href: "/prd/lookup-fields/tickets/lookup-010",
+          },
+          {
+            title: "LOOKUP-011: Routing and Navigation",
+            href: "/prd/lookup-fields/tickets/lookup-011",
+          },
+          {
+            title: "LOOKUP-012: Integration and Polish",
+            href: "/prd/lookup-fields/tickets/lookup-012",
+          },
         ],
       },
     ],
   },
 ];
 
-function NavItemComponent({ item, level = 0 }: { item: NavItem; level?: number }) {
+function NavItemComponent({
+  item,
+  level = 0,
+}: {
+  item: NavItem;
+  level?: number;
+}) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(
-    item.children?.some(child => 
-      child.href === pathname || 
-      child.children?.some(grandchild => grandchild.href === pathname)
+    item.children?.some(
+      child =>
+        child.href === pathname ||
+        child.children?.some(grandchild => grandchild.href === pathname)
     ) || false
   );
 
@@ -96,7 +139,8 @@ function NavItemComponent({ item, level = 0 }: { item: NavItem; level?: number }
       className={cn(
         "flex items-center px-2 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md",
         level > 0 && "ml-4",
-        isActive && "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+        isActive &&
+          "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
       )}
     >
       <FileText className="h-4 w-4 mr-2 text-gray-500" />
@@ -105,11 +149,7 @@ function NavItemComponent({ item, level = 0 }: { item: NavItem; level?: number }
   );
 }
 
-export default function PRDLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PRDLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
@@ -128,9 +168,7 @@ export default function PRDLayout({
 
       {/* Main content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-8">
-          {children}
-        </div>
+        <div className="max-w-4xl mx-auto p-8">{children}</div>
       </div>
     </div>
   );

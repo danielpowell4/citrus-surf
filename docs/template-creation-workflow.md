@@ -7,13 +7,15 @@ The template creation workflow provides seamless integration between template bu
 ## User Experience Flow
 
 ### With Data Available
+
 1. **Upload data** to the data table playground
 2. **Click "Create New Template"** in the right drawer (or "From Current Data")
 3. **Build template** using the template builder workflow
 4. **Upon creation completion** → **Automatically redirected to mapping mode**
 5. **Start mapping columns immediately** - no additional navigation steps
 
-### Without Data Available  
+### Without Data Available
+
 1. **Click "Create New Template"** from any state
 2. **Build template** using the template builder workflow
 3. **Upon creation completion** → **Redirected to data table**
@@ -22,6 +24,7 @@ The template creation workflow provides seamless integration between template bu
 ## Field Types
 
 ### Standard Field Types
+
 - **Text** - Basic string fields
 - **Number** - Numeric values (integer, decimal)
 - **Boolean** - True/false values
@@ -34,9 +37,11 @@ The template creation workflow provides seamless integration between template bu
 - **Enum** - Predefined value lists
 
 ### Lookup Fields
+
 **New in LOOKUP-009**: Create fields that reference external data sources for data enrichment and validation.
 
 #### Lookup Field Configuration
+
 1. **Reference Data Selection** - Choose from uploaded reference files or upload new CSV/JSON files
 2. **Match Configuration** - Define which columns to match against and return
 3. **Smart Matching** - Enable fuzzy matching with configurable confidence thresholds
@@ -44,7 +49,9 @@ The template creation workflow provides seamless integration between template bu
 5. **Error Handling** - Configure behavior for unmatched values (error, warning, or null)
 
 #### Lookup Field Preview
+
 The template preview shows comprehensive lookup field information:
+
 - Reference data source filename
 - Match configuration (input → output columns)
 - Fuzzy matching settings and confidence thresholds
@@ -54,12 +61,12 @@ The template preview shows comprehensive lookup field information:
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `app/playground/template-builder/page.tsx` | Template creation navigation logic |
+| File                                       | Purpose                                                       |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| `app/playground/template-builder/page.tsx` | Template creation navigation logic                            |
 | `app/playground/target-shape-workflow.tsx` | Template creation UI and save logic with lookup field support |
-| `lib/features/targetShapesSlice.ts` | Redux actions including async thunk |
-| `lib/features/referenceDataSlice.ts` | Reference data management for lookup fields |
+| `lib/features/targetShapesSlice.ts`        | Redux actions including async thunk                           |
+| `lib/features/referenceDataSlice.ts`       | Reference data management for lookup fields                   |
 
 ### Architecture Details
 
@@ -67,9 +74,10 @@ The template preview shows comprehensive lookup field information:
 
 **Problem**: Template creation workflow was experiencing ID mismatches between redirect URLs and stored shapes.
 
-**Root Cause**: 
+**Root Cause**:
+
 - Template builder creates shape with temporary ID (e.g., `shape_01K1EYC7...`)
-- Storage layer generates new final ID (e.g., `shape_01K1EYCP...`) 
+- Storage layer generates new final ID (e.g., `shape_01K1EYCP...`)
 - Redirect used original temp ID, but stored shape had different ID
 - Data table couldn't find shape, mapping mode failed to open
 
@@ -80,7 +88,7 @@ The template preview shows comprehensive lookup field information:
 dispatch(saveTargetShape(data));
 onShapeCreated(data); // Used temp ID
 
-// After: Async thunk returns saved shape with correct ID  
+// After: Async thunk returns saved shape with correct ID
 const result = await dispatch(saveTargetShapeAsync(data));
 const savedShape = result.payload; // Has storage-generated ID
 onShapeCreated(savedShape); // Uses correct ID
@@ -92,12 +100,12 @@ onShapeCreated(savedShape); // Uses correct ID
 const handleShapeCreated = (shape: TargetShape) => {
   dispatch(selectTargetShape(shape.id));
   dispatch(loadShapes()); // Ensure shape is available
-  
+
   if (data.length > 0) {
     // With data: Go to mapping mode
     router.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
   } else {
-    // Without data: Go to data table  
+    // Without data: Go to data table
     router.push("/playground/data-table");
   }
 };
@@ -109,7 +117,7 @@ const handleShapeCreated = (shape: TargetShape) => {
 
 ```typescript
 export const saveTargetShapeAsync = createAsyncThunk(
-  'targetShapes/saveAsync',
+  "targetShapes/saveAsync",
   async (shape: TargetShape) => {
     const savedShape = targetShapesStorage.save(shape);
     return savedShape; // Returns shape with correct storage-generated ID
@@ -120,21 +128,21 @@ export const saveTargetShapeAsync = createAsyncThunk(
 #### Extra Reducers for Thunk Handling
 
 ```typescript
-extraReducers: (builder) => {
+extraReducers: builder => {
   builder
     .addCase(saveTargetShapeAsync.fulfilled, (state, action) => {
       state.shapes.push(action.payload);
       state.error = null;
       state.isLoading = false;
     })
-    .addCase(saveTargetShapeAsync.pending, (state) => {
+    .addCase(saveTargetShapeAsync.pending, state => {
       state.isLoading = true;
     })
     .addCase(saveTargetShapeAsync.rejected, (state, action) => {
       state.error = action.error.message || "Failed to save target shape";
       state.isLoading = false;
     });
-}
+};
 ```
 
 ### Workflow Component Integration
@@ -147,7 +155,7 @@ The template builder page handles the navigation after shape creation:
 const handleShapeCreated = (shape: TargetShape) => {
   dispatch(selectTargetShape(shape.id));
   dispatch(loadShapes());
-  
+
   // Conditional navigation based on data availability
   if (data.length > 0) {
     router.push(`/playground/data-table?targetShape=${shape.id}&mode=mapping`);
@@ -223,11 +231,13 @@ Location: `lib/features/targetShapesSlice.test.ts`
 **Symptoms**: User redirected to data table but mapping mode doesn't activate
 
 **Causes**:
+
 1. Shape ID mismatch between URL and store
 2. Shape not loaded in Redux store when page mounts
 3. URL parameters not properly parsed
 
 **Solutions**:
+
 1. Use `saveTargetShapeAsync` to ensure correct ID
 2. Dispatch `loadShapes()` after shape creation
 3. Verify URL format: `?targetShape=ID&mode=mapping`

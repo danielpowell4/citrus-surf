@@ -337,7 +337,8 @@ export function ColumnMapping({
             ) : (
               <ArrowRight className="w-4 h-4" />
             )}
-            Apply Mapping {!canApplyMapping && !isApplying && "(missing required fields)"}
+            Apply Mapping{" "}
+            {!canApplyMapping && !isApplying && "(missing required fields)"}
           </Button>
         </div>
       </CardContent>

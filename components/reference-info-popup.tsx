@@ -1,7 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Info, ExternalLink, Edit, Database } from "lucide-react";
@@ -24,9 +28,12 @@ export function ReferenceInfoPopup({
   onReferenceEdit,
 }: ReferenceInfoPopupProps) {
   // Calculate unique values in the reference data
-  const uniqueValues = referenceData.length > 0 
-    ? new Set(referenceData.map(row => row[lookupField.match.on]).filter(Boolean)).size
-    : 0;
+  const uniqueValues =
+    referenceData.length > 0
+      ? new Set(
+          referenceData.map(row => row[lookupField.match.on]).filter(Boolean)
+        ).size
+      : 0;
 
   // Get sample values for preview
   const sampleValues = referenceData
@@ -35,21 +42,21 @@ export function ReferenceInfoPopup({
     .filter(Boolean);
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const formatDate = (dateString: string): string => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateString;
@@ -104,10 +111,11 @@ export function ReferenceInfoPopup({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Columns:</span>
                 <Badge variant="outline" className="text-xs">
-                  {referenceInfo?.columns.length || Object.keys(referenceData[0] || {}).length}
+                  {referenceInfo?.columns.length ||
+                    Object.keys(referenceData[0] || {}).length}
                 </Badge>
               </div>
-              {typeof referenceInfo?.fileSize === 'number' && (
+              {typeof referenceInfo?.fileSize === "number" && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">File size:</span>
                   <Badge variant="outline" className="text-xs">
@@ -148,7 +156,12 @@ export function ReferenceInfoPopup({
               )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Fuzzy matching:</span>
-                <Badge variant={lookupField.smartMatching.enabled ? "default" : "secondary"} className="text-xs">
+                <Badge
+                  variant={
+                    lookupField.smartMatching.enabled ? "default" : "secondary"
+                  }
+                  className="text-xs"
+                >
                   {lookupField.smartMatching.enabled ? "Enabled" : "Disabled"}
                 </Badge>
               </div>
@@ -156,7 +169,10 @@ export function ReferenceInfoPopup({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Threshold:</span>
                   <Badge variant="outline" className="text-xs">
-                    {Math.round((lookupField.smartMatching.threshold || 0.8) * 100)}%
+                    {Math.round(
+                      (lookupField.smartMatching.threshold || 0.8) * 100
+                    )}
+                    %
                   </Badge>
                 </div>
               )}
@@ -174,7 +190,9 @@ export function ReferenceInfoPopup({
                 <div className="flex flex-wrap gap-1">
                   {sampleValues.map((value, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
-                      {String(value).length > 20 ? `${String(value).substring(0, 20)}...` : String(value)}
+                      {String(value).length > 20
+                        ? `${String(value).substring(0, 20)}...`
+                        : String(value)}
                     </Badge>
                   ))}
                   {uniqueValues > sampleValues.length && (
@@ -204,12 +222,16 @@ export function ReferenceInfoPopup({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Uploaded:</span>
-                    <span className="text-xs">{formatDate(referenceInfo.uploadedAt)}</span>
+                    <span className="text-xs">
+                      {formatDate(referenceInfo.uploadedAt)}
+                    </span>
                   </div>
                   {referenceInfo.lastModified !== referenceInfo.uploadedAt && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Modified:</span>
-                      <span className="text-xs">{formatDate(referenceInfo.lastModified)}</span>
+                      <span className="text-xs">
+                        {formatDate(referenceInfo.lastModified)}
+                      </span>
                     </div>
                   )}
                 </div>

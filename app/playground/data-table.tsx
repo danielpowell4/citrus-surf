@@ -210,7 +210,7 @@ export function DataTable({
   const table = useReactTable({
     data,
     columns,
-    getRowId: (row) => (row._rowId as string) || (row.id as string) || "",
+    getRowId: row => (row._rowId as string) || (row.id as string) || "",
     state: {
       sorting,
       columnFilters,

@@ -7,22 +7,26 @@ Integrate the lookup matching engine with the existing data processing pipeline.
 ## Acceptance Criteria
 
 ### AC1: Data Import Integration
+
 - [x] Automatically perform lookups when target shape has lookup fields
 - [x] Process all lookup fields during data import workflow
 - [x] Generate derived columns in the final dataset
 - [x] Handle lookup errors gracefully during import
 
 ### AC2: Real-time Updates
+
 - [x] Trigger lookup when user edits lookup field values
 - [x] Update derived columns immediately when source lookup changes
 - [x] Maintain data consistency across all related fields
 
 ### AC3: Batch Processing
+
 - [x] Efficient processing of large datasets with lookups
 - [x] Progress indicators for long-running lookup operations
 - [x] Memory management for large reference datasets
 
 ### AC4: Error Handling & Reporting
+
 - [x] Collect and report unmatched values with suggestions
 - [x] Provide summary statistics (X/Y matched, Z errors)
 - [x] Allow user review/approval of fuzzy matches
@@ -32,17 +36,17 @@ Integrate the lookup matching engine with the existing data processing pipeline.
 ```typescript
 interface LookupProcessor {
   processDataWithLookups(
-    data: any[], 
+    data: any[],
     targetShape: TargetShape,
     referenceDataManager: ReferenceDataManager
   ): ProcessedLookupResult;
-  
+
   processSingleLookup(
     value: any,
     field: LookupField,
     referenceData: any[]
   ): LookupResult;
-  
+
   updateDerivedColumns(
     rowData: any,
     lookupResults: Record<string, LookupResult>
@@ -66,26 +70,31 @@ interface LookupStats {
 ```
 
 ## Dependencies
+
 - LOOKUP-003 (Target Shapes Integration)
 - LOOKUP-004 (Matching Engine)
 - Existing data processing pipeline
 
 ## Estimated Effort
+
 **Large** (4-5 days)
 
 ## Files to Modify
+
 - `lib/utils/data-processing.ts`
 - `lib/features/tableSlice.ts`
 
 ## Implementation TODOs
 
 ### Types & Interfaces
+
 - [x] Define interfaces for all processor components and results
 - [x] Create proper error and statistics types
 - [x] Add types for batch processing operations
 - [x] Ensure compatibility with existing data processing types
 
 ### Testing
+
 - [x] Unit tests for lookup processing during data import
 - [x] Unit tests for real-time lookup updates
 - [x] Unit tests for batch processing with large datasets
@@ -95,12 +104,14 @@ interface LookupStats {
 - [x] Performance tests with various data sizes
 
 ### Documentation
+
 - [x] Document integration with existing data processing flow
 - [x] Add JSDoc for all processor methods
 - [x] Document performance characteristics and limitations
 - [x] Create troubleshooting guide for lookup processing issues
 
 ### Redux History Integration
+
 - [x] Add data processing actions to `meaningfulActions` in `lib/store.ts`:
   - `table/processDataWithLookups/fulfilled` (async thunk completion)
   - `table/updateLookupValue/fulfilled` (for real-time updates)
@@ -110,12 +121,14 @@ interface LookupStats {
 - [x] Update `lib/utils/time-travel.ts` for lookup data restoration
 
 ## Files to Modify
+
 - `lib/utils/data-processing.ts`
 - `lib/features/tableSlice.ts`
 - `lib/store.ts` (add to meaningfulActions)
 - `lib/utils/time-travel.ts` (for restoration)
 
 ## Files to Create
+
 - `lib/utils/lookup-processor.ts`
 - `lib/utils/lookup-processor.test.ts`
 

@@ -1,24 +1,27 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Check, 
-  X, 
-  Edit3, 
-  ArrowRight, 
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import {
+  Check,
+  X,
+  Edit3,
+  ArrowRight,
   Info,
   ChevronDown,
-  ChevronUp
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { MatchComparisonCardProps, FuzzyMatchForReview } from '@/lib/types/fuzzy-match-review';
+  ChevronUp,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type {
+  MatchComparisonCardProps,
+  FuzzyMatchForReview,
+} from "@/lib/types/fuzzy-match-review";
 
 /**
  * Individual match comparison card for fuzzy match review
@@ -31,28 +34,32 @@ export function MatchComparisonCard({
   onReject,
   onManualEntry,
   showDetails = false,
-  inBatch = false
+  inBatch = false,
 }: MatchComparisonCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [manualValue, setManualValue] = useState(match.manualValue?.toString() || '');
+  const [manualValue, setManualValue] = useState(
+    match.manualValue?.toString() || ""
+  );
   const [showMoreDetails, setShowMoreDetails] = useState(false);
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    if (confidence >= 0.6) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    if (confidence >= 0.8)
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    if (confidence >= 0.6)
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+    return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
   };
 
-  const getStatusColor = (status: FuzzyMatchForReview['status']) => {
+  const getStatusColor = (status: FuzzyMatchForReview["status"]) => {
     switch (status) {
-      case 'accepted':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'rejected':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'manual':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case "accepted":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "rejected":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "manual":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
 
@@ -72,7 +79,7 @@ export function MatchComparisonCard({
   };
 
   const handleManualCancel = () => {
-    setManualValue(match.manualValue?.toString() || '');
+    setManualValue(match.manualValue?.toString() || "");
     setIsEditing(false);
   };
 
@@ -81,13 +88,18 @@ export function MatchComparisonCard({
   };
 
   return (
-    <Card className={cn(
-      "transition-all duration-200",
-      selected && "ring-2 ring-blue-500 ring-offset-2",
-      match.status === 'accepted' && "border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20",
-      match.status === 'rejected' && "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20",
-      match.status === 'manual' && "border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"
-    )}>
+    <Card
+      className={cn(
+        "transition-all duration-200",
+        selected && "ring-2 ring-blue-500 ring-offset-2",
+        match.status === "accepted" &&
+          "border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20",
+        match.status === "rejected" &&
+          "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20",
+        match.status === "manual" &&
+          "border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
@@ -135,9 +147,7 @@ export function MatchComparisonCard({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Input Value</Label>
-            <div className="text-sm text-muted-foreground">
-              Original data
-            </div>
+            <div className="text-sm text-muted-foreground">Original data</div>
           </div>
           <div className="p-3 bg-muted/50 rounded-md">
             <code className="text-sm">{match.inputValue}</code>
@@ -167,13 +177,13 @@ export function MatchComparisonCard({
               <div className="flex space-x-2">
                 <Input
                   value={manualValue}
-                  onChange={(e) => setManualValue(e.target.value)}
+                  onChange={e => setManualValue(e.target.value)}
                   placeholder="Enter correct value..."
                   className="flex-1"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
                       handleManualSubmit();
-                    } else if (e.key === 'Escape') {
+                    } else if (e.key === "Escape") {
                       handleManualCancel();
                     }
                   }}
@@ -181,7 +191,11 @@ export function MatchComparisonCard({
                 <Button size="sm" onClick={handleManualSubmit}>
                   <Check className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleManualCancel}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleManualCancel}
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -190,12 +204,12 @@ export function MatchComparisonCard({
         )}
 
         {/* Action Buttons */}
-        {match.status === 'pending' && !isEditing && (
+        {match.status === "pending" && !isEditing && (
           <>
             <Separator />
             <div className="flex space-x-2">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={handleAccept}
                 className="flex-1"
                 variant="default"
@@ -203,8 +217,8 @@ export function MatchComparisonCard({
                 <Check className="h-4 w-4 mr-2" />
                 Accept
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={handleReject}
                 className="flex-1"
                 variant="outline"
@@ -212,8 +226,8 @@ export function MatchComparisonCard({
                 <X className="h-4 w-4 mr-2" />
                 Reject
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={() => setIsEditing(true)}
                 variant="secondary"
               >
@@ -236,7 +250,10 @@ export function MatchComparisonCard({
                   </Label>
                   <div className="mt-2 space-y-1">
                     {match.suggestions.slice(0, 3).map((suggestion, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 bg-muted/30 rounded"
+                      >
                         <code className="text-xs">{suggestion.value}</code>
                         <Badge variant="outline" className="text-xs">
                           {Math.round(suggestion.confidence * 100)}%
@@ -253,12 +270,19 @@ export function MatchComparisonCard({
                     Row Context
                   </Label>
                   <div className="mt-2 space-y-1">
-                    {Object.entries(match.rowContext).slice(0, 3).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between text-xs">
-                        <span className="font-medium">{key}:</span>
-                        <code className="text-muted-foreground">{String(value)}</code>
-                      </div>
-                    ))}
+                    {Object.entries(match.rowContext)
+                      .slice(0, 3)
+                      .map(([key, value]) => (
+                        <div
+                          key={key}
+                          className="flex items-center justify-between text-xs"
+                        >
+                          <span className="font-medium">{key}:</span>
+                          <code className="text-muted-foreground">
+                            {String(value)}
+                          </code>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
@@ -267,13 +291,15 @@ export function MatchComparisonCard({
         )}
 
         {/* Status Indicator for Processed Matches */}
-        {match.status !== 'pending' && (
+        {match.status !== "pending" && (
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Info className="h-4 w-4" />
             <span>
-              {match.status === 'accepted' && `Accepted: ${match.suggestedValue}`}
-              {match.status === 'rejected' && 'Rejected - no match applied'}
-              {match.status === 'manual' && `Manual entry: ${match.manualValue}`}
+              {match.status === "accepted" &&
+                `Accepted: ${match.suggestedValue}`}
+              {match.status === "rejected" && "Rejected - no match applied"}
+              {match.status === "manual" &&
+                `Manual entry: ${match.manualValue}`}
             </span>
           </div>
         )}

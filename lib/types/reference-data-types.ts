@@ -1,6 +1,6 @@
 /**
  * Reference Data Types
- * 
+ *
  * Types and interfaces for managing reference data files used in lookup operations.
  * These types define the structure for uploading, storing, and retrieving reference data.
  */
@@ -24,7 +24,7 @@ export interface ReferenceDataInfo {
   /** File size in bytes */
   fileSize: number;
   /** Detected file format */
-  format: 'csv' | 'json';
+  format: "csv" | "json";
   /** Optional metadata */
   metadata?: {
     /** Original file MIME type */
@@ -73,7 +73,7 @@ export interface ValidationResult {
   /** Warning messages for potential issues */
   warnings: string[];
   /** Detected file format */
-  format?: 'csv' | 'json';
+  format?: "csv" | "json";
   /** Detected delimiter for CSV */
   delimiter?: string;
   /** Whether headers were detected */
@@ -86,11 +86,16 @@ export interface ValidationResult {
 export class ReferenceDataError extends Error {
   constructor(
     message: string,
-    public code: 'PARSE_ERROR' | 'VALIDATION_ERROR' | 'STORAGE_ERROR' | 'NOT_FOUND' | 'DUPLICATE_ID',
+    public code:
+      | "PARSE_ERROR"
+      | "VALIDATION_ERROR"
+      | "STORAGE_ERROR"
+      | "NOT_FOUND"
+      | "DUPLICATE_ID",
     public details?: Record<string, any>
   ) {
     super(message);
-    this.name = 'ReferenceDataError';
+    this.name = "ReferenceDataError";
   }
 }
 
@@ -121,8 +126,8 @@ export interface IReferenceDataManager {
    * Upload and store a reference data file
    */
   uploadReferenceFile(
-    file: File, 
-    id: string, 
+    file: File,
+    id: string,
     options?: UploadReferenceOptions
   ): Promise<ReferenceDataInfo>;
 
@@ -188,7 +193,7 @@ export interface IReferenceDataManager {
 export function generateReferenceId(baseName?: string): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
-  const base = baseName ? `_${baseName.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+  const base = baseName ? `_${baseName.replace(/[^a-zA-Z0-9]/g, "_")}` : "";
   return `ref${base}_${timestamp}_${random}`;
 }
 

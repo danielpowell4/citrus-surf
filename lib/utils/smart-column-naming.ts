@@ -1,11 +1,11 @@
 /**
  * Smart Column Naming Utilities
- * 
+ *
  * Generates intuitive, context-aware names for derived lookup columns
  * that make demos and user experience more grok'able.
  */
 
-import type { LookupField, DerivedField } from '@/lib/types/target-shapes';
+import type { LookupField, DerivedField } from "@/lib/types/target-shapes";
 
 /**
  * Generates a context-aware name for a derived field
@@ -19,16 +19,16 @@ export function generateSmartColumnName(
   if (derivedField.name && derivedField.name.trim()) {
     return derivedField.name;
   }
-  
+
   // Clean the source column name (remove common suffixes/prefixes)
   const cleanSourceName = cleanColumnName(sourceColumnName);
   const cleanLookupName = cleanColumnName(lookupFieldName);
-  
+
   // If the source name already contains the lookup context, use as-is
   if (cleanSourceName.toLowerCase().includes(cleanLookupName.toLowerCase())) {
     return cleanSourceName;
   }
-  
+
   // Generate contextual name: lookup_field + derived_meaning
   return `${cleanLookupName}_${cleanSourceName}`;
 }
@@ -43,7 +43,7 @@ export function generateSmartDescription(
 ): string {
   const cleanLookupName = cleanColumnName(lookupFieldName);
   const cleanSourceName = cleanColumnName(derivedField.source);
-  
+
   // Generate contextual descriptions
   const contextualDescriptions: Record<string, string> = {
     manager: `Manager responsible for this ${cleanLookupName}`,
@@ -63,18 +63,18 @@ export function generateSmartDescription(
     count: `Count or quantity for this ${cleanLookupName}`,
     total: `Total amount for this ${cleanLookupName}`,
   };
-  
+
   // Try to find a contextual description
   const description = contextualDescriptions[cleanSourceName.toLowerCase()];
   if (description) {
     return description;
   }
-  
+
   // Fall back to generic description
-  const sourceName = referenceFileName ? 
-    `${referenceFileName} reference data` : 
-    `${cleanLookupName} lookup`;
-  
+  const sourceName = referenceFileName
+    ? `${referenceFileName} reference data`
+    : `${cleanLookupName} lookup`;
+
   return `${cleanSourceName} from ${sourceName}`;
 }
 
@@ -82,18 +82,20 @@ export function generateSmartDescription(
  * Clean column names by removing common prefixes/suffixes and converting to display format
  */
 function cleanColumnName(columnName: string): string {
-  return columnName
-    // Remove common prefixes
-    .replace(/^(ref_|lookup_|tbl_|col_)/i, '')
-    // Remove common suffixes  
-    .replace(/(_id|_code|_name|_ref)$/i, '')
-    // Convert snake_case to readable format
-    .replace(/_/g, ' ')
-    // Capitalize first letter of each word
-    .replace(/\b\w/g, l => l.toUpperCase())
-    // Convert back to snake_case for field names
-    .replace(/\s+/g, '_')
-    .toLowerCase();
+  return (
+    columnName
+      // Remove common prefixes
+      .replace(/^(ref_|lookup_|tbl_|col_)/i, "")
+      // Remove common suffixes
+      .replace(/(_id|_code|_name|_ref)$/i, "")
+      // Convert snake_case to readable format
+      .replace(/_/g, " ")
+      // Capitalize first letter of each word
+      .replace(/\b\w/g, l => l.toUpperCase())
+      // Convert back to snake_case for field names
+      .replace(/\s+/g, "_")
+      .toLowerCase()
+  );
 }
 
 /**
@@ -121,14 +123,14 @@ export function generateLookupPreview(
   sampleReferenceData: Record<string, any>[]
 ): LookupPreview {
   const sampleRow = sampleReferenceData[0] || {};
-  
+
   // Generate lookup column preview
   const lookupColumn = {
     name: lookupField.name,
     description: `Lookup result from ${lookupField.referenceFile}`,
-    example: sampleRow[lookupField.match.get] || 'ENG001',
+    example: sampleRow[lookupField.match.get] || "ENG001",
   };
-  
+
   // Generate derived columns preview
   const derivedColumns = (lookupField.alsoGet || []).map(derivedField => {
     const smartName = generateSmartColumnName(
@@ -136,22 +138,24 @@ export function generateLookupPreview(
       derivedField,
       derivedField.source
     );
-    
+
     const smartDescription = generateSmartDescription(
       lookupField.name,
       derivedField,
       lookupField.referenceFile
     );
-    
+
     const exampleValue = sampleRow[derivedField.source];
-    let formattedExample = 'Sample Value';
-    
+    let formattedExample = "Sample Value";
+
     if (exampleValue !== undefined) {
       // Format example based on type
-      if (typeof exampleValue === 'number') {
-        if (derivedField.source.toLowerCase().includes('budget') || 
-            derivedField.source.toLowerCase().includes('price') ||
-            derivedField.source.toLowerCase().includes('cost')) {
+      if (typeof exampleValue === "number") {
+        if (
+          derivedField.source.toLowerCase().includes("budget") ||
+          derivedField.source.toLowerCase().includes("price") ||
+          derivedField.source.toLowerCase().includes("cost")
+        ) {
           formattedExample = `$${exampleValue.toLocaleString()}`;
         } else {
           formattedExample = exampleValue.toString();
@@ -160,7 +164,7 @@ export function generateLookupPreview(
         formattedExample = String(exampleValue);
       }
     }
-    
+
     return {
       name: smartName,
       description: smartDescription,
@@ -168,7 +172,7 @@ export function generateLookupPreview(
       type: derivedField.type || inferTypeFromValue(exampleValue),
     };
   });
-  
+
   return {
     lookupColumn,
     derivedColumns,
@@ -179,33 +183,36 @@ export function generateLookupPreview(
  * Infer field type from sample value
  */
 function inferTypeFromValue(value: any): string {
-  if (typeof value === 'number') {
-    return Number.isInteger(value) ? 'integer' : 'number';
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? "integer" : "number";
   }
-  if (typeof value === 'boolean') {
-    return 'boolean';
+  if (typeof value === "boolean") {
+    return "boolean";
   }
   if (value instanceof Date) {
-    return 'date';
+    return "date";
   }
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     // Check for common patterns first
-    if (value.includes('@')) return 'email';
-    if (value.match(/^\$?[\d,]+\.?\d*$/)) return 'currency';
-    if (value.match(/^\d{3}-?\d{3}-?\d{4}$/)) return 'phone';
-    
+    if (value.includes("@")) return "email";
+    if (value.match(/^\$?[\d,]+\.?\d*$/)) return "currency";
+    if (value.match(/^\d{3}-?\d{3}-?\d{4}$/)) return "phone";
+
     // Only check for dates if it looks like a date format
-    if (value.match(/^\d{4}-\d{2}-\d{2}/) || // ISO date
-        value.match(/^\d{1,2}\/\d{1,2}\/\d{4}/) || // US date
-        value.match(/^\d{1,2}-\d{1,2}-\d{4}/) || // Dash date
-        value.match(/^\w{3}\s+\d{1,2},?\s+\d{4}/)) { // Month name date
+    if (
+      value.match(/^\d{4}-\d{2}-\d{2}/) || // ISO date
+      value.match(/^\d{1,2}\/\d{1,2}\/\d{4}/) || // US date
+      value.match(/^\d{1,2}-\d{1,2}-\d{4}/) || // Dash date
+      value.match(/^\w{3}\s+\d{1,2},?\s+\d{4}/)
+    ) {
+      // Month name date
       const parsed = Date.parse(value);
       if (!isNaN(parsed)) {
-        return 'date';
+        return "date";
       }
     }
   }
-  return 'string';
+  return "string";
 }
 
 /**
@@ -218,7 +225,7 @@ export function applySmartNaming(
   if (!lookupField.alsoGet || lookupField.alsoGet.length === 0) {
     return lookupField;
   }
-  
+
   const updatedAlsoGet = lookupField.alsoGet.map(derivedField => {
     // Only update if name wasn't explicitly set
     if (!derivedField.name || derivedField.name === derivedField.source) {
@@ -227,16 +234,16 @@ export function applySmartNaming(
         derivedField,
         derivedField.source
       );
-      
+
       return {
         ...derivedField,
         name: smartName,
       };
     }
-    
+
     return derivedField;
   });
-  
+
   return {
     ...lookupField,
     alsoGet: updatedAlsoGet,

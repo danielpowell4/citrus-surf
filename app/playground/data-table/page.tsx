@@ -21,7 +21,11 @@ import {
 import { TargetShape } from "@/lib/types/target-shapes";
 import { DataTable } from "../data-table";
 import { ColumnMapping } from "@/components/column-mapping";
-import { applyTemplate, processDataWithLookups, setAppliedTargetShapeId } from "@/lib/features/tableSlice";
+import {
+  applyTemplate,
+  processDataWithLookups,
+  setAppliedTargetShapeId,
+} from "@/lib/features/tableSlice";
 import { loadShapes } from "@/lib/features/targetShapesSlice";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -41,14 +45,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
-import { createLookupNavigator, parseFuzzyMatchReviewParams } from "@/lib/utils/lookup-navigation";
+import {
+  createLookupNavigator,
+  parseFuzzyMatchReviewParams,
+} from "@/lib/utils/lookup-navigation";
 
 export default function DataTablePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
-  const _navigator = createLookupNavigator(router, "/playground/data-table", searchParams);
-  
+  const _navigator = createLookupNavigator(
+    router,
+    "/playground/data-table",
+    searchParams
+  );
+
   const [showDrawer, setShowDrawer] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
   const [isApplyingMapping, setIsApplyingMapping] = useState(false);
@@ -58,10 +69,10 @@ export default function DataTablePage() {
     {}
   );
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Parse fuzzy match review parameters
   const fuzzyMatchParams = parseFuzzyMatchReviewParams(searchParams);
-  const _isFuzzyMatchReview = fuzzyMatchParams.review === 'fuzzy-matches';
+  const _isFuzzyMatchReview = fuzzyMatchParams.review === "fuzzy-matches";
   const _fuzzyMatchBatchId = fuzzyMatchParams.batch;
 
   // Template management state
@@ -163,8 +174,10 @@ export default function DataTablePage() {
 
     try {
       // Check if there are lookup fields that need processing
-      const hasLookupFields = selectedShape.fields.some(field => field.type === 'lookup');
-      
+      const hasLookupFields = selectedShape.fields.some(
+        field => field.type === "lookup"
+      );
+
       if (hasLookupFields) {
         // If there are lookup fields, we need to transform the data and process lookups
         // Transform data according to mapping manually to pass to lookup processor
@@ -174,7 +187,9 @@ export default function DataTablePage() {
           // Apply column mappings
           Object.entries(columnMapping).forEach(
             ([targetFieldId, sourceColumn]) => {
-              const targetField = selectedShape.fields.find(f => f.id === targetFieldId);
+              const targetField = selectedShape.fields.find(
+                f => f.id === targetFieldId
+              );
               if (targetField && row[sourceColumn] !== undefined) {
                 newRow[targetField.name] = row[sourceColumn];
               }
@@ -185,10 +200,12 @@ export default function DataTablePage() {
         });
 
         // Process with lookups first, which will handle the full transformation including derived columns
-        await dispatch(processDataWithLookups({
-          data: transformedData,
-          targetShape: selectedShape,
-        }));
+        await dispatch(
+          processDataWithLookups({
+            data: transformedData,
+            targetShape: selectedShape,
+          })
+        );
 
         // Set the applied target shape ID
         dispatch(setAppliedTargetShapeId(selectedShape.id));

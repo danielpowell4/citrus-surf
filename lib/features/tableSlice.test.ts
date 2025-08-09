@@ -383,10 +383,13 @@ describe("Table Slice", () => {
       );
 
       const afterTemplateState = store.getState().table;
-      
+
       // Verify template was applied correctly with all properties needed for history restoration
       expect(afterTemplateState.appliedTargetShapeId).toBe("person-template");
-      expect(afterTemplateState.columnOrder).toEqual(["Person ID", "Full Name"]);
+      expect(afterTemplateState.columnOrder).toEqual([
+        "Person ID",
+        "Full Name",
+      ]);
       expect(afterTemplateState.data[0]).toEqual({
         "Person ID": "1",
         "Full Name": "John",
@@ -413,7 +416,13 @@ describe("Table Slice", () => {
 
       // Verify initial state has all original columns
       const initialState = store.getState().table;
-      expect(initialState.columnOrder).toEqual(["id", "firsName", "lastName", "email", "extraColumn"]);
+      expect(initialState.columnOrder).toEqual([
+        "id",
+        "firsName",
+        "lastName",
+        "email",
+        "extraColumn",
+      ]);
 
       // Apply template that maps firsName -> firstname
       store.dispatch(
@@ -460,8 +469,13 @@ describe("Table Slice", () => {
       expect(state.data[0]).not.toHaveProperty("extraColumn");
 
       // Column order should only contain the new mapped columns
-      expect(state.columnOrder).toEqual(["ID", "firstname", "lastname", "email"]);
-      
+      expect(state.columnOrder).toEqual([
+        "ID",
+        "firstname",
+        "lastname",
+        "email",
+      ]);
+
       // Original column names should NOT be in column order
       expect(state.columnOrder).not.toContain("firsName");
       expect(state.columnOrder).not.toContain("extraColumn");
@@ -470,7 +484,7 @@ describe("Table Slice", () => {
     it("should handle exact user scenario: firsName mapped to firstname", () => {
       const store = createTestStore();
 
-      // Exact scenario from user: data with 'firsName'  
+      // Exact scenario from user: data with 'firsName'
       const sourceData: TableRow[] = [
         {
           _rowId: "row1",
@@ -484,13 +498,17 @@ describe("Table Slice", () => {
 
       // Check initial state - should have firsName column
       const initialState = store.getState().table;
-      expect(initialState.columnOrder).toEqual(["firsName", "lastName", "email"]);
+      expect(initialState.columnOrder).toEqual([
+        "firsName",
+        "lastName",
+        "email",
+      ]);
       expect(initialState.data[0]).toHaveProperty("firsName", "John");
 
       // Apply template that maps 'firsName' -> 'firstname'
       store.dispatch(
         applyTemplate({
-          targetShapeId: "user-template", 
+          targetShapeId: "user-template",
           targetShapeName: "User Template",
           columnMapping: {
             field_firstName: "firsName", // Map firsName column to firstname field
@@ -498,7 +516,7 @@ describe("Table Slice", () => {
             field_email: "email",
           },
           fieldMappings: {
-            field_firstName: "firstname", 
+            field_firstName: "firstname",
             field_lastName: "lastname",
             field_email: "email",
           },
@@ -515,19 +533,23 @@ describe("Table Slice", () => {
       // After template application:
       // 1. Should have 'firstname' column with data from 'firsName'
       expect(finalState.data[0]).toHaveProperty("firstname", "John");
-      
+
       // 2. Should NOT have 'firsName' column anymore
       expect(finalState.data[0]).not.toHaveProperty("firsName");
-      
+
       // 3. Column order should reflect new column names
-      expect(finalState.columnOrder).toEqual(["firstname", "lastname", "email"]);
+      expect(finalState.columnOrder).toEqual([
+        "firstname",
+        "lastname",
+        "email",
+      ]);
       expect(finalState.columnOrder).not.toContain("firsName");
 
       // 4. All expected data should be present
       expect(finalState.data[0]).toEqual({
         _rowId: "row1",
         firstname: "John",
-        lastname: "Doe", 
+        lastname: "Doe",
         email: "john@example.com",
       });
     });
@@ -549,14 +571,18 @@ describe("Table Slice", () => {
 
       // Check initial state - should have firsName column
       const initialState = store.getState().table;
-      expect(initialState.columnOrder).toEqual(["firsName", "lastName", "department"]);
+      expect(initialState.columnOrder).toEqual([
+        "firsName",
+        "lastName",
+        "department",
+      ]);
 
       // Simulate transformed data (what lookup processor would produce)
       const transformedData: TableRow[] = [
         {
           _rowId: "row1",
           firstname: "John", // Renamed from firsName
-          lastname: "Doe",   // Renamed from lastName
+          lastname: "Doe", // Renamed from lastName
           department: "Engineering",
         },
       ];
@@ -572,15 +598,19 @@ describe("Table Slice", () => {
       // Apply the processDataWithLookups.fulfilled logic directly
       const currentState = store.getState().table;
       const updatedState = tableReducer(currentState, {
-        type: 'table/processDataWithLookups/fulfilled',
+        type: "table/processDataWithLookups/fulfilled",
         payload: mockLookupResult,
       });
 
       // Verify the column order was updated to match the new data structure
-      expect(updatedState.columnOrder).toEqual(["firstname", "lastname", "department"]);
+      expect(updatedState.columnOrder).toEqual([
+        "firstname",
+        "lastname",
+        "department",
+      ]);
       expect(updatedState.columnOrder).not.toContain("firsName");
       expect(updatedState.columnOrder).not.toContain("lastName");
-      
+
       // Verify the data was updated correctly
       expect(updatedState.data[0]).toEqual({
         _rowId: "row1",
@@ -598,7 +628,7 @@ describe("Table Slice", () => {
         {
           _rowId: "row1",
           firsName: "John", // Misspelled
-          lastName: "Doe", 
+          lastName: "Doe",
           email: "john@example.com",
           extraCol: "extra", // Should be removed
         },
@@ -608,13 +638,18 @@ describe("Table Slice", () => {
 
       // Verify initial column order
       const initialState = store.getState().table;
-      expect(initialState.columnOrder).toEqual(["firsName", "lastName", "email", "extraCol"]);
+      expect(initialState.columnOrder).toEqual([
+        "firsName",
+        "lastName",
+        "email",
+        "extraCol",
+      ]);
 
       // Apply template with selective mapping (extraCol is excluded)
       store.dispatch(
         applyTemplate({
           targetShapeId: "test-template",
-          targetShapeName: "Test Template", 
+          targetShapeName: "Test Template",
           columnMapping: {
             field_firstName: "firsName", // Map to correct name
             field_lastName: "lastName",
@@ -623,7 +658,7 @@ describe("Table Slice", () => {
           },
           fieldMappings: {
             field_firstName: "firstname",
-            field_lastName: "lastname", 
+            field_lastName: "lastname",
             field_email: "email",
           },
           targetFields: [
@@ -637,16 +672,20 @@ describe("Table Slice", () => {
       const finalState = store.getState().table;
 
       // Column order should only include mapped columns in target field order
-      expect(finalState.columnOrder).toEqual(["firstname", "lastname", "email"]);
-      
-      // Should NOT contain original or unmapped column names  
+      expect(finalState.columnOrder).toEqual([
+        "firstname",
+        "lastname",
+        "email",
+      ]);
+
+      // Should NOT contain original or unmapped column names
       expect(finalState.columnOrder).not.toContain("firsName");
       expect(finalState.columnOrder).not.toContain("extraCol");
 
       // Verify data structure matches column order
       expect(finalState.data[0]).toEqual({
         _rowId: "row1",
-        firstname: "John", 
+        firstname: "John",
         lastname: "Doe",
         email: "john@example.com",
       });

@@ -17,18 +17,18 @@ This document provides an overview of the development tools, architectural patte
 
 ### Core Technologies
 
-| Technology | Purpose | Version | Notes |
-|------------|---------|---------|-------|
-| **Next.js** | React framework | 15.x | App Router, Turbopack for fast development |
-| **React** | UI library | 19.x | Latest features with concurrent rendering |
-| **TypeScript** | Type safety | 5.x | Strict mode enabled |
-| **Tailwind CSS** | Styling | 3.x | Utility-first CSS framework |
-| **Redux Toolkit** | State management | 2.x | Modern Redux with RTK Query |
-| **TanStack Table** | Data grids | 8.x | Headless table library |
-| **Radix UI** | UI primitives | Latest | Accessible component foundation |
-| **shadcn/ui** | Component library | Latest | Built on Radix UI |
-| **Vitest** | Testing | 2.x | Fast Jest-compatible test runner |
-| **React Testing Library** | Component testing | 16.x | Testing utilities focused on user behavior |
+| Technology                | Purpose           | Version | Notes                                      |
+| ------------------------- | ----------------- | ------- | ------------------------------------------ |
+| **Next.js**               | React framework   | 15.x    | App Router, Turbopack for fast development |
+| **React**                 | UI library        | 19.x    | Latest features with concurrent rendering  |
+| **TypeScript**            | Type safety       | 5.x     | Strict mode enabled                        |
+| **Tailwind CSS**          | Styling           | 3.x     | Utility-first CSS framework                |
+| **Redux Toolkit**         | State management  | 2.x     | Modern Redux with RTK Query                |
+| **TanStack Table**        | Data grids        | 8.x     | Headless table library                     |
+| **Radix UI**              | UI primitives     | Latest  | Accessible component foundation            |
+| **shadcn/ui**             | Component library | Latest  | Built on Radix UI                          |
+| **Vitest**                | Testing           | 2.x     | Fast Jest-compatible test runner           |
+| **React Testing Library** | Component testing | 16.x    | Testing utilities focused on user behavior |
 
 ### Development Tools
 
@@ -121,27 +121,27 @@ const processor = new LookupProcessor(mockEngine, mockManager);
 
 ### File Naming Conventions
 
-| Pattern | Usage | Example |
-|---------|-------|---------|
-| `kebab-case.ts` | Utility files | `lookup-matching-engine.ts` |
-| `PascalCase.tsx` | React components | `LookupEditableCell.tsx` |
-| `camelCase.ts` | Hooks and configs | `useReferenceDataEditor.ts` |
-| `*.test.ts(x)` | Test files | `lookup-processor.test.ts` |
-| `*.types.ts` | Type definitions | `reference-data-types.ts` |
+| Pattern          | Usage             | Example                     |
+| ---------------- | ----------------- | --------------------------- |
+| `kebab-case.ts`  | Utility files     | `lookup-matching-engine.ts` |
+| `PascalCase.tsx` | React components  | `LookupEditableCell.tsx`    |
+| `camelCase.ts`   | Hooks and configs | `useReferenceDataEditor.ts` |
+| `*.test.ts(x)`   | Test files        | `lookup-processor.test.ts`  |
+| `*.types.ts`     | Type definitions  | `reference-data-types.ts`   |
 
 ### Import Organization
 
 ```typescript
 // 1. External libraries
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 
 // 2. Internal utilities and types
-import { LookupMatchingEngine } from '@/lib/utils/lookup-matching-engine';
-import type { LookupField } from '@/lib/types/target-shapes';
+import { LookupMatchingEngine } from "@/lib/utils/lookup-matching-engine";
+import type { LookupField } from "@/lib/types/target-shapes";
 
 // 3. Components (if applicable)
-import { LookupEditableCell } from './lookup-editable-cell';
+import { LookupEditableCell } from "./lookup-editable-cell";
 ```
 
 ### Directory Structure Best Practices
@@ -160,7 +160,7 @@ Each feature gets its own slice with consistent structure:
 ```typescript
 // Example: Reference data slice
 export const referenceDataSlice = createSlice({
-  name: 'referenceData',
+  name: "referenceData",
   initialState,
   reducers: {
     // Synchronous actions
@@ -168,24 +168,29 @@ export const referenceDataSlice = createSlice({
       state.isUploading = true;
       state.error = null;
     },
-    
+
     // Action with payload transformation
-    uploadFileSuccess: (state, action: PayloadAction<{ info: ReferenceDataInfo }>) => {
+    uploadFileSuccess: (
+      state,
+      action: PayloadAction<{ info: ReferenceDataInfo }>
+    ) => {
       state.referenceFiles[action.payload.info.id] = action.payload.info;
       state.isUploading = false;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Handle async thunks
-    builder.addCase(uploadFileAsync.pending, (state) => {
+    builder.addCase(uploadFileAsync.pending, state => {
       state.isUploading = true;
     });
   },
 });
 
 // Export actions and selectors
-export const { uploadFileStart, uploadFileSuccess } = referenceDataSlice.actions;
-export const selectReferenceFiles = (state: RootState) => state.referenceData.referenceFiles;
+export const { uploadFileStart, uploadFileSuccess } =
+  referenceDataSlice.actions;
+export const selectReferenceFiles = (state: RootState) =>
+  state.referenceData.referenceFiles;
 ```
 
 ### 2. Async Thunk Pattern
@@ -194,7 +199,7 @@ For complex async operations:
 
 ```typescript
 export const processDataWithLookups = createAsyncThunk(
-  'table/processDataWithLookups',
+  "table/processDataWithLookups",
   async (
     { data, targetShape }: { data: TableRow[]; targetShape: TargetShape },
     { dispatch, rejectWithValue }
@@ -202,14 +207,14 @@ export const processDataWithLookups = createAsyncThunk(
     try {
       const processor = new LookupProcessor();
       const result = await processor.processData(data, targetShape);
-      
+
       // Update related state
       dispatch(updateProcessingStats(result.statistics));
-      
+
       return result;
     } catch (error) {
       return rejectWithValue({
-        message: error instanceof Error ? error.message : 'Processing failed',
+        message: error instanceof Error ? error.message : "Processing failed",
         timestamp: Date.now(),
       });
     }
@@ -222,15 +227,16 @@ export const processDataWithLookups = createAsyncThunk(
 Memoized selectors for derived state:
 
 ```typescript
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector } from "@reduxjs/toolkit";
 
 // Basic selector
-export const selectReferenceFiles = (state: RootState) => state.referenceData.referenceFiles;
+export const selectReferenceFiles = (state: RootState) =>
+  state.referenceData.referenceFiles;
 
 // Memoized selector for computed values
 export const selectReferenceFilesList = createSelector(
   [selectReferenceFiles],
-  (referenceFiles) => Object.values(referenceFiles)
+  referenceFiles => Object.values(referenceFiles)
 );
 
 // Parameterized selector
@@ -327,16 +333,22 @@ export const useReferenceDataEditor = (
     // Load data for editing
   }, [referenceInfo.id]);
 
-  const saveChanges = useCallback(async (newData: Record<string, any>[]) => {
-    try {
-      await referenceDataManager.updateReferenceData(referenceInfo.id, newData);
-      setData(newData);
-      setHasChanges(false);
-      setIsEditing(false);
-    } catch (error) {
-      throw new Error(`Failed to save changes: ${error.message}`);
-    }
-  }, [referenceInfo.id]);
+  const saveChanges = useCallback(
+    async (newData: Record<string, any>[]) => {
+      try {
+        await referenceDataManager.updateReferenceData(
+          referenceInfo.id,
+          newData
+        );
+        setData(newData);
+        setHasChanges(false);
+        setIsEditing(false);
+      } catch (error) {
+        throw new Error(`Failed to save changes: ${error.message}`);
+      }
+    },
+    [referenceInfo.id]
+  );
 
   return {
     isEditing,
@@ -357,7 +369,10 @@ Data processing as a series of transformations:
 
 ```typescript
 export class LookupProcessor {
-  async processData(data: TableRow[], targetShape: TargetShape): Promise<ProcessingResult> {
+  async processData(
+    data: TableRow[],
+    targetShape: TargetShape
+  ): Promise<ProcessingResult> {
     return this.createPipeline()
       .pipe(this.validateInput)
       .pipe(this.extractLookupFields)
@@ -379,29 +394,45 @@ Different matching strategies:
 
 ```typescript
 interface MatchingStrategy {
-  match(input: string, referenceData: any[], config: LookupConfig): LookupResult;
+  match(
+    input: string,
+    referenceData: any[],
+    config: LookupConfig
+  ): LookupResult;
 }
 
 class ExactMatchStrategy implements MatchingStrategy {
-  match(input: string, referenceData: any[], config: LookupConfig): LookupResult {
+  match(
+    input: string,
+    referenceData: any[],
+    config: LookupConfig
+  ): LookupResult {
     // Exact matching implementation
   }
 }
 
 class FuzzyMatchStrategy implements MatchingStrategy {
-  match(input: string, referenceData: any[], config: LookupConfig): LookupResult {
+  match(
+    input: string,
+    referenceData: any[],
+    config: LookupConfig
+  ): LookupResult {
     // Fuzzy matching implementation
   }
 }
 
 export class LookupMatchingEngine {
   private strategies: Map<string, MatchingStrategy> = new Map([
-    ['exact', new ExactMatchStrategy()],
-    ['fuzzy', new FuzzyMatchStrategy()],
+    ["exact", new ExactMatchStrategy()],
+    ["fuzzy", new FuzzyMatchStrategy()],
   ]);
 
-  performLookup(input: string, referenceData: any[], config: LookupConfig): LookupResult {
-    const strategy = this.strategies.get(config.matchType || 'exact');
+  performLookup(
+    input: string,
+    referenceData: any[],
+    config: LookupConfig
+  ): LookupResult {
+    const strategy = this.strategies.get(config.matchType || "exact");
     return strategy.match(input, referenceData, config);
   }
 }
@@ -427,10 +458,13 @@ export class ReferenceDataManager implements IReferenceDataManager {
     this.observers.forEach(observer => observer.onReferenceDataChange(event));
   }
 
-  async updateReferenceData(id: string, data: Record<string, any>[]): Promise<boolean> {
+  async updateReferenceData(
+    id: string,
+    data: Record<string, any>[]
+  ): Promise<boolean> {
     // Update logic
     this.notifyObservers({
-      type: 'update',
+      type: "update",
       referenceId: id,
       timestamp: Date.now(),
     });
@@ -445,13 +479,15 @@ export class ReferenceDataManager implements IReferenceDataManager {
 For operations that can fail:
 
 ```typescript
-type Result<T, E = Error> = {
-  success: true;
-  data: T;
-} | {
-  success: false;
-  error: E;
-};
+type Result<T, E = Error> =
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: E;
+    };
 
 export class LookupMatchingEngine {
   performLookupSafe(
@@ -465,7 +501,7 @@ export class LookupMatchingEngine {
     } catch (error) {
       return {
         success: false,
-        error: new LookupError('Lookup failed', error),
+        error: new LookupError("Lookup failed", error),
       };
     }
   }
@@ -474,9 +510,9 @@ export class LookupMatchingEngine {
 // Usage
 const result = engine.performLookupSafe(input, data, config);
 if (result.success) {
-  console.log('Match found:', result.data);
+  console.log("Match found:", result.data);
 } else {
-  console.error('Lookup failed:', result.error.message);
+  console.error("Lookup failed:", result.error.message);
 }
 ```
 
@@ -488,11 +524,15 @@ Structured error handling:
 export class ReferenceDataError extends Error {
   constructor(
     message: string,
-    public code: 'PARSE_ERROR' | 'VALIDATION_ERROR' | 'STORAGE_ERROR' | 'NOT_FOUND',
+    public code:
+      | "PARSE_ERROR"
+      | "VALIDATION_ERROR"
+      | "STORAGE_ERROR"
+      | "NOT_FOUND",
     public details?: Record<string, any>
   ) {
     super(message);
-    this.name = 'ReferenceDataError';
+    this.name = "ReferenceDataError";
   }
 }
 
@@ -507,7 +547,7 @@ export class LookupError extends Error {
     }
   ) {
     super(message);
-    this.name = 'LookupError';
+    this.name = "LookupError";
   }
 }
 ```
@@ -565,7 +605,7 @@ import { useMemo, useCallback } from 'react';
 
 export const LookupEditableCell = ({ value, field, rowIndex, onSave }) => {
   // Memoize expensive computations
-  const lookupConfig = useMemo(() => 
+  const lookupConfig = useMemo(() =>
     createLookupConfig(field), [field]
   );
 
@@ -627,7 +667,7 @@ export const SearchableReferenceData = () => {
         setResults([]);
         return;
       }
-      
+
       const searchResults = await referenceDataManager.search(term);
       setResults(searchResults);
     }, 300),

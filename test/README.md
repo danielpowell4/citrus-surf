@@ -108,7 +108,7 @@ The test setup includes mocks for:
 Our test suite prioritizes **user-facing functionality** over implementation details:
 
 - ✅ **Test what users experience**: Upload success, validation feedback, error messages
-- ✅ **Test core business logic**: Data processing, transformations, matching algorithms  
+- ✅ **Test core business logic**: Data processing, transformations, matching algorithms
 - ✅ **Test accessibility**: Basic keyboard navigation, ARIA attributes
 - ❌ **Don't test implementation details**: Internal function calls, component structure
 - ❌ **Don't test complex workflows**: Multi-step integrations that break frequently

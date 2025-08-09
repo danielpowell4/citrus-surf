@@ -1,5 +1,9 @@
 import React from "react";
-import type { TargetShape, TargetField, LookupField } from "@/lib/types/target-shapes";
+import type {
+  TargetShape,
+  TargetField,
+  LookupField,
+} from "@/lib/types/target-shapes";
 import type {
   SimpleColumnDef,
   ColumnMeta,
@@ -161,7 +165,10 @@ function generateColumnFromTargetField(
       cell: (info: any) => (
         <div className="flex items-center">
           <span className="text-muted-foreground">{info.getValue()}</span>
-          <span className="ml-1 text-xs text-muted-foreground" title="Derived from lookup">
+          <span
+            className="ml-1 text-xs text-muted-foreground"
+            title="Derived from lookup"
+          >
             (auto)
           </span>
         </div>

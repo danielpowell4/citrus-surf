@@ -267,32 +267,33 @@ interface TransformationRule {
 ```typescript
 interface LookupField extends TargetField {
   type: "lookup";
-  referenceFile: string;              // Reference data source
+  referenceFile: string; // Reference data source
   match: {
-    on: string;                       // Column to match against
-    get: string;                      // Column to return as value
-    show?: string;                    // Column to display (optional)
+    on: string; // Column to match against
+    get: string; // Column to return as value
+    show?: string; // Column to display (optional)
   };
-  alsoGet?: DerivedField[];           // Additional columns to derive
+  alsoGet?: DerivedField[]; // Additional columns to derive
   smartMatching: {
-    enabled: boolean;                 // Enable fuzzy matching
-    confidence: number;               // Match confidence threshold (0-1)
+    enabled: boolean; // Enable fuzzy matching
+    confidence: number; // Match confidence threshold (0-1)
   };
   onMismatch: "error" | "warning" | "null"; // Behavior when no match found
-  showReferenceInfo?: boolean;        // Show reference data info in UI
-  allowReferenceEdit?: boolean;       // Allow editing reference data inline
+  showReferenceInfo?: boolean; // Show reference data info in UI
+  allowReferenceEdit?: boolean; // Allow editing reference data inline
 }
 
 interface DerivedField {
-  name: string;                       // Name of the derived column
-  source: string;                     // Source column from reference data
-  type?: FieldType;                   // Optional type specification
+  name: string; // Name of the derived column
+  source: string; // Source column from reference data
+  type?: FieldType; // Optional type specification
 }
 ```
 
 #### Example: Employee Department Lookup
 
 **Input Data** (`employees.csv`):
+
 ```csv
 name,department_name,salary
 John Doe,Engineering,75000
@@ -301,6 +302,7 @@ Bob Wilson,Enginering,80000
 ```
 
 **Reference Data** (`departments.csv`):
+
 ```csv
 dept_name,dept_id,budget_code,manager
 Engineering,ENG001,TECH-001,Sarah Johnson
@@ -309,6 +311,7 @@ HR,HR001,ADMIN-001,Lisa Wong
 ```
 
 **Target Shape Configuration**:
+
 ```typescript
 {
   id: "department_lookup",
@@ -349,25 +352,27 @@ Lookup fields automatically generate enum validation rules from reference data:
 
 ```typescript
 // Auto-generated validation based on reference file
-validation: [{
-  type: "enum",
-  value: ["Engineering", "Marketing", "HR"], // Extracted from reference
-  message: "Department not found in lookup table",
-  severity: "error"
-}]
+validation: [
+  {
+    type: "enum",
+    value: ["Engineering", "Marketing", "HR"], // Extracted from reference
+    message: "Department not found in lookup table",
+    severity: "error",
+  },
+];
 ```
 
 #### Use Cases
 
 - **Employee Data**: Department names → Department IDs + budget codes
-- **Product Catalog**: Category names → Category IDs + hierarchies  
+- **Product Catalog**: Category names → Category IDs + hierarchies
 - **Customer Import**: Account names → Account IDs + territories
 - **Inventory**: Supplier names → Supplier IDs + contact info
 
 #### Benefits Over Excel VLOOKUP
 
 - ✅ **No formulas required** - point and click configuration
-- ✅ **Smart matching** - handles typos and variations automatically  
+- ✅ **Smart matching** - handles typos and variations automatically
 - ✅ **Multiple derived columns** - get many related values at once
 - ✅ **Error highlighting** - clear visual feedback for issues
 - ✅ **Confidence scoring** - review questionable matches
@@ -376,11 +381,13 @@ validation: [{
 #### Data Table Behavior
 
 **Lookup Field Editability**:
+
 - **Source column** (the matched input) → **Editable** with dropdown of reference values
 - **Derived columns** (from `alsoGet`) → **Read-only**, automatically updated when source changes
 - **Smart validation** → Invalid entries show fuzzy match suggestions
 
 **Example Table View**:
+
 ```
 | Name      | Department ↓     | Dept ID      | Budget Code   |
 |-----------|------------------|--------------|---------------|
@@ -389,27 +396,31 @@ validation: [{
 ```
 
 **Interaction Patterns**:
+
 - **Department column**: Dropdown with reference values + fuzzy search
 - **Dept ID & Budget Code**: Gray/disabled, auto-update when Department changes
 - **Invalid entry**: Shows "Did you mean Engineering?" suggestion
 - **New value**: Can type new department, triggers validation warning
 
 **Column Dependencies**:
+
 ```typescript
 // When user changes department_name:
 department_name: "Engineering" → triggers lookup → updates:
-- dept_id: "ENG001" 
+- dept_id: "ENG001"
 - budget_code: "TECH-001"
 - manager: "Sarah Johnson"
 ```
 
 **Reference Data Inspector**:
+
 - **Info icon** (ℹ️) next to lookup fields → Shows available options popup
 - **"View Reference Data"** link → Opens reference file in new tab/modal
 - **"Edit Reference Data"** button → Allows inline editing of lookup values
 - **Source indicator** → Shows "From: departments.csv" for transparency
 
 **Example UI**:
+
 ```
 Department [Engineering ▼] ℹ️
   ↳ Popup shows:
@@ -423,47 +434,55 @@ Department [Engineering ▼] ℹ️
 Lookup fields are fully integrated with the target shapes Redux slice, providing complete state management:
 
 **Slice Actions**:
+
 ```typescript
-import { 
-  addLookupField, 
-  updateLookupField, 
+import {
+  addLookupField,
+  updateLookupField,
   removeLookupField,
   refreshLookupValidation,
-  updateDerivedFields 
-} from '@/lib/features/targetShapesSlice';
+  updateDerivedFields,
+} from "@/lib/features/targetShapesSlice";
 
 // Add a lookup field to a target shape
-dispatch(addLookupField({
-  shapeId: 'shape_123',
-  field: {
-    id: 'field_department',
-    name: 'Department',
-    type: 'lookup',
-    required: true,
-    referenceFile: 'ref_departments',
-    match: { on: 'dept_name', get: 'dept_id' },
-    smartMatching: { enabled: true, confidence: 0.85 },
-    onMismatch: 'error'
-  }
-}));
+dispatch(
+  addLookupField({
+    shapeId: "shape_123",
+    field: {
+      id: "field_department",
+      name: "Department",
+      type: "lookup",
+      required: true,
+      referenceFile: "ref_departments",
+      match: { on: "dept_name", get: "dept_id" },
+      smartMatching: { enabled: true, confidence: 0.85 },
+      onMismatch: "error",
+    },
+  })
+);
 
 // Update lookup field configuration
-dispatch(updateLookupField({
-  shapeId: 'shape_123',
-  fieldId: 'field_department',
-  updates: { onMismatch: 'warning' }
-}));
+dispatch(
+  updateLookupField({
+    shapeId: "shape_123",
+    fieldId: "field_department",
+    updates: { onMismatch: "warning" },
+  })
+);
 
 // Refresh validation when reference data changes
-dispatch(refreshLookupValidation({
-  shapeId: 'shape_123',
-  fieldId: 'field_department' // Optional: refresh specific field
-}));
+dispatch(
+  refreshLookupValidation({
+    shapeId: "shape_123",
+    fieldId: "field_department", // Optional: refresh specific field
+  })
+);
 ```
 
 **Automatic Features**:
+
 - **Validation Generation**: Enum validation rules automatically generated from reference data
-- **Derived Fields**: Additional columns created from `alsoGet` configuration  
+- **Derived Fields**: Additional columns created from `alsoGet` configuration
 - **History Tracking**: All lookup field operations tracked for undo/redo
 - **State Persistence**: Lookup configurations persisted with target shapes
 - **Error Handling**: Comprehensive error handling with descriptive messages
@@ -473,8 +492,8 @@ Lookup fields are seamlessly stored with target shapes using the existing storag
 
 ```typescript
 // Lookup fields are automatically serialized/deserialized
-const shape = targetShapesStorage.getById('shape_123');
-const lookupFields = shape.fields.filter(f => f.type === 'lookup');
+const shape = targetShapesStorage.getById("shape_123");
+const lookupFields = shape.fields.filter(f => f.type === "lookup");
 ```
 
 ## User Workflow
