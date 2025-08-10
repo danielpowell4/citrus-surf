@@ -62,17 +62,17 @@ const mockLookupField: LookupField = {
   required: false,
   referenceFile: "ref_departments_123",
   match: {
-    sourceColumn: "department_name",
-    targetColumn: "department_id",
+    on: "department_name",
+    get: "department_id",
   },
   alsoGet: [
     {
-      sourceColumn: "manager_name",
-      targetFieldName: "manager",
+      name: "manager",
+      source: "manager_name",
     },
     {
-      sourceColumn: "budget",
-      targetFieldName: "department_budget",
+      name: "department_budget",
+      source: "budget",
     },
   ],
   smartMatching: {

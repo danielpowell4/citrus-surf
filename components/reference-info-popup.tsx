@@ -137,13 +137,13 @@ export function ReferenceInfoPopup({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Match column:</span>
                 <Badge variant="secondary" className="text-xs">
-                  {lookupField.match.sourceColumn}
+                  {lookupField.match.on}
                 </Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Return column:</span>
                 <Badge variant="secondary" className="text-xs">
-                  {lookupField.match.targetColumn}
+                  {lookupField.match.get}
                 </Badge>
               </div>
               {lookupField.alsoGet && lookupField.alsoGet.length > 0 && (
