@@ -12,17 +12,17 @@ const nextConfig = {
   // Enable Turbopack for faster builds (moved from experimental.turbo)
   turbopack: {
     rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
       },
     },
   },
   // Optimize bundle for serverless deployment
-  output: 'standalone',
+  output: "standalone",
   // Reduce bundle size
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
 };
 
