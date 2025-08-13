@@ -382,7 +382,11 @@ export function EditableCell({
 
     switch (inputType) {
       case "select":
-        return <Badge variant="secondary">{value}</Badge>;
+        const selectConfig = columnConfig as SelectColumnConfig;
+        // Find the label for the current value
+        const selectedOption = selectConfig.options?.find(option => option.value === value);
+        const displayLabel = selectedOption?.label || value;
+        return <Badge variant="secondary">{displayLabel}</Badge>;
 
       case "number":
         const numberConfig = columnConfig as NumberColumnConfig;

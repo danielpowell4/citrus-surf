@@ -3,6 +3,7 @@ import type {
   TargetShape,
   TargetField,
   LookupField,
+  EnumField,
 } from "@/lib/types/target-shapes";
 import type {
   SimpleColumnDef,
@@ -335,6 +336,13 @@ function getEditableConfig(
           { value: "true", label: "Yes" },
           { value: "false", label: "No" },
         ],
+      };
+
+    case "enum":
+      const enumField = field as EnumField;
+      return {
+        type: "select",
+        options: enumField.options || [],
       };
 
     default:

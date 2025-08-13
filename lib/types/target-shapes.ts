@@ -227,6 +227,46 @@ export interface DerivedField {
 }
 
 /**
+ * An enum field extends the base TargetField with a predefined set of allowed values.
+ * This enables data validation against a fixed list of options and provides UI hints
+ * for data entry.
+ *
+ * @example
+ * ```typescript
+ * const statusEnum: EnumField = {
+ *   id: 'status_001',
+ *   name: 'status',
+ *   type: 'enum',
+ *   required: true,
+ *   options: [
+ *     { value: 'active', label: 'Active' },
+ *     { value: 'inactive', label: 'Inactive' },
+ *     { value: 'pending', label: 'Pending Review' }
+ *   ],
+ *   unique: false
+ * };
+ * ```
+ */
+export interface EnumField extends TargetField {
+  /** Always 'enum' for enum field types */
+  type: "enum";
+  /** Array of allowed values for this field */
+  options: EnumOption[];
+  /** Whether values must be unique across the dataset */
+  unique?: boolean;
+}
+
+/**
+ * Represents a single option in an enum field
+ */
+export interface EnumOption {
+  /** The actual value stored in the data */
+  value: string;
+  /** Human-readable label displayed in the UI */
+  label: string;
+}
+
+/**
  * Specialized field type that performs lookups against reference data to enrich
  * and validate input values. Supports exact matching, fuzzy matching, and automatic
  * data enrichment with related values.

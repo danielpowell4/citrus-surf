@@ -26,6 +26,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { LookupPreview } from "@/components/lookup-preview";
 import { DemoTemplateSelector } from "@/components/demo-template-selector";
+import { EnumOptionsControl, type EnumConfiguration } from "@/components/enum-options-control";
 import {
   saveTargetShapeAsync,
   updateTargetShape,
@@ -37,6 +38,7 @@ import type {
   TargetField,
   FieldType,
   LookupField,
+  EnumField,
   LookupMatch,
   SmartMatching,
   DerivedField,
@@ -1096,6 +1098,38 @@ const LookupConfiguration: React.FC<LookupConfigurationProps> = ({
   );
 };
 
+// Enum Configuration Component
+interface EnumConfigurationProps {
+  field: EnumField;
+  onUpdate: (updates: Partial<EnumField>) => void;
+}
+
+const EnumConfiguration: React.FC<EnumConfigurationProps> = ({
+  field,
+  onUpdate,
+}) => {
+  const handleConfigUpdate = (config: EnumConfiguration) => {
+    onUpdate({
+      options: config.options,
+      unique: config.unique,
+      // Note: required is already handled by the main field form
+    });
+  };
+
+  const currentConfig: EnumConfiguration = {
+    required: field.required,
+    unique: field.unique || false,
+    options: field.options || [],
+  };
+
+  return (
+    <EnumOptionsControl
+      configuration={currentConfig}
+      onUpdate={handleConfigUpdate}
+    />
+  );
+};
+
 // Field Editor Component
 interface FieldEditorProps {
   field: TargetField;
@@ -1165,7 +1199,17 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
                   {fieldTypes.map(type => (
                     <DropdownMenuItem
                       key={type.value}
-                      onClick={() => onUpdate({ type: type.value })}
+                      onClick={() => {
+                        const updates: Partial<TargetField> = { type: type.value };
+                        
+                        // Initialize enum-specific properties when changing to enum type
+                        if (type.value === "enum" && field.type !== "enum") {
+                          (updates as Partial<EnumField>).options = [];
+                          (updates as Partial<EnumField>).unique = false;
+                        }
+                        
+                        onUpdate(updates);
+                      }}
                     >
                       {type.label}
                     </DropdownMenuItem>
@@ -1200,6 +1244,14 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
           {field.type === "lookup" && (
             <LookupConfiguration
               field={field as LookupField}
+              onUpdate={onUpdate}
+            />
+          )}
+
+          {/* Enum Configuration */}
+          {field.type === "enum" && (
+            <EnumConfiguration
+              field={field as EnumField}
               onUpdate={onUpdate}
             />
           )}

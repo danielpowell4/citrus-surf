@@ -1,5 +1,5 @@
 import { generateFieldId } from "./id-generator";
-import type { TargetField, FieldType } from "@/lib/types/target-shapes";
+import type { TargetField, FieldType, EnumField, EnumOption } from "@/lib/types/target-shapes";
 
 /**
  * Analyze imported data to suggest field definitions for a target shape
@@ -73,6 +73,23 @@ export function analyzeDataForTargetShape(data: any[]): {
     // Generate description based on content
     const description = generateFieldDescription(key, fieldType, sampleData);
 
+    // If it's an enum field, populate options from unique values
+    if (fieldType === "enum") {
+      const enumOptions = generateEnumOptions(values);
+      const enumField: EnumField = {
+        id: generateFieldId(),
+        name: fieldName,
+        type: "enum",
+        required,
+        description,
+        validation: [],
+        transformation: [],
+        options: enumOptions,
+        unique: false, // Default to false, user can change
+      };
+      return enumField;
+    }
+
     return {
       id: generateFieldId(),
       name: fieldName,
@@ -105,6 +122,40 @@ export function analyzeDataForTargetShape(data: any[]): {
       dataTypes,
     },
   };
+}
+
+/**
+ * Generate enum options from unique values
+ */
+function generateEnumOptions(values: any[]): EnumOption[] {
+  return values
+    .filter(v => v !== null && v !== undefined && v !== "") // Remove empty values
+    .map(value => {
+      const stringValue = String(value);
+      return {
+        value: stringValue,
+        label: generateEnumLabel(stringValue),
+      };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
+}
+
+/**
+ * Generate a human-readable label from an enum value
+ */
+function generateEnumLabel(value: string): string {
+  // If it's already well-formatted (has spaces, proper case), use as-is
+  if (/^[A-Z][a-z].*\s.*/.test(value)) {
+    return value;
+  }
+
+  // Convert snake_case, kebab-case, or camelCase to Title Case
+  return value
+    .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+    .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space before capital letters (camelCase)
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
 }
 
 /**
@@ -178,9 +229,15 @@ function determineFieldType(
 
   // Check for boolean values - more restrictive
   const booleanValues = ["true", "false", "yes", "no", "1", "0"];
-  const hasBooleans = nonEmptyValues.every(
-    v => typeof v === "string" && booleanValues.includes(v.toLowerCase())
-  );
+  const hasBooleans = nonEmptyValues.every(v => {
+    if (typeof v === "boolean") {
+      return true; // Actual JS booleans are valid
+    }
+    if (typeof v === "string") {
+      return booleanValues.includes(v.toLowerCase());
+    }
+    return false;
+  });
   if (hasBooleans && nonEmptyValues.length <= 4) {
     return "boolean";
   }
@@ -233,33 +290,52 @@ function determineFieldType(
     return "percentage";
   }
 
-  // Check for enum (limited unique values) - but be smarter about it
-  if (nonEmptyValues.length <= 10 && nonEmptyValues.length > 1) {
-    // Don't classify name fields as enum even with limited values
-    const keyLower = key.toLowerCase();
-    const isNameField =
-      keyLower.includes("name") ||
-      keyLower.includes("first") ||
-      keyLower.includes("last") ||
-      keyLower.includes("full");
+  // Check for enum (limited unique values) - be smart about detection
+  const uniqueCount = nonEmptyValues.length;
+  const totalValues = values.length;
+  const keyLower = key.toLowerCase();
 
-    // Don't classify email fields as enum
-    const isEmailField =
-      keyLower.includes("email") || keyLower.includes("mail");
+  // Consider it an enum if:
+  // 1. Has 2-10 unique values
+  // 2. Either has enum indicators OR multiple rows share the same values (not all unique)
+  // 3. Values look like categories/statuses rather than free text
+  if (uniqueCount >= 2 && uniqueCount <= 10) {
+    // Don't classify obvious text fields as enum
+    const excludedFieldTypes = [
+      "name", "first", "last", "full", "title", "description", "comment", "note",
+      "email", "mail", "phone", "tel", "address", "street", "city", "zip", "postal",
+      "url", "link", "website", "id", "key", "token", "hash", "code",
+    ];
 
-    // Don't classify phone fields as enum
-    const isPhoneField = keyLower.includes("phone") || keyLower.includes("tel");
+    const isExcludedField = excludedFieldTypes.some(excludedType =>
+      keyLower.includes(excludedType)
+    );
 
-    // Don't classify address fields as enum
-    const isAddressField =
-      keyLower.includes("address") ||
-      keyLower.includes("street") ||
-      keyLower.includes("city") ||
-      keyLower.includes("state") ||
-      keyLower.includes("country");
+    // Look for enum-like field names
+    const enumIndicators = [
+      "status", "state", "type", "category", "level", "priority", "grade",
+      "role", "department", "division", "region", "country", "gender",
+      "size", "color", "plan", "tier", "version", "mode", "format",
+    ];
 
-    // Only classify as enum if it's not a common text field type
-    if (!isNameField && !isEmailField && !isPhoneField && !isAddressField) {
+    const hasEnumIndicator = enumIndicators.some(indicator =>
+      keyLower.includes(indicator)
+    );
+
+    // Check if values look like categories (short, repetitive strings)
+    const avgValueLength = nonEmptyValues
+      .map(v => String(v).length)
+      .reduce((sum, len) => sum + len, 0) / nonEmptyValues.length;
+
+    const hasShortValues = avgValueLength <= 20; // Most enum values are short
+
+    // Check if values are repeated (not all unique)
+    const hasRepeatedValues = uniqueCount < totalValues;
+
+    // Classify as enum if:
+    // - Not an excluded field type AND
+    // - (Has enum indicators OR (has short repetitive values AND values are repeated))
+    if (!isExcludedField && (hasEnumIndicator || (hasShortValues && hasRepeatedValues))) {
       return "enum";
     }
   }
