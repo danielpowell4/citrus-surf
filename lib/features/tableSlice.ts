@@ -13,10 +13,13 @@ import {
   LookupProcessingOptions,
 } from "../utils/lookup-processor";
 import type { TargetShape, LookupField } from "../types/target-shapes";
+import type { RowValidationMetadata, ValidationState } from "../types/validation";
+import { createEmptyValidationState } from "../types/validation";
 
 // Flexible row data type for dynamic data import and transformation
 export type TableRow = Record<string, unknown> & {
   _rowId?: string; // Vendor-prefixed row ID injected during import
+  _validationMetadata?: RowValidationMetadata; // Validation metadata for this row
 };
 
 // Sample data
@@ -152,6 +155,9 @@ interface TableState {
     result: ProcessedLookupResult | null;
     error: string | null;
   };
+
+  // Validation state
+  validation: ValidationState;
 }
 
 const initialState: TableState = {
@@ -179,6 +185,7 @@ const initialState: TableState = {
     result: null,
     error: null,
   },
+  validation: createEmptyValidationState(),
 };
 
 // Async thunk for processing data with lookups
