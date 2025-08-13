@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "@/components/footer";
 import { ClaudeHelperProvider } from "@/components/claude-helper-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,6 +40,7 @@ export default function RootLayout({
             <Toaster />
           </ThemeProvider>
         </ClaudeHelperProvider>
+        <Analytics />
       </body>
     </html>
   );
