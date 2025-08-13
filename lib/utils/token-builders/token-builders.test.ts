@@ -3,9 +3,7 @@ import {
   BaseTokenBuilder,
   GenericTokenBuilder,
   TokenBuilderRegistry,
-  defaultTokenRegistry,
   type TokenContext,
-  type ITokenBuilder,
 } from "./base-token-builder";
 
 import {
@@ -34,7 +32,7 @@ describe("Token Builder System", () => {
       priority = 50;
       supportedTypes = ["string"];
 
-      generateTokens(context: TokenContext) {
+      generateTokens(_context: TokenContext) {
         const tokens = new Set<string>();
         tokens.add("test_token");
         return { tokens };

@@ -41,6 +41,92 @@ const columns = [
 
 Basic text input with optional constraints.
 
+### 2. Lookup Field
+
+**Type**: `'lookup'`
+
+Advanced lookup field with dropdown selection, fuzzy search, and reference data integration. Uses the `LookupEditableCell` component for Excel VLOOKUP-style functionality with intelligent matching and automatic data enrichment.
+
+#### Key Features
+
+- **Smart Matching**: Exact, normalized, and fuzzy matching algorithms
+- **Confidence Scoring**: Visual indicators showing match confidence (95%+ = exact, 70%+ = good, <70% = fuzzy)
+- **Reference Data Transparency**: Info popup showing data source, statistics, and sample values
+- **Derived Fields**: Automatic extraction of additional columns during lookup operations
+- **Real-time Suggestions**: Live fuzzy search with "Did you mean?" functionality
+- **Keyboard Navigation**: Full keyboard support (Enter, Escape, Tab, Arrow keys)
+
+#### Configuration
+
+Lookup fields are configured through the target shapes system rather than column meta. When a field has `type: "lookup"`, the column generator automatically uses `LookupEditableCell`.
+
+```typescript
+// Example lookup field configuration in target shape
+{
+  id: 'department',
+  name: 'department',
+  type: 'lookup',
+  referenceFile: 'ref_departments_123',
+  match: {
+    sourceColumn: 'department_name',  // Column to match against
+    targetColumn: 'department_id',    // Column to return as value
+  },
+  alsoGet: [  // Additional columns to derive
+    {
+      sourceColumn: 'manager_name',
+      targetFieldName: 'manager',
+    },
+    {
+      sourceColumn: 'budget',
+      targetFieldName: 'department_budget',
+    }
+  ],
+  smartMatching: {
+    enabled: true,
+    threshold: 0.8,  // Minimum confidence for fuzzy matches
+  },
+  onMismatch: 'warning',           // 'error' | 'warning' | 'null'
+  showReferenceInfo: true,         // Show info button
+  allowReferenceEdit: false,       // Allow editing reference data
+}
+```
+
+#### UI Components
+
+The lookup cell system consists of:
+
+1. **LookupEditableCell**: Main editable cell component with dropdown and search
+2. **ReferenceInfoPopup**: Information popup showing reference data details
+3. **Command/Combobox**: Search and selection interface with suggestions
+
+#### Matching Behavior
+
+1. **Exact Match** (100% confidence): Exact string match
+2. **Normalized Match** (95% confidence): Case-insensitive, whitespace-trimmed, accent-normalized
+3. **Fuzzy Match** (varies): Levenshtein distance, Jaro-Winkler similarity with configurable threshold
+
+#### Visual Indicators
+
+- **Green checkmark**: High confidence match (90%+)
+- **Yellow warning triangle**: Medium confidence match (70-89%)
+- **Red alert circle**: Low confidence match (<70%)
+- **Confidence badges**: Percentage scores in dropdown suggestions
+- **Match type icons**: Different icons for exact, normalized, and fuzzy matches
+
+#### Integration with History System
+
+All lookup operations are tracked in the Redux history system:
+
+- Cell value changes (`table/updateCell`)
+- Derived field updates (automatic)
+- Lookup processing results (`table/processDataWithLookups/fulfilled`)
+
+### 3. Text Input (continued)
+
+**Type**: `'text'` (continued from above)
+
+Basic text input with optional constraints.
+
 #### Configuration Options
 
 | Option        | Type     | Description             | Default     |
@@ -225,9 +311,121 @@ Dropdown selection with predefined options.
 }
 ```
 
+### 6. Lookup Input
+
+**Type**: `'lookup'`
+
+Cross-reference lookup with automatic derived column updates. The lookup field itself is editable, but derived columns are read-only.
+
+#### Configuration Options
+
+| Option                     | Type       | Description                      | Default    |
+| -------------------------- | ---------- | -------------------------------- | ---------- |
+| `referenceFile`            | `string`   | Reference data source file       | Required   |
+| `match.on`                 | `string`   | Column to match against          | Required   |
+| `match.get`                | `string`   | Column to return as value        | Required   |
+| `match.show`               | `string`   | Column to display (optional)     | `match.on` |
+| `alsoGet`                  | `string[]` | Additional columns to derive     | `[]`       |
+| `smartMatching.enabled`    | `boolean`  | Enable fuzzy matching            | `true`     |
+| `smartMatching.confidence` | `number`   | Match confidence threshold (0-1) | `0.85`     |
+
+#### Editability Rules
+
+- **Source column** (`match.on`): **Editable** with dropdown + fuzzy search
+- **Derived columns** (`alsoGet`): **Read-only**, auto-update when source changes
+- **Visual indicators**: Derived columns shown grayed/disabled
+
+#### Example
+
+```typescript
+{
+  accessorKey: "department",
+  header: "Department",
+  meta: {
+    editable: {
+      type: 'lookup',
+      referenceFile: 'departments.csv',
+      match: {
+        on: 'dept_name',
+        get: 'dept_id',
+        show: 'dept_name'
+      },
+      alsoGet: ['budget_code', 'manager'],
+      smartMatching: {
+        enabled: true,
+        confidence: 0.85
+      }
+    }
+  }
+}
+
+// Derived columns (auto-generated, read-only):
+{
+  accessorKey: "budget_code",
+  header: "Budget Code",
+  meta: {
+    editable: false,
+    derivedFrom: "department" // Indicates this is auto-derived
+  }
+}
+```
+
+#### Interaction Behavior
+
+```typescript
+// User edits department:
+"Engineering" → Auto-updates:
+- dept_id: "ENG001"
+- budget_code: "TECH-001"
+- manager: "Sarah Johnson"
+
+// Invalid entry with suggestion:
+"Enginering" → Shows: "Did you mean 'Engineering'?"
+```
+
+#### Reference Data Transparency
+
+**UI Enhancement Features**:
+
+- **Info icon** (ℹ️) next to lookup fields shows available options
+- **Source indicator** displays reference file name and row count
+- **View/Edit links** allow inspection and modification of reference data
+
+**Example Enhanced UI**:
+
+```
+| Department                    | Dept ID | Budget Code |
+|-------------------------------|---------|-------------|
+| [Engineering ▼] ℹ️           | ENG001  | TECH-001    |
+    ↳ Popup shows:
+      📋 Available Options:
+      • Engineering
+      • Marketing
+      • HR
+      • Finance
+
+      📁 Source: departments.csv (23 rows)
+      [👁 View Reference Data] [✏️ Edit Values]
+```
+
+**Configuration for Enhanced UI**:
+
+```typescript
+{
+  type: 'lookup',
+  referenceFile: 'departments.csv',
+  match: { on: 'dept_name', get: 'dept_id' },
+  showReferenceInfo: true,     // Enable info icon
+  allowReferenceEdit: true,    // Enable edit reference data
+  showSourceIndicator: true    // Show "From: file.csv"
+}
+```
+
 ## Non-Editable Columns
 
 To make a column non-editable, set `editable: false`:
+
+### Static Read-Only Columns
 
 ```typescript
 {
@@ -235,6 +433,22 @@ To make a column non-editable, set `editable: false`:
   header: "ID",
   meta: {
     editable: false
+  }
+}
+```
+
+### Derived Read-Only Columns (from Lookup Fields)
+
+Columns automatically derived from lookup fields are read-only but show their source:
+
+```typescript
+{
+  accessorKey: "budget_code",
+  header: "Budget Code",
+  meta: {
+    editable: false,
+    derivedFrom: "department",        // Source lookup field
+    referenceFile: "departments.csv" // Source data file
   }
 }
 ```

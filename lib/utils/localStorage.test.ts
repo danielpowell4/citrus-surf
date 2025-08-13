@@ -123,9 +123,9 @@ describe("localStorage with superjson", () => {
     const originalWindow = global.window;
     const originalLocalStorage = global.localStorage;
 
-    // @ts-ignore
+    // @ts-expect-error - Simulating SSR environment by removing window
     delete global.window;
-    // @ts-ignore
+    // @ts-expect-error - Simulating SSR environment by removing localStorage
     delete global.localStorage;
 
     // Should return default value without throwing

@@ -11,7 +11,6 @@ import {
   stopEditing,
 } from "@/lib/features/tableSlice";
 import { Edit3 } from "lucide-react";
-import type { Person } from "@/lib/features/tableSlice";
 
 interface EditableCellProps {
   value: any;
@@ -63,7 +62,7 @@ interface SelectColumnConfig extends BaseColumnConfig {
   options: Array<{ value: string; label: string }>;
 }
 
-type ColumnConfig =
+type _ColumnConfig =
   | TextColumnConfig
   | NumberColumnConfig
   | CurrencyColumnConfig
@@ -84,8 +83,8 @@ export function EditableCell({
   const [value, setValue] = useState(safeInitialValue);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
-  const columnId = column.id as keyof Person;
-  const rowId = row.original.id;
+  const columnId = String(column.id);
+  const rowId = String(row.original.id);
 
   // Check if this cell is currently being edited
   const isEditing =
@@ -171,13 +170,13 @@ export function EditableCell({
         const nextColumn = table.getVisibleLeafColumns()[nextColumnIndex];
 
         if (nextRow && nextColumn) {
-          const nextColumnId = nextColumn.id as keyof Person;
+          const nextColumnId = String(nextColumn.id);
           const isNextEditable = nextColumn.columnDef.meta?.editable !== false;
 
           if (isNextEditable) {
             dispatch(
               startEditing({
-                rowId: nextRow.id,
+                rowId: String(nextRow.id),
                 columnId: nextColumnId,
               })
             );
@@ -383,7 +382,11 @@ export function EditableCell({
 
     switch (inputType) {
       case "select":
-        return <Badge variant="secondary">{value}</Badge>;
+        const selectConfig = columnConfig as SelectColumnConfig;
+        // Find the label for the current value
+        const selectedOption = selectConfig.options?.find(option => option.value === value);
+        const displayLabel = selectedOption?.label || value;
+        return <Badge variant="secondary">{displayLabel}</Badge>;
 
       case "number":
         const numberConfig = columnConfig as NumberColumnConfig;

@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   ColumnFiltersState,
   SortingState,
@@ -7,10 +7,19 @@ import {
   GroupingState,
   PaginationState,
 } from "@tanstack/react-table";
+import {
+  lookupProcessor,
+  ProcessedLookupResult,
+  LookupProcessingOptions,
+} from "../utils/lookup-processor";
+import type { TargetShape, LookupField } from "../types/target-shapes";
+import type { RowValidationMetadata, ValidationState } from "../types/validation";
+import { createEmptyValidationState } from "../types/validation";
 
 // Flexible row data type for dynamic data import and transformation
 export type TableRow = Record<string, unknown> & {
   _rowId?: string; // Vendor-prefixed row ID injected during import
+  _validationMetadata?: RowValidationMetadata; // Validation metadata for this row
 };
 
 // Sample data
@@ -138,6 +147,17 @@ interface TableState {
   error: string | null;
   // Add edit state tracking
   editingCell: { rowId: string; columnId: string } | null;
+
+  // Lookup processing state
+  lookupProcessing: {
+    isProcessing: boolean;
+    progress: number;
+    result: ProcessedLookupResult | null;
+    error: string | null;
+  };
+
+  // Validation state
+  validation: ValidationState;
 }
 
 const initialState: TableState = {
@@ -159,7 +179,73 @@ const initialState: TableState = {
   isLoading: false,
   error: null,
   editingCell: null,
+  lookupProcessing: {
+    isProcessing: false,
+    progress: 0,
+    result: null,
+    error: null,
+  },
+  validation: createEmptyValidationState(),
 };
+
+// Async thunk for processing data with lookups
+export const processDataWithLookups = createAsyncThunk(
+  "table/processDataWithLookups",
+  async (
+    {
+      data,
+      targetShape,
+      options = {},
+    }: {
+      data: TableRow[];
+      targetShape: TargetShape;
+      options?: LookupProcessingOptions;
+    },
+    { dispatch }
+  ) => {
+    // Set up progress callback
+    const onProgress = (processed: number, total: number) => {
+      const progress = Math.floor((processed / total) * 100);
+      dispatch(setLookupProgress(progress));
+    };
+
+    const result = await lookupProcessor.processDataWithLookups(
+      data,
+      targetShape,
+      {
+        ...options,
+        onProgress,
+      }
+    );
+
+    return result;
+  }
+);
+
+// Async thunk for real-time lookup updates
+export const updateLookupValue = createAsyncThunk(
+  "table/updateLookupValue",
+  async ({
+    rowId,
+    fieldName,
+    value,
+    field,
+    rowData,
+  }: {
+    rowId: string;
+    fieldName: string;
+    value: any;
+    field: LookupField;
+    rowData: TableRow;
+  }) => {
+    const result = await lookupProcessor.processLookupUpdate(
+      value,
+      field,
+      rowData
+    );
+    return { rowId, fieldName, result };
+  }
+);
 
 export const tableSlice = createSlice({
   name: "table",
@@ -200,13 +286,7 @@ export const tableSlice = createSlice({
         targetFields: Array<{ id: string; name: string }>; // Target shape fields in order
       }>
     ) => {
-      const {
-        targetShapeId,
-        targetShapeName,
-        columnMapping,
-        fieldMappings,
-        targetFields,
-      } = action.payload;
+      const { targetShapeId, columnMapping, targetFields } = action.payload;
 
       // Transform data according to mapping using current state data
       const transformedData = state.data.map(row => {
@@ -366,7 +446,7 @@ export const tableSlice = createSlice({
         } else {
           state.error = "Data must be an array";
         }
-      } catch (error) {
+      } catch {
         state.error = "Invalid JSON format";
       } finally {
         state.isLoading = false;
@@ -406,10 +486,15 @@ export const tableSlice = createSlice({
       state.editingCell = null;
     },
 
+    // Set applied target shape ID
+    setAppliedTargetShapeId: (state, action: PayloadAction<string | null>) => {
+      state.appliedTargetShapeId = action.payload;
+    },
+
     // History restoration action
     restoreFromHistory: (
-      state,
-      action: PayloadAction<{
+      _state,
+      _action: PayloadAction<{
         restoredFrom: number;
         restoredFromAction: string;
         [key: string]: any;
@@ -418,7 +503,67 @@ export const tableSlice = createSlice({
       // This action is used to mark when a state is restored from history
       // The actual state restoration is handled by the time travel utility
       // This just ensures the action is tracked in the history
+      // No state changes needed - this is just for history tracking
     },
+
+    // Lookup processing reducers
+    setLookupProgress: (state, action: PayloadAction<number>) => {
+      state.lookupProcessing.progress = action.payload;
+    },
+
+    clearLookupProcessing: state => {
+      state.lookupProcessing = {
+        isProcessing: false,
+        progress: 0,
+        result: null,
+        error: null,
+      };
+    },
+  },
+  extraReducers: builder => {
+    builder
+      // Handle processDataWithLookups async thunk
+      .addCase(processDataWithLookups.pending, state => {
+        state.lookupProcessing.isProcessing = true;
+        state.lookupProcessing.progress = 0;
+        state.lookupProcessing.error = null;
+      })
+      .addCase(processDataWithLookups.fulfilled, (state, action) => {
+        state.lookupProcessing.isProcessing = false;
+        state.lookupProcessing.progress = 100;
+        state.lookupProcessing.result = action.payload;
+        state.lookupProcessing.error = null;
+
+        // Update table data with processed results
+        state.data = action.payload.data;
+
+        // Update column order to match the actual data structure
+        if (action.payload.data.length > 0) {
+          const newColumns = Object.keys(action.payload.data[0]).filter(
+            key => !key.startsWith("_")
+          );
+          // Replace column order with actual columns from processed data
+          // This ensures removed/renamed columns are properly handled
+          state.columnOrder = newColumns;
+        }
+      })
+      .addCase(processDataWithLookups.rejected, (state, action) => {
+        state.lookupProcessing.isProcessing = false;
+        state.lookupProcessing.error =
+          action.error.message || "Lookup processing failed";
+      })
+
+      // Handle updateLookupValue async thunk
+      .addCase(updateLookupValue.fulfilled, (state, action) => {
+        const { rowId, result } = action.payload;
+        if (result.success) {
+          // Update the specific row with the new lookup values
+          const rowIndex = state.data.findIndex(row => row._rowId === rowId);
+          if (rowIndex !== -1) {
+            state.data[rowIndex] = result.updatedRow;
+          }
+        }
+      });
   },
 });
 
@@ -444,7 +589,10 @@ export const {
   updateCell,
   startEditing,
   stopEditing,
+  setAppliedTargetShapeId,
   restoreFromHistory,
+  setLookupProgress,
+  clearLookupProcessing,
 } = tableSlice.actions;
 
 export default tableSlice.reducer;

@@ -1,10 +1,16 @@
 import React from "react";
-import type { TargetShape, TargetField } from "@/lib/types/target-shapes";
+import type {
+  TargetShape,
+  TargetField,
+  LookupField,
+  EnumField,
+} from "@/lib/types/target-shapes";
 import type {
   SimpleColumnDef,
   ColumnMeta,
 } from "@/lib/utils/column-transformer";
 import type { TableRow } from "@/lib/features/tableSlice";
+import { LookupEditableCell } from "@/app/playground/lookup-editable-cell";
 
 /**
  * Generates column definitions from a target shape
@@ -129,6 +135,52 @@ function generateColumnFromTargetField(
     editable: getEditableConfig(field, data),
   };
 
+  // Special handling for lookup fields
+  if (field.type === "lookup") {
+    const lookupField = field as LookupField;
+    return {
+      accessorKey: field.name as keyof TableRow,
+      header: field.displayName || field.name,
+      size: field.name.toLowerCase() === "id" ? 80 : undefined,
+      cell: (info: any) => (
+        <LookupEditableCell
+          value={info.getValue()}
+          row={info.row}
+          column={info.column}
+          getValue={info.getValue}
+          table={info.table}
+          lookupField={lookupField}
+        />
+      ),
+      meta,
+    };
+  }
+
+  // Check if this is a derived field from a lookup (read-only)
+  const isDerivedField = field.metadata?.source?.startsWith("lookup:");
+  if (isDerivedField) {
+    return {
+      accessorKey: field.name as keyof TableRow,
+      header: field.displayName || field.name,
+      size: field.name.toLowerCase() === "id" ? 80 : undefined,
+      cell: (info: any) => (
+        <div className="flex items-center">
+          <span className="text-muted-foreground">{info.getValue()}</span>
+          <span
+            className="ml-1 text-xs text-muted-foreground"
+            title="Derived from lookup"
+          >
+            (auto)
+          </span>
+        </div>
+      ),
+      meta: {
+        ...meta,
+        editable: false,
+      },
+    };
+  }
+
   // Special handling for progress fields
   if (
     field.type === "number" &&
@@ -175,7 +227,7 @@ function generateDefaultColumn(
 
   // Determine column type from sample data
   const sampleValue = data.length > 0 ? data[0][columnKey] : null;
-  let meta: ColumnMeta = {
+  const meta: ColumnMeta = {
     sortType: "natural",
     editable: {
       type: "text",
@@ -208,6 +260,13 @@ function getEditableConfig(
   data: TableRow[]
 ): ColumnMeta["editable"] {
   switch (field.type) {
+    case "lookup":
+      // Lookup fields use custom cell component, but still need basic config
+      return {
+        type: "lookup",
+        placeholder: `Select ${field.displayName || field.name}`,
+      };
+
     case "string":
       // Check if it's a select field based on validation rules or data patterns
       if (field.validation?.enum) {
@@ -277,6 +336,13 @@ function getEditableConfig(
           { value: "true", label: "Yes" },
           { value: "false", label: "No" },
         ],
+      };
+
+    case "enum":
+      const enumField = field as EnumField;
+      return {
+        type: "select",
+        options: enumField.options || [],
       };
 
     default:

@@ -21,7 +21,11 @@ import {
 import { TargetShape } from "@/lib/types/target-shapes";
 import { DataTable } from "../data-table";
 import { ColumnMapping } from "@/components/column-mapping";
-import { applyTemplate } from "@/lib/features/tableSlice";
+import {
+  applyTemplate,
+  processDataWithLookups,
+  setAppliedTargetShapeId,
+} from "@/lib/features/tableSlice";
 import { loadShapes } from "@/lib/features/targetShapesSlice";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -41,19 +45,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { targetShapesStorage } from "@/lib/utils/target-shapes-storage";
+import {
+  createLookupNavigator,
+  parseFuzzyMatchReviewParams,
+} from "@/lib/utils/lookup-navigation";
 
 export default function DataTablePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
+  const _navigator = createLookupNavigator(
+    router,
+    "/playground/data-table",
+    searchParams
+  );
+
   const [showDrawer, setShowDrawer] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+  const [isApplyingMapping, setIsApplyingMapping] = useState(false);
   const [selectedShape, setSelectedShape] = useState<TargetShape | null>(null);
   const [mappingMode, setMappingMode] = useState(false);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>(
     {}
   );
   const [isLoading, setIsLoading] = useState(true);
+
+  // Parse fuzzy match review parameters
+  const fuzzyMatchParams = parseFuzzyMatchReviewParams(searchParams);
+  const _isFuzzyMatchReview = fuzzyMatchParams.review === "fuzzy-matches";
+  const _fuzzyMatchBatchId = fuzzyMatchParams.batch;
 
   // Template management state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -125,7 +145,7 @@ export default function DataTablePage() {
     setColumnMapping(mapping);
   }, []);
 
-  const handleApplyMapping = () => {
+  const handleApplyMapping = async () => {
     if (!selectedShape || Object.keys(columnMapping).length === 0) {
       toast({
         title: "No mapping to apply",
@@ -134,6 +154,8 @@ export default function DataTablePage() {
       });
       return;
     }
+
+    setIsApplyingMapping(true);
 
     console.log("Applying mapping:", columnMapping);
     console.log(
@@ -150,30 +172,79 @@ export default function DataTablePage() {
       {} as Record<string, string>
     );
 
-    // Let Redux handle the data transformation using current state data
-    dispatch(
-      applyTemplate({
-        targetShapeId: selectedShape.id,
-        targetShapeName: selectedShape.name,
-        columnMapping,
-        fieldMappings,
-        targetFields: selectedShape.fields.map(f => ({
-          id: f.id,
-          name: f.name,
-        })),
-      })
-    );
+    try {
+      // Check if there are lookup fields that need processing
+      const hasLookupFields = selectedShape.fields.some(
+        field => field.type === "lookup"
+      );
 
-    // Exit mapping mode
-    setMappingMode(false);
-    setSelectedShape(null);
-    setColumnMapping({});
-    router.push("/playground/data-table");
+      if (hasLookupFields) {
+        // If there are lookup fields, we need to transform the data and process lookups
+        // Transform data according to mapping manually to pass to lookup processor
+        const transformedData = data.map(row => {
+          const newRow: Record<string, unknown> = { _rowId: row._rowId }; // Preserve internal ID
 
-    toast({
-      title: "Mapping applied successfully",
-      description: `Data transformed according to "${selectedShape.name}" target shape`,
-    });
+          // Apply column mappings
+          Object.entries(columnMapping).forEach(
+            ([targetFieldId, sourceColumn]) => {
+              const targetField = selectedShape.fields.find(
+                f => f.id === targetFieldId
+              );
+              if (targetField && row[sourceColumn] !== undefined) {
+                newRow[targetField.name] = row[sourceColumn];
+              }
+            }
+          );
+
+          return newRow;
+        });
+
+        // Process with lookups first, which will handle the full transformation including derived columns
+        await dispatch(
+          processDataWithLookups({
+            data: transformedData,
+            targetShape: selectedShape,
+          })
+        );
+
+        // Set the applied target shape ID
+        dispatch(setAppliedTargetShapeId(selectedShape.id));
+      } else {
+        // No lookup fields, just apply the basic template transformation
+        dispatch(
+          applyTemplate({
+            targetShapeId: selectedShape.id,
+            targetShapeName: selectedShape.name,
+            columnMapping,
+            fieldMappings,
+            targetFields: selectedShape.fields.map(f => ({
+              id: f.id,
+              name: f.name,
+            })),
+          })
+        );
+      }
+
+      // Exit mapping mode
+      setMappingMode(false);
+      setSelectedShape(null);
+      setColumnMapping({});
+      router.push("/playground/data-table");
+
+      toast({
+        title: "Mapping applied successfully",
+        description: `Data transformed according to "${selectedShape.name}" target shape`,
+      });
+    } catch (error) {
+      console.error("Error applying mapping:", error);
+      toast({
+        title: "Error applying mapping",
+        description: "Failed to process lookup fields. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsApplyingMapping(false);
+    }
   };
 
   const handleCreateFromData = () => {
@@ -279,9 +350,14 @@ export default function DataTablePage() {
                   <Button
                     size="sm"
                     onClick={handleApplyMapping}
+                    disabled={isApplyingMapping}
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                   >
-                    <ArrowRight className="w-4 h-4" />
+                    {isApplyingMapping ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <ArrowRight className="w-4 h-4" />
+                    )}
                     Apply Mapping
                   </Button>
                 </div>
@@ -293,6 +369,7 @@ export default function DataTablePage() {
                 targetShape={selectedShape}
                 onMappingChange={handleMappingChange}
                 onApplyMapping={handleApplyMapping}
+                isApplying={isApplyingMapping}
                 className="mb-4"
               />
             )}

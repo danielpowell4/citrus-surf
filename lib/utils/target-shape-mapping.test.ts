@@ -28,8 +28,8 @@ const mockTargetShape: TargetShape = {
   name: "Employee Database",
   description: "Standard employee record format",
   version: "1.0.0",
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
   fields: [
     {
       id: "emp-id",

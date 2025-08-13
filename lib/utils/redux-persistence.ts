@@ -122,7 +122,7 @@ class ReduxPersistenceManager {
         isInitialized: this.isInitialized,
         hasPersistedState: savedState !== null,
       };
-    } catch (error) {
+    } catch {
       return { isInitialized: this.isInitialized, hasPersistedState: false };
     }
   }

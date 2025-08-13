@@ -3,6 +3,7 @@ import tableReducer from "./features/tableSlice";
 import historyReducer from "./features/historySlice";
 import targetShapesReducer from "./features/targetShapesSlice";
 import persistenceReducer from "./features/persistenceSlice";
+import referenceDataReducer from "./features/referenceDataSlice";
 import {
   reduxPersistence,
   createPersistenceMiddleware,
@@ -41,6 +42,25 @@ const historyMiddleware = (store: any) => (next: any) => (action: any) => {
     "table/setColumnVisibility", // Column visibility
     "table/setGlobalFilter", // Global search
     "table/restoreFromHistory", // History restoration
+    "targetShapes/saveTargetShape", // Template builder: Save target shape
+    "targetShapes/saveTargetShapeAsync/fulfilled", // Template builder: Save target shape (async)
+    "targetShapes/updateTargetShape", // Template builder: Update target shape
+    "targetShapes/deleteTargetShape", // Template builder: Delete target shape
+    "targetShapes/addLookupField", // Lookup field creation
+    "targetShapes/updateLookupField", // Lookup field updates
+    "targetShapes/removeLookupField", // Lookup field removal
+    "targetShapes/refreshLookupValidation", // Lookup validation refresh
+    "targetShapes/updateDerivedFields", // Derived field updates
+    "referenceData/uploadFileSuccess", // Reference data upload
+    "referenceData/updateFileData", // Reference data editing
+    "referenceData/deleteFile", // Reference data deletion
+    "table/processDataWithLookups/fulfilled", // Lookup data processing
+    "table/updateLookupValue/fulfilled", // Real-time lookup updates
+    "lookup/acceptFuzzyMatch", // Fuzzy match review: Accept match
+    "lookup/rejectFuzzyMatch", // Fuzzy match review: Reject match
+    "lookup/batchAcceptMatches", // Fuzzy match review: Batch accept
+    "lookup/batchRejectMatches", // Fuzzy match review: Batch reject
+    "lookup/manualEntryForMatch", // Fuzzy match review: Manual entry
   ];
 
   // Skip actions that are not meaningful user interactions
@@ -174,6 +194,22 @@ export const makeStore = () => {
       "targetShapes/saveTargetShape",
       "targetShapes/updateTargetShape",
       "targetShapes/deleteTargetShape",
+      "targetShapes/addLookupField",
+      "targetShapes/updateLookupField",
+      "targetShapes/removeLookupField",
+      "targetShapes/refreshLookupValidation",
+      "targetShapes/updateDerivedFields",
+      "referenceData/uploadFileSuccess",
+      "referenceData/updateFileData",
+      "referenceData/deleteFile",
+      "referenceData/clearAllFiles",
+      "table/processDataWithLookups/fulfilled",
+      "table/updateLookupValue/fulfilled",
+      "lookup/acceptFuzzyMatch",
+      "lookup/rejectFuzzyMatch",
+      "lookup/batchAcceptMatches",
+      "lookup/batchRejectMatches",
+      "lookup/manualEntryForMatch",
     ],
     debug: process.env.NODE_ENV === "development",
   });
@@ -184,6 +220,7 @@ export const makeStore = () => {
       history: historyReducer,
       targetShapes: targetShapesReducer,
       persistence: persistenceReducer,
+      referenceData: referenceDataReducer,
     },
     preloadedState: persistedState,
     middleware: getDefaultMiddleware =>

@@ -1,0 +1,35 @@
+# Build artifacts
+.next/cache
+.turbo
+.vscode
+.idea
+
+# Development files
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test files
+coverage/
+test-results/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Documentation that's not needed in production
+docs/patterns/development-tools.md
+prd/
+test/
+CLAUDE.md
+claude-rules.md
+CONTEXT.md
+
+# Unnecessary node_modules
+node_modules/.cache
+
+# Large cache directories
+.next/cache/webpack
+.next/cache/swc

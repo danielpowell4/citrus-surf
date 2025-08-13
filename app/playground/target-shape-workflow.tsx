@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,11 +15,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, ArrowRight, ArrowLeft, Save, Eye } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useAppDispatch } from "@/lib/hooks";
 import {
-  saveTargetShape,
+  Plus,
+  Trash2,
+  ArrowRight,
+  ArrowLeft,
+  Save,
+  Pencil,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { LookupPreview } from "@/components/lookup-preview";
+import { DemoTemplateSelector } from "@/components/demo-template-selector";
+import { EnumOptionsControl, type EnumConfiguration } from "@/components/enum-options-control";
+import {
+  saveTargetShapeAsync,
   updateTargetShape,
 } from "@/lib/features/targetShapesSlice";
 import { generateShapeId, generateFieldId } from "@/lib/utils/id-generator";
@@ -29,9 +37,21 @@ import type {
   TargetShape,
   TargetField,
   FieldType,
-  ValidationRule,
-  TransformationRule,
+  LookupField,
+  EnumField,
+  LookupMatch,
+  SmartMatching,
+  DerivedField,
 } from "@/lib/types/target-shapes";
+import { useAppSelector, useAppDispatch } from "@/lib/hooks";
+import {
+  selectReferenceFilesList,
+  uploadFileStart,
+  uploadFileSuccess,
+  uploadFileError,
+} from "@/lib/features/referenceDataSlice";
+import { referenceDataManager } from "@/lib/utils/reference-data-manager";
+import { generateReferenceId } from "@/lib/types/reference-data-types";
 
 interface WorkflowStep {
   id: string;
@@ -221,9 +241,30 @@ const FieldsStep: React.FC<WorkflowStepProps> = ({
   };
 
   const updateField = (fieldId: string, updates: Partial<TargetField>) => {
-    const updatedFields = data.fields.map(field =>
-      field.id === fieldId ? { ...field, ...updates } : field
-    );
+    const updatedFields = data.fields.map(field => {
+      if (field.id === fieldId) {
+        const updatedField = { ...field, ...updates };
+
+        // If changing to lookup type, initialize lookup-specific properties
+        if (updates.type === "lookup" && field.type !== "lookup") {
+          const lookupField: LookupField = {
+            ...updatedField,
+            type: "lookup",
+            referenceFile: "",
+            match: { on: "", get: "" },
+            smartMatching: { enabled: false, confidence: 0.8 },
+            onMismatch: "error",
+            alsoGet: [],
+            showReferenceInfo: true,
+            allowReferenceEdit: false,
+          };
+          return lookupField;
+        }
+
+        return updatedField;
+      }
+      return field;
+    });
     onUpdate({ fields: updatedFields });
   };
 
@@ -290,7 +331,7 @@ const FieldsStep: React.FC<WorkflowStepProps> = ({
                     name: "name",
                     type: "string",
                     required: true,
-                    description: "Full name",
+                    description: "Name",
                   });
                 }}
               >
@@ -305,7 +346,7 @@ const FieldsStep: React.FC<WorkflowStepProps> = ({
       )}
 
       <div className="space-y-4">
-        {data.fields.map((field, index) => (
+        {data.fields.map(field => (
           <FieldEditor
             key={field.id}
             field={field}
@@ -356,8 +397,9 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
+  const referenceFiles = useAppSelector(selectReferenceFilesList);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
       if (isEditMode) {
         // Update existing shape
@@ -374,20 +416,32 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
           title: "Target Shape Updated",
           description: `"${data.name}" has been updated successfully.`,
         });
-      } else {
-        // Create new shape
-        dispatch(saveTargetShape(data));
-        toast({
-          title: "Target Shape Saved",
-          description: `"${data.name}" has been saved successfully.`,
-        });
-      }
 
-      // Call the callback if provided
-      if (onShapeCreated) {
-        onShapeCreated(data);
+        // Call the callback if provided
+        if (onShapeCreated) {
+          onShapeCreated(data);
+        }
+      } else {
+        // Create new shape using async thunk to get the saved shape with correct ID
+        const result = await dispatch(saveTargetShapeAsync(data));
+
+        if (saveTargetShapeAsync.fulfilled.match(result)) {
+          const savedShape = result.payload;
+
+          toast({
+            title: "Target Shape Saved",
+            description: `"${savedShape.name}" has been saved successfully.`,
+          });
+
+          // Call the callback with the saved shape (which has the correct ID)
+          if (onShapeCreated) {
+            onShapeCreated(savedShape);
+          }
+        } else {
+          throw new Error("Failed to save shape");
+        }
       }
-    } catch (error) {
+    } catch {
       toast({
         title: isEditMode ? "Update Failed" : "Save Failed",
         description: `Failed to ${isEditMode ? "update" : "save"} target shape. Please try again.`,
@@ -460,32 +514,97 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {data.fields.map(field => (
-                <div
-                  key={field.id}
-                  className="flex items-center justify-between p-2 border rounded"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{field.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {field.type} {field.required && "• Required"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {field.validation && field.validation.length > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {field.validation.length} rules
-                      </Badge>
+              {data.fields.map(field => {
+                const isLookupField = field.type === "lookup";
+                const lookupField = isLookupField
+                  ? (field as LookupField)
+                  : null;
+                const referenceFile = lookupField
+                  ? referenceFiles.find(
+                      ref => ref.id === lookupField.referenceFile
+                    )
+                  : null;
+
+                return (
+                  <div key={field.id} className="p-3 border rounded space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">{field.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {field.type} {field.required && "• Required"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {field.validation && field.validation.length > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {field.validation.length} rules
+                          </Badge>
+                        )}
+                        {field.transformation &&
+                          field.transformation.length > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {field.transformation.length} transforms
+                            </Badge>
+                          )}
+                      </div>
+                    </div>
+
+                    {/* Lookup Field Details */}
+                    {isLookupField && lookupField && (
+                      <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">
+                            Reference:
+                          </span>
+                          <span className="font-medium">
+                            {referenceFile
+                              ? referenceFile.filename
+                              : "Not configured"}
+                          </span>
+                        </div>
+                        {lookupField.match && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">
+                              Match:
+                            </span>
+                            <span className="font-mono">
+                              {lookupField.match.on} → {lookupField.match.get}
+                            </span>
+                          </div>
+                        )}
+                        {lookupField.smartMatching?.enabled && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">
+                              Fuzzy matching:
+                            </span>
+                            <span>
+                              {(
+                                (lookupField.smartMatching.confidence || 0.8) *
+                                100
+                              ).toFixed(0)}
+                              % confidence
+                            </span>
+                          </div>
+                        )}
+                        {lookupField.alsoGet &&
+                          lookupField.alsoGet.length > 0 && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">
+                                Derived columns:
+                              </span>
+                              <span>
+                                {lookupField.alsoGet
+                                  .map(d => d.name)
+                                  .filter(n => n)
+                                  .join(", ") || "None"}
+                              </span>
+                            </div>
+                          )}
+                      </div>
                     )}
-                    {field.transformation &&
-                      field.transformation.length > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          {field.transformation.length} transforms
-                        </Badge>
-                      )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -502,6 +621,512 @@ const ReviewStep: React.FC<WorkflowStepProps> = ({
         </Button>
       </div>
     </div>
+  );
+};
+
+// Lookup Configuration Component
+interface LookupConfigurationProps {
+  field: LookupField;
+  onUpdate: (updates: Partial<LookupField>) => void;
+}
+
+const LookupConfiguration: React.FC<LookupConfigurationProps> = ({
+  field,
+  onUpdate,
+}) => {
+  const dispatch = useAppDispatch();
+  const referenceFiles = useAppSelector(selectReferenceFilesList);
+  const selectedReference = referenceFiles.find(
+    ref => ref.id === field.referenceFile
+  );
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleReferenceSelect = (referenceId: string) => {
+    const reference = referenceFiles.find(ref => ref.id === referenceId);
+    if (reference) {
+      onUpdate({
+        referenceFile: referenceId,
+        match: {
+          on: reference.columns[0] || "",
+          get: reference.columns[0] || "",
+        },
+      });
+    }
+  };
+
+  const handleMatchConfigUpdate = (updates: Partial<LookupMatch>) => {
+    onUpdate({
+      match: { ...field.match, ...updates },
+    });
+  };
+
+  const handleSmartMatchingUpdate = (updates: Partial<SmartMatching>) => {
+    onUpdate({
+      smartMatching: { ...field.smartMatching, ...updates },
+    });
+  };
+
+  const handleAddDerivedField = () => {
+    const newDerivedField: DerivedField = {
+      name: "",
+      source: selectedReference?.columns[0] || "",
+    };
+    onUpdate({
+      alsoGet: [...(field.alsoGet || []), newDerivedField],
+    });
+  };
+
+  const handleUpdateDerivedField = (
+    index: number,
+    updates: Partial<DerivedField>
+  ) => {
+    const updatedDerived = (field.alsoGet || []).map((derived, i) =>
+      i === index ? { ...derived, ...updates } : derived
+    );
+    onUpdate({ alsoGet: updatedDerived });
+  };
+
+  const handleRemoveDerivedField = (index: number) => {
+    const updatedDerived = (field.alsoGet || []).filter((_, i) => i !== index);
+    onUpdate({ alsoGet: updatedDerived });
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const referenceId = generateReferenceId(file.name.split(".")[0]);
+
+    try {
+      dispatch(uploadFileStart({ filename: file.name }));
+
+      const info = await referenceDataManager.uploadReferenceFile(
+        file,
+        referenceId
+      );
+
+      dispatch(uploadFileSuccess({ info }));
+
+      // Auto-select the newly uploaded file
+      handleReferenceSelect(referenceId);
+    } catch (error) {
+      dispatch(
+        uploadFileError({
+          error: error instanceof Error ? error.message : "Upload failed",
+        })
+      );
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-4 border-t pt-4">
+      <div>
+        <Label className="text-sm font-medium">Lookup Configuration</Label>
+        <p className="text-xs text-muted-foreground">
+          Configure how this field matches against reference data
+        </p>
+      </div>
+
+      {/* Reference File Selection */}
+      <div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="reference-file">Reference Data File</Label>
+          <div className="flex gap-2">
+            <DemoTemplateSelector
+              onTemplateSelect={async template => {
+                setIsUploading(true);
+                try {
+                  // Convert template data to CSV blob
+                  const csvContent = [
+                    Object.keys(template.data[0]).join(","),
+                    ...template.data.map(row => Object.values(row).join(",")),
+                  ].join("\n");
+
+                  const blob = new Blob([csvContent], { type: "text/csv" });
+                  const file = new File([blob], template.filename, {
+                    type: "text/csv",
+                  });
+
+                  const referenceId = `demo_${template.id}`;
+
+                  dispatch(uploadFileStart({ filename: file.name }));
+                  const info = await referenceDataManager.uploadReferenceFile(
+                    file,
+                    referenceId,
+                    { overwrite: true }
+                  );
+                  dispatch(uploadFileSuccess({ info }));
+
+                  // Auto-configure the lookup with suggested settings
+                  const suggestion = template.suggestedLookups[0];
+                  if (suggestion) {
+                    const alsoGetFields = suggestion.alsoGet.map(fieldName => ({
+                      name: fieldName, // Will be auto-renamed by smart naming
+                      source: fieldName,
+                    }));
+
+                    onUpdate({
+                      referenceFile: referenceId,
+                      match: {
+                        on: suggestion.matchOn,
+                        get: suggestion.returnField,
+                      },
+                      alsoGet: alsoGetFields,
+                    });
+                  } else {
+                    handleReferenceSelect(referenceId);
+                  }
+                } catch (error) {
+                  dispatch(
+                    uploadFileError({
+                      error:
+                        error instanceof Error
+                          ? error.message
+                          : "Failed to load demo template",
+                    })
+                  );
+                } finally {
+                  setIsUploading(false);
+                }
+              }}
+              trigger={
+                <Button variant="outline" size="sm" disabled={isUploading}>
+                  <Plus className="mr-2 h-3 w-3" />
+                  Demo Data
+                </Button>
+              }
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Plus className="mr-2 h-3 w-3" />
+              {isUploading ? "Uploading..." : "Upload File"}
+            </Button>
+          </div>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,.json"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="mt-1 w-full justify-start">
+              {selectedReference
+                ? selectedReference.filename
+                : "Select reference file"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-full">
+            {referenceFiles.length === 0 ? (
+              <div className="p-2 text-sm text-muted-foreground">
+                No reference files available. Upload reference data first.
+              </div>
+            ) : (
+              referenceFiles.map(ref => (
+                <DropdownMenuItem
+                  key={ref.id}
+                  onClick={() => handleReferenceSelect(ref.id)}
+                >
+                  <div>
+                    <p className="font-medium">{ref.filename}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {ref.rowCount} rows, {ref.columns.length} columns
+                    </p>
+                  </div>
+                </DropdownMenuItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {selectedReference && (
+        <>
+          {/* Match Configuration */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="match-on">Match On Column</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="mt-1 w-full justify-start"
+                  >
+                    {field.match?.on || "Select column"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {selectedReference.columns.map(column => (
+                    <DropdownMenuItem
+                      key={column}
+                      onClick={() => handleMatchConfigUpdate({ on: column })}
+                    >
+                      {column}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div>
+              <Label htmlFor="match-get">Return Column</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="mt-1 w-full justify-start"
+                  >
+                    {field.match?.get || "Select column"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {selectedReference.columns.map(column => (
+                    <DropdownMenuItem
+                      key={column}
+                      onClick={() => handleMatchConfigUpdate({ get: column })}
+                    >
+                      {column}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Smart Matching Settings */}
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="smart-matching"
+                checked={field.smartMatching?.enabled || false}
+                onCheckedChange={enabled =>
+                  handleSmartMatchingUpdate({ enabled })
+                }
+              />
+              <Label htmlFor="smart-matching">Enable fuzzy matching</Label>
+            </div>
+
+            {field.smartMatching?.enabled && (
+              <div>
+                <Label htmlFor="confidence-threshold">
+                  Confidence Threshold:{" "}
+                  {((field.smartMatching?.confidence || 0.8) * 100).toFixed(0)}%
+                </Label>
+                <input
+                  type="range"
+                  id="confidence-threshold"
+                  min="0.5"
+                  max="1.0"
+                  step="0.05"
+                  value={field.smartMatching?.confidence || 0.8}
+                  onChange={e =>
+                    handleSmartMatchingUpdate({
+                      confidence: parseFloat(e.target.value),
+                    })
+                  }
+                  className="mt-1 w-full"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Mismatch Behavior */}
+          <div>
+            <Label htmlFor="mismatch-behavior">On Mismatch</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="mt-1 w-full justify-start">
+                  {field.onMismatch === "error"
+                    ? "Show Error"
+                    : field.onMismatch === "warning"
+                      ? "Show Warning"
+                      : "Set to Null"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  onClick={() => onUpdate({ onMismatch: "error" })}
+                >
+                  Show Error
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onUpdate({ onMismatch: "warning" })}
+                >
+                  Show Warning
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onUpdate({ onMismatch: "null" })}
+                >
+                  Set to Null
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Derived Fields */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>Additional Columns to Include</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddDerivedField}
+              >
+                <Plus className="mr-2 h-3 w-3" />
+                Add Column
+              </Button>
+            </div>
+
+            {field.alsoGet && field.alsoGet.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {field.alsoGet.map((derived, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      placeholder="Column name"
+                      value={derived.name}
+                      onChange={e =>
+                        handleUpdateDerivedField(index, {
+                          name: e.target.value,
+                        })
+                      }
+                      className="flex-1"
+                    />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          {derived.source || "Select source"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {selectedReference.columns.map(column => (
+                          <DropdownMenuItem
+                            key={column}
+                            onClick={() =>
+                              handleUpdateDerivedField(index, {
+                                source: column,
+                              })
+                            }
+                          >
+                            {column}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveDerivedField(index)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Lookup Preview */}
+          {selectedReference && field.alsoGet && field.alsoGet.length > 0 && (
+            <div className="mt-4">
+              <LookupPreview
+                lookupField={field}
+                referenceData={(() => {
+                  // Try to get actual reference data first
+                  const actualData = referenceDataManager.getReferenceDataRows(
+                    field.referenceFile
+                  );
+                  if (actualData && actualData.length > 0) {
+                    return actualData;
+                  }
+
+                  // Fallback to better sample data with realistic types
+                  return selectedReference.columns.length > 0
+                    ? [
+                        {
+                          ...selectedReference.columns.reduce((acc, col) => {
+                            // Generate type-appropriate sample values
+                            let sampleValue: any = col;
+                            if (
+                              col.toLowerCase().includes("budget") ||
+                              col.toLowerCase().includes("price") ||
+                              col.toLowerCase().includes("cost")
+                            ) {
+                              sampleValue = 500000;
+                            } else if (
+                              col.toLowerCase().includes("count") ||
+                              col.toLowerCase().includes("num")
+                            ) {
+                              sampleValue = 25;
+                            } else if (col.toLowerCase().includes("date")) {
+                              sampleValue = "2024-01-15";
+                            } else if (col.toLowerCase().includes("email")) {
+                              sampleValue = "example@company.com";
+                            } else {
+                              sampleValue = `Sample ${col.charAt(0).toUpperCase() + col.slice(1)}`;
+                            }
+
+                            return { ...acc, [col]: sampleValue };
+                          }, {}),
+                        },
+                      ]
+                    : [];
+                })()}
+                className="mt-2"
+              />
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// Enum Configuration Component
+interface EnumConfigurationProps {
+  field: EnumField;
+  onUpdate: (updates: Partial<EnumField>) => void;
+}
+
+const EnumConfiguration: React.FC<EnumConfigurationProps> = ({
+  field,
+  onUpdate,
+}) => {
+  const handleConfigUpdate = (config: EnumConfiguration) => {
+    onUpdate({
+      options: config.options,
+      unique: config.unique,
+      // Note: required is already handled by the main field form
+    });
+  };
+
+  const currentConfig: EnumConfiguration = {
+    required: field.required,
+    unique: field.unique || false,
+    options: field.options || [],
+  };
+
+  return (
+    <EnumOptionsControl
+      configuration={currentConfig}
+      onUpdate={handleConfigUpdate}
+    />
   );
 };
 
@@ -537,6 +1162,7 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
     { value: "currency", label: "Currency" },
     { value: "percentage", label: "Percentage" },
     { value: "enum", label: "Enum" },
+    { value: "lookup", label: "Lookup" },
   ];
 
   if (isEditing) {
@@ -573,7 +1199,17 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
                   {fieldTypes.map(type => (
                     <DropdownMenuItem
                       key={type.value}
-                      onClick={() => onUpdate({ type: type.value })}
+                      onClick={() => {
+                        const updates: Partial<TargetField> = { type: type.value };
+                        
+                        // Initialize enum-specific properties when changing to enum type
+                        if (type.value === "enum" && field.type !== "enum") {
+                          (updates as Partial<EnumField>).options = [];
+                          (updates as Partial<EnumField>).unique = false;
+                        }
+                        
+                        onUpdate(updates);
+                      }}
                     >
                       {type.label}
                     </DropdownMenuItem>
@@ -604,6 +1240,22 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
             <Label htmlFor={`field-required-${field.id}`}>Required field</Label>
           </div>
 
+          {/* Lookup Configuration */}
+          {field.type === "lookup" && (
+            <LookupConfiguration
+              field={field as LookupField}
+              onUpdate={onUpdate}
+            />
+          )}
+
+          {/* Enum Configuration */}
+          {field.type === "enum" && (
+            <EnumConfiguration
+              field={field as EnumField}
+              onUpdate={onUpdate}
+            />
+          )}
+
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={onCancel}>
               Cancel
@@ -629,7 +1281,7 @@ const FieldEditor: React.FC<FieldEditorProps> = ({
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" onClick={onEdit}>
-              <Eye className="h-4 w-4" />
+              <Pencil className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={onRemove}>
               <Trash2 className="h-4 w-4" />
@@ -670,8 +1322,8 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
         name: `Shape from ${importedData.length} records`,
         description: `Auto-generated shape from imported data with ${analysis.suggestedFields.length} fields`,
         version: "1.0.0",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         fields: analysis.suggestedFields,
         metadata: {
           category: "custom",
@@ -687,8 +1339,8 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
       name: "",
       description: "",
       version: "1.0.0",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       fields: [],
       metadata: {
         category: "custom",
@@ -697,6 +1349,18 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
       },
     };
   });
+
+  // Always warn user before leaving the form
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ""; // Required for Chrome
+      return ""; // Required for other browsers
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
 
   const steps: WorkflowStep[] = [
     {
@@ -723,8 +1387,15 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
     setShapeData(prev => ({
       ...prev,
       ...updates,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     }));
+  };
+
+  const handleShapeSaved = (shape: TargetShape) => {
+    // Call the original callback
+    if (onShapeCreated) {
+      onShapeCreated(shape);
+    }
   };
 
   const handleNext = () => {
@@ -791,7 +1462,7 @@ export const TargetShapeWorkflow: React.FC<TargetShapeWorkflowProps> = ({
         onBack={handleBack}
         isFirst={currentStep === 0}
         isLast={currentStep === steps.length - 1}
-        onShapeCreated={onShapeCreated}
+        onShapeCreated={handleShapeSaved}
         isEditMode={!!initialShape}
       />
     </div>

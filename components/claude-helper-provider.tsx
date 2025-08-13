@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { errorLogger, ErrorBoundary } from "@/lib/utils/error-logging";
+import { ErrorBoundary } from "@/lib/utils/error-logging";
 import { DevClaudeHelper } from "./dev-claude-helper";
 
 export function ClaudeHelperProvider({

@@ -2,7 +2,8 @@
 
 import { TargetShapeWorkflow } from "./target-shape-workflow";
 import { DataAnalysisTest } from "./data-analysis-test";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function TargetShapeWorkflowPage() {
   return (

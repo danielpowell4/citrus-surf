@@ -8,7 +8,7 @@
  * 4. Fuzzy match (Levenshtein distance)
  */
 
-import type { TargetField } from "@/lib/types/target-shapes";
+import type { TargetField, FieldType } from "@/lib/types/target-shapes";
 import {
   generateFieldVariations as generateFieldVariationsFromTokens,
   generateColumnVariations as generateColumnVariationsFromTokens,

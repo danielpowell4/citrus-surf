@@ -9,9 +9,9 @@ import { generateRowId } from "./id-generator";
  */
 export function injectRowIds(
   data: any[],
-  preserveExistingId: boolean = false
+  _preserveExistingId: boolean = false
 ): any[] {
-  return data.map((row, index) => {
+  return data.map(row => {
     const processedRow = { ...row };
 
     // Generate unique row ID with vendor prefix (cs_...)

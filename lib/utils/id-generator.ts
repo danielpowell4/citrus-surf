@@ -21,6 +21,9 @@ export const ID_PREFIXES = {
   VALIDATION: "val",
   TRANSFORMATION: "trans",
   ROW: "cs",
+  REFERENCE: "ref",
+  LOOKUP_BATCH: "batch",
+  FUZZY_MATCH: "match",
 } as const;
 
 // Convenience functions for common ID types
@@ -31,6 +34,9 @@ export const generateValidationId = () => generateId(ID_PREFIXES.VALIDATION);
 export const generateTransformationId = () =>
   generateId(ID_PREFIXES.TRANSFORMATION);
 export const generateRowId = () => generateId(ID_PREFIXES.ROW);
+export const generateReferenceId = () => generateId(ID_PREFIXES.REFERENCE);
+export const generateLookupBatchId = () => generateId(ID_PREFIXES.LOOKUP_BATCH);
+export const generateFuzzyMatchId = () => generateId(ID_PREFIXES.FUZZY_MATCH);
 
 // Validate ID format
 export const isValidId = (id: string, prefix?: string): boolean => {

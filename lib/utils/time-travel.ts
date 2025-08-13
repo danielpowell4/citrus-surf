@@ -15,6 +15,8 @@ import {
   clearImportData,
   setLoading,
   setError,
+  setColumnOrder,
+  setAppliedTargetShapeId,
 } from "@/lib/features/tableSlice";
 
 export interface TimeTravelOptions {
@@ -101,6 +103,16 @@ export const restoreStateToAction = (
     }
   }
 
+  // Restore column order (critical for template applications)
+  if (snapshot.columnOrder) {
+    dispatch(setColumnOrder(snapshot.columnOrder));
+  }
+
+  // Restore applied target shape ID (critical for template applications)
+  if (snapshot.appliedTargetShapeId !== undefined) {
+    dispatch(setAppliedTargetShapeId(snapshot.appliedTargetShapeId));
+  }
+
   // Restore loading and error states
   if (snapshot.isLoading !== undefined) {
     dispatch(setLoading(snapshot.isLoading));
@@ -168,11 +180,15 @@ export const getActionSummary = (action: HistoryAction) => {
       return "Cleared import data";
     case "restoreFromHistory":
       const restoredFrom = action.payload?.restoredFrom;
-      const restoredAction = action.payload?.restoredFromAction;
+      const _restoredAction = action.payload?.restoredFromAction;
       if (restoredFrom !== undefined) {
         return `Restored from version ${restoredFrom + 1}`;
       }
       return "Restored from history";
+    case "processDataWithLookups/fulfilled":
+      return `Processed ${action.stateSnapshot?.data?.length || 0} rows with lookups`;
+    case "updateLookupValue/fulfilled":
+      return `Updated lookup value for ${action.payload?.fieldName || "field"}`;
     default:
       return actionType;
   }
@@ -185,7 +201,9 @@ export const getActionCategory = (actionType: string) => {
   if (
     actionType.includes("setData") ||
     actionType.includes("importJsonData") ||
-    actionType.includes("updateCell")
+    actionType.includes("updateCell") ||
+    actionType.includes("processDataWithLookups") ||
+    actionType.includes("updateLookupValue")
   ) {
     return "data";
   }

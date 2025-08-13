@@ -30,6 +30,7 @@ interface ColumnMappingProps {
   onMappingChange: (mapping: Record<string, string>) => void;
   onApplyMapping: () => void;
   className?: string;
+  isApplying?: boolean;
 }
 
 // Legacy helper function kept for backward compatibility
@@ -47,6 +48,7 @@ export function ColumnMapping({
   onMappingChange,
   onApplyMapping,
   className = "",
+  isApplying = false,
 }: ColumnMappingProps) {
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [usedColumns, setUsedColumns] = useState<Set<string>>(new Set());
@@ -327,11 +329,16 @@ export function ColumnMapping({
         <div className="flex justify-end pt-4 border-t border-border dark:border-border">
           <Button
             onClick={onApplyMapping}
-            disabled={!canApplyMapping}
+            disabled={!canApplyMapping || isApplying}
             className="flex items-center gap-2"
           >
-            <ArrowRight className="w-4 h-4" />
-            Apply Mapping {!canApplyMapping && "(missing required fields)"}
+            {isApplying ? (
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ArrowRight className="w-4 h-4" />
+            )}
+            Apply Mapping{" "}
+            {!canApplyMapping && !isApplying && "(missing required fields)"}
           </Button>
         </div>
       </CardContent>

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { analyzeDataForTargetShape } from "./data-analysis";
+import type { EnumField } from "@/lib/types/target-shapes";
 
 describe("Data Analysis - Field Type Detection", () => {
   it("firstName and lastName should be detected as string, not enum", () => {
@@ -78,8 +79,10 @@ describe("Data Analysis - Field Type Detection", () => {
       f => f.name === "haspermission"
     );
 
-    expect(isActiveField?.type).toBe("enum"); // true/false values are detected as enum due to limited unique values
-    expect(hasPermissionField?.type).toBe("boolean"); // "yes"/"no" strings are detected as boolean
+    // JavaScript true/false boolean values should be detected as boolean
+    expect(isActiveField?.type).toBe("boolean");
+    // String "yes"/"no" values should be detected as boolean
+    expect(hasPermissionField?.type).toBe("boolean");
   });
 
   it("should detect date fields correctly", () => {
@@ -135,5 +138,101 @@ describe("Data Analysis - Field Type Detection", () => {
 
     // Should only have 3 fields (id, firstName, lastName), not 4
     expect(result.suggestedFields).toHaveLength(3);
+  });
+});
+
+describe("Data Analysis - Enum Options Population", () => {
+  it("should detect status field as enum and populate options", () => {
+    const testData = [
+      { id: 1, status: "active", name: "John Doe" },
+      { id: 2, status: "inactive", name: "Jane Smith" },
+      { id: 3, status: "pending", name: "Bob Johnson" },
+      { id: 4, status: "active", name: "Alice Brown" },
+      { id: 5, status: "inactive", name: "Charlie Wilson" },
+    ];
+
+    const result = analyzeDataForTargetShape(testData);
+    
+    const statusField = result.suggestedFields.find(field => field.name === "status");
+    expect(statusField).toBeDefined();
+    expect(statusField!.type).toBe("enum");
+
+    const enumField = statusField as EnumField;
+    expect(enumField.options).toBeDefined();
+    expect(enumField.options).toHaveLength(3);
+    
+    // Check that options are sorted alphabetically
+    expect(enumField.options[0]).toEqual({ value: "active", label: "Active" });
+    expect(enumField.options[1]).toEqual({ value: "inactive", label: "Inactive" });
+    expect(enumField.options[2]).toEqual({ value: "pending", label: "Pending" });
+  });
+
+  it("should detect department field as enum with proper labels", () => {
+    const testData = [
+      { employee_id: 1, department: "engineering", salary: 80000 },
+      { employee_id: 2, department: "marketing", salary: 70000 },
+      { employee_id: 3, department: "hr", salary: 65000 },
+      { employee_id: 4, department: "engineering", salary: 85000 },
+      { employee_id: 5, department: "sales", salary: 75000 },
+    ];
+
+    const result = analyzeDataForTargetShape(testData);
+    
+    const deptField = result.suggestedFields.find(field => field.name === "department");
+    expect(deptField).toBeDefined();
+    expect(deptField!.type).toBe("enum");
+
+    const enumField = deptField as EnumField;
+    expect(enumField.options).toHaveLength(4);
+    
+    // Check that labels are properly formatted
+    const hrOption = enumField.options.find(opt => opt.value === "hr");
+    expect(hrOption).toEqual({ value: "hr", label: "Hr" });
+    
+    const engineeringOption = enumField.options.find(opt => opt.value === "engineering");
+    expect(engineeringOption).toEqual({ value: "engineering", label: "Engineering" });
+  });
+
+  it("should handle snake_case and camelCase values in enum labels", () => {
+    const testData = [
+      { priority: "high_priority", category: "userInterface" },
+      { priority: "low_priority", category: "backEnd" },
+      { priority: "medium_priority", category: "database" },
+      { priority: "high_priority", category: "userInterface" },
+    ];
+
+    const result = analyzeDataForTargetShape(testData);
+    
+    const priorityField = result.suggestedFields.find(field => field.name === "priority") as EnumField;
+    expect(priorityField.type).toBe("enum");
+    
+    const highPriorityOption = priorityField.options.find(opt => opt.value === "high_priority");
+    expect(highPriorityOption!.label).toBe("High Priority");
+    
+    const categoryField = result.suggestedFields.find(field => field.name === "category") as EnumField;
+    expect(categoryField.type).toBe("enum");
+    
+    const uiOption = categoryField.options.find(opt => opt.value === "userInterface");
+    expect(uiOption!.label).toBe("User Interface");
+  });
+
+  it("should handle empty and null values in enum detection", () => {
+    const testData = [
+      { status: "active", level: "beginner" },
+      { status: "inactive", level: "intermediate" },
+      { status: "", level: null },
+      { status: "pending", level: "advanced" },
+      { status: null, level: "beginner" },
+    ];
+
+    const result = analyzeDataForTargetShape(testData);
+    
+    const statusField = result.suggestedFields.find(field => field.name === "status") as EnumField;
+    expect(statusField.type).toBe("enum");
+    expect(statusField.options).toHaveLength(3); // Should exclude empty/null values
+    
+    const levelField = result.suggestedFields.find(field => field.name === "level") as EnumField;
+    expect(levelField.type).toBe("enum");
+    expect(levelField.options).toHaveLength(3); // Should exclude null values
   });
 });

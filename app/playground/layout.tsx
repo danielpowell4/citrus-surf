@@ -52,7 +52,7 @@ function PlaygroundContent({
   setIsExpanded: (value: boolean) => void;
 }) {
   // Handle client-side hydration
-  const { isHydrated } = useHydration();
+  const { isHydrated: _isHydrated } = useHydration();
 
   return (
     <div

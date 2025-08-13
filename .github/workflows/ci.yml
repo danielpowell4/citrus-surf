@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, playground]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-checks:
+    name: Code Quality & Type Safety
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build application (includes type checking)
+        run: pnpm run build
+
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Check code formatting
+        run: pnpm run format:check
+
+      - name: Run tests
+        run: pnpm run test
+
+  typecheck-informational:
+    name: TypeScript Type Check (Informational)
+    runs-on: ubuntu-latest
+    if: >
+      contains(github.event.head_commit.modified, '*.ts') ||
+      contains(github.event.head_commit.modified, '*.tsx') ||
+      contains(github.event.head_commit.modified, 'package.json') ||
+      contains(github.event.head_commit.modified, 'tsconfig.json') ||
+      github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run TypeScript type check
+        run: pnpm run typecheck
+        continue-on-error: true
+
+      - name: Count TypeScript errors
+        run: |
+          ERROR_COUNT=$(pnpm run typecheck 2>&1 | grep "error TS" | wc -l || echo "0")
+          echo "📊 TypeScript Status: $ERROR_COUNT errors found"
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "ℹ️  This is informational - errors in test files won't block deployment"
+            echo "🎯 Goal: Reduce errors over time for better developer experience"
+          else
+            echo "✅ No TypeScript errors found!"
+          fi

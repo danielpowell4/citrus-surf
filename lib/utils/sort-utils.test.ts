@@ -160,11 +160,11 @@ describe("naturalSortForTable", () => {
 
   it("should handle null values from table rows", () => {
     const mockRowA = {
-      getValue: (columnId: string) => null,
+      getValue: (_columnId: string) => null,
     };
 
     const mockRowB = {
-      getValue: (columnId: string) => "Alice",
+      getValue: (_columnId: string) => "Alice",
     };
 
     const result = naturalSortForTable(mockRowA, mockRowB, "name");
@@ -173,11 +173,11 @@ describe("naturalSortForTable", () => {
 
   it("should handle alphanumeric values from table rows", () => {
     const mockRowA = {
-      getValue: (columnId: string) => "EMP10",
+      getValue: (_columnId: string) => "EMP10",
     };
 
     const mockRowB = {
-      getValue: (columnId: string) => "EMP2",
+      getValue: (_columnId: string) => "EMP2",
     };
 
     const result = naturalSortForTable(mockRowA, mockRowB, "id");

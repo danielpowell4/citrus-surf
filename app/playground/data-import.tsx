@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import {
-  Upload,
-  Download,
-  RotateCcw,
-  FileText,
-  Database,
-  FileUp,
-  X,
-} from "lucide-react";
+import { Upload, Download, FileText, Database, FileUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -186,7 +178,7 @@ export function DataImport({
         const startIndex = hasHeaders ? 1 : 0;
         const headers = hasHeaders ? parseCsvLine(lines[0], delimChar) : [];
 
-        parsedData = lines.slice(startIndex).map((line, index) => {
+        parsedData = lines.slice(startIndex).map(line => {
           const values = parseCsvLine(line, delimChar);
           if (hasHeaders) {
             const row: any = {};
@@ -291,7 +283,7 @@ export function DataImport({
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "File read error",
           description: "Could not read the selected file",
@@ -569,7 +561,7 @@ export function DataImport({
                       ? parseCsvLine(lines[0], delimChar)
                       : [];
 
-                    parsedData = lines.slice(startIndex).map((line, index) => {
+                    parsedData = lines.slice(startIndex).map(line => {
                       const values = parseCsvLine(line, delimChar);
                       if (hasHeaders) {
                         const row: any = {};
@@ -583,7 +575,7 @@ export function DataImport({
                     });
                   }
                   onCreateShapeFromData(parsedData);
-                } catch (error) {
+                } catch {
                   toast({
                     title: "Invalid data",
                     description:

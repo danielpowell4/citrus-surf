@@ -42,6 +42,7 @@ The project follows a documentation-first approach with extensive guides in the 
 **System Documentation**:
 
 - `docs/target-shapes.md` - Core data transformation system
+- `docs/template-creation-workflow.md` - Template builder integration and navigation
 - `docs/import-system.md` - Data import workflow
 - `docs/export-system.md` - Data export functionality
 - `docs/history-system.md` - Time-travel and undo/redo
@@ -87,6 +88,7 @@ The application uses Redux Toolkit with a sophisticated state management system:
 
 - **Auto-persistence**: State automatically saves to localStorage with debouncing
 - **History tracking**: All meaningful user actions are tracked for undo/redo
+- **Complete state restoration**: Template applications and all UI state can be reverted in 1 click
 - **Hydration system**: Handles SSR/client state synchronization safely
 - **Per-request stores**: Each request gets its own store instance
 
@@ -105,6 +107,31 @@ The core data transformation system based on schema definitions:
 - **Transformation Rules**: Data transformation pipeline (trim, format, extract, etc.)
 
 **Critical Rule**: Never modify target shape core logic without understanding full impact on data integrity. Reference `docs/target-shapes.md` for implementation guidance.
+
+### Lookup System Architecture
+
+Complete lookup field system with matching engine and data processing integration:
+
+**Core Components:**
+
+- **Matching Engine**: `lib/utils/lookup-matching-engine.ts`, `lib/utils/string-similarity.ts`
+- **Data Processor**: `lib/utils/lookup-processor.ts` - Full Redux integration with async processing
+- **Redux Integration**: Enhanced `lib/features/tableSlice.ts` with lookup async thunks
+
+**Key Features:**
+
+- **Multi-tier Matching**: Exact → Normalized → Fuzzy matching with configurable thresholds
+- **Advanced Algorithms**: Levenshtein, Jaro, and Jaro-Winkler similarity with weighted scoring
+- **Data Processing**: Automatic lookup processing during import with derived column generation
+- **Real-time Updates**: Live lookup updates when users edit lookup field values
+- **Batch Processing**: Async operations with progress tracking for large datasets (10k+ rows)
+- **Error Handling**: Comprehensive error collection, statistics, and fuzzy match review
+- **History Integration**: Lookup operations tracked in meaningful actions for undo/redo
+- **Enhanced Validation**: Auto-generated enum rules, confidence scoring, and reference data integrity checks
+- **Derived Fields**: Automatic extraction of additional columns during lookups
+- **Performance Optimized**: <1ms exact matches, <10ms fuzzy matches, >100 ops/second throughput
+
+**Critical Pattern**: Always use the matching engine for lookup operations rather than implementing custom string matching. The engine handles edge cases, null values, and performance optimization.
 
 ### File Structure Patterns
 
@@ -145,7 +172,15 @@ The core data transformation system based on schema definitions:
 **Framework**: Vitest with React Testing Library
 **Setup**: `test/setup.ts` configures jsdom environment
 **Location**: Tests co-located with source files (`.test.ts/.test.tsx`)
-**Coverage**: Focus on data transformation logic and UI component behavior
+
+**Testing Philosophy**: Focus on user-facing acceptance criteria rather than implementation details
+
+- ✅ **High-Value Tests**: Upload success, progress feedback, error handling, accessibility
+- ✅ **Core Business Logic**: Data processing, validation, transformation algorithms
+- ❌ **Low-Value Tests**: Complex integration workflows, implementation details, redundant scenarios
+- **Goal**: Lean, stable test suite that catches real bugs without hindering development velocity
+
+**Test Value Assessment**: Regularly remove tests that provide minimal user value or break frequently due to implementation changes. Prefer focused unit tests over complex multi-step integration tests.
 
 ### Persistence & Hydration
 
@@ -155,8 +190,9 @@ The core data transformation system based on schema definitions:
 - `lib/utils/redux-persistence.ts` - Core persistence logic
 - `lib/hooks/useHydration.ts` - SSR-safe state restoration
 - `lib/hooks/usePersistence.ts` - Persistence status tracking
+- `lib/utils/time-travel.ts` - Complete state restoration including template applications
 
-**Critical Pattern**: Always handle hydration mismatches between server and client state.
+**Critical Pattern**: Always handle hydration mismatches between server and client state. When adding new actions that modify table state, ensure they restore all necessary properties in `time-travel.ts`.
 
 ## Development Guidelines
 
