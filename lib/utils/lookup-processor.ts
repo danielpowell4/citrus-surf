@@ -322,6 +322,11 @@ export class LookupProcessor {
     );
 
     if (!referenceData || referenceData.length === 0) {
+      const allFiles = referenceDataManager.listReferenceFiles();
+      console.error(`[LookupProcessor] Reference data not found for ${field.referenceFile}`, {
+        requestedFile: field.referenceFile,
+        availableFiles: allFiles.map(f => ({ id: f.id, filename: f.filename }))
+      });
       throw new Error(`Reference data not found for ${field.referenceFile}`);
     }
 

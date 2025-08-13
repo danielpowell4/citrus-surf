@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -81,15 +81,39 @@ export function LookupEditableCell({
   const isEditing =
     editingCell?.rowId === rowId && editingCell?.columnId === columnId;
 
-  // Get reference data
-  const referenceData =
-    referenceDataManager.getReferenceDataRows(lookupField.referenceFile) || [];
-  const referenceInfo = referenceDataManager.getReferenceData(
-    lookupField.referenceFile
-  )?.info;
+  // Get reference data - memoize to prevent unnecessary re-creation
+  const referenceData = useMemo(
+    () => {
+      const allFiles = referenceDataManager.listReferenceFiles();
+      const data = referenceDataManager.getReferenceDataRows(lookupField.referenceFile) || [];
+      console.log(`[LookupEditableCell] Reference data for ${lookupField.referenceFile}:`, {
+        referenceFile: lookupField.referenceFile,
+        dataLength: data.length,
+        sampleData: data.slice(0, 2),
+        allAvailableFiles: allFiles.map(f => ({ id: f.id, filename: f.filename, rowCount: f.rowCount }))
+      });
+      return data;
+    },
+    [lookupField.referenceFile]
+  );
+  
+  const referenceInfo = useMemo(
+    () => {
+      const info = referenceDataManager.getReferenceData(lookupField.referenceFile)?.info;
+      console.log(`[LookupEditableCell] Reference info for ${lookupField.referenceFile}:`, info);
+      return info;
+    },
+    [lookupField.referenceFile]
+  );
 
-  // Initialize lookup engine
-  const lookupEngine = new LookupMatchingEngine();
+  // Initialize lookup engine - memoize to prevent re-creation
+  const lookupEngine = useMemo(() => new LookupMatchingEngine(), []);
+
+  // Memoize lookup config to prevent unnecessary re-creation
+  const lookupConfig = useMemo(
+    () => createLookupConfig(lookupField),
+    [lookupField.referenceFile, lookupField.match.on, lookupField.match.get, lookupField.smartMatching.enabled, lookupField.smartMatching.confidence]
+  );
 
   // Update local state when value changes
   useEffect(() => {
@@ -99,11 +123,10 @@ export function LookupEditableCell({
   // Perform lookup when input value changes
   useEffect(() => {
     if (inputValue && referenceData.length > 0) {
-      const config = createLookupConfig(lookupField);
       const result = lookupEngine.performLookup(
         inputValue,
         referenceData,
-        config
+        lookupConfig
       );
       setLookupResult(result);
 
@@ -113,9 +136,9 @@ export function LookupEditableCell({
           const lookupValue = row[lookupField.match.on];
           if (!lookupValue) return null;
 
-          const fuzzyConfig = { ...config };
+          const fuzzyConfig = { ...lookupConfig };
           fuzzyConfig.smartMatching = {
-            ...config.smartMatching,
+            ...lookupConfig.smartMatching,
             confidence: 0.3,
           };
           const fuzzyResult = lookupEngine.performLookup(
@@ -147,7 +170,7 @@ export function LookupEditableCell({
       setSuggestions([]);
       setLookupResult(null);
     }
-  }, [inputValue, referenceData, lookupField]);
+  }, [inputValue, referenceData, lookupConfig, lookupEngine, lookupField.match.on, lookupField.match.get]);
 
   const handleValueSelect = async (
     selectedValue: string,
@@ -181,6 +204,12 @@ export function LookupEditableCell({
   };
 
   const handleDoubleClick = () => {
+    // Don't allow editing if reference data is missing
+    if (referenceData.length === 0) {
+      console.warn(`Cannot edit lookup field ${columnId}: reference data missing for ${lookupField.referenceFile}`);
+      return;
+    }
+    
     dispatch(startEditing({ rowId, columnId }));
     setOpen(true);
   };
@@ -266,6 +295,27 @@ export function LookupEditableCell({
 
   // Render display value with lookup information
   const renderDisplay = () => {
+    // Check if reference data is missing and show a warning
+    if (referenceData.length === 0) {
+      return (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-destructive text-xs" title={`Reference file: ${lookupField.referenceFile}`}>
+              Missing reference data
+            </span>
+            <AlertCircle className="h-3 w-3 text-destructive" />
+          </div>
+          {lookupField.showReferenceInfo && (
+            <ReferenceInfoPopup
+              referenceInfo={referenceInfo}
+              referenceData={referenceData}
+              lookupField={lookupField}
+            />
+          )}
+        </div>
+      );
+    }
+
     if (!initialValue && initialValue !== 0) {
       return (
         <div className="flex items-center justify-between">
